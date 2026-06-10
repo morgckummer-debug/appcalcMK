@@ -1,2 +1,2 @@
 # appcalcMK
-App de calculadora gestacional.
+App de calculadora gestacional para gestantes.
