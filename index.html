@@ -870,7 +870,6 @@ function applyMask(el){
 
 document.getElementById('usgW').addEventListener('input',e=>{
   if(String(e.target.value).length>=2){document.getElementById('usgD').focus();document.getElementById('usgD').select();}
-  runCalc();
 });
 document.getElementById('usgD').addEventListener('input',runCalc);
 
