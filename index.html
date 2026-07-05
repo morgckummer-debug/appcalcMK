@@ -928,6 +928,10 @@ function runCalc(){
     renderFertilResult(fertRes);
     goResult();return;
   }
+  if(ig&&ig.totalDays>294){
+    showToast('Essa data resulta em mais de 42 semanas de gestação. Confira a data informada.',3000);
+    return;
+  }
   if(ig&&dpp){renderPregResult(ig,dpp,method);goResult();}
 }
 
