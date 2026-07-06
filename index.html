@@ -325,6 +325,17 @@ body::after{
 }
 [data-dark] .exm-badge{color:#9fc0d8;background:rgba(111,139,163,.2)}
 
+.exm-status{
+  display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;
+  padding:3px 10px;border-radius:var(--pill);margin-bottom:8px;
+}
+.exm-status.now{background:linear-gradient(135deg,var(--peach),var(--pd));color:#fff}
+.exm-status.done{background:var(--surf2);color:var(--ink3)}
+.exm-status.soon{background:rgba(111,139,163,.14);color:var(--bd)}
+[data-dark] .exm-status.soon{background:rgba(111,139,163,.2);color:#9fc0d8}
+.exm-card.status-now{box-shadow:var(--cs),0 0 0 2px rgba(217,149,112,.35)}
+.exm-card.status-done{opacity:.72}
+
 .exm-overlay{
   position:fixed;inset:0;z-index:2000;
   background:rgba(58,46,42,.45);backdrop-filter:blur(2px);
@@ -888,36 +899,36 @@ function getMilestone(w){
 }
 
 const ULTRASSONS=[
-  {sortWeek:8,name:'Ultrassom inicial',periodo:'8 a 10 semanas',
+  {weekStart:8,weekEnd:10,name:'Ultrassom inicial',periodo:'8 a 10 semanas',
     desc:'Confirma a idade gestacional, os batimentos cardíacos do bebê, a localização da gestação e o número de bebês.'},
-  {sortWeek:12,name:'Ultrassom Morfológico do 1º trimestre',periodo:'12 semanas a 13 semanas e 6 dias',
+  {weekStart:12,weekEnd:13+6/7,name:'Ultrassom Morfológico do 1º trimestre',periodo:'12 semanas a 13 semanas e 6 dias',
     desc:'Avalia detalhadamente o desenvolvimento do bebê e ajuda no rastreamento de algumas alterações cromossômicas e malformações. Durante esse exame também é feita a medida da translucência nucal (TN).',
     nota:'Esse exame não é a mesma coisa que "Translucência Nucal" isoladamente — a TN faz parte dele, mas o Morfológico do 1º trimestre é bem mais completo.'},
-  {sortWeek:22,name:'Ultrassom Morfológico do 2º trimestre',periodo:'22 a 24 semanas',
+  {weekStart:22,weekEnd:24,name:'Ultrassom Morfológico do 2º trimestre',periodo:'22 a 24 semanas',
     desc:'Avalia detalhadamente a anatomia do bebê, o crescimento, a placenta, o líquido amniótico e o colo do útero.'},
-  {sortWeek:24,name:'Ecocardiograma Fetal',periodo:'24 a 30 semanas',
+  {weekStart:24,weekEnd:30,name:'Ecocardiograma Fetal',periodo:'24 a 30 semanas',
     desc:'Avalia detalhadamente a estrutura e o funcionamento do coração do bebê.',
     indicacao:'Pode ser indicado em situações específicas da gestação, ou quando o obstetra quer uma avaliação mais detalhada do coração do bebê — só é feito quando há indicação médica.'},
-  {sortWeek:28,name:'Ultrassom Obstétrico com Doppler',periodo:'A partir de 28 semanas (mais comum entre 28 e 32)',
+  {weekStart:28,weekEnd:42,name:'Ultrassom Obstétrico com Doppler',periodo:'A partir de 28 semanas (mais comum entre 28 e 32)',
     desc:'Avalia o crescimento do bebê, a quantidade de líquido amniótico e a circulação de sangue entre a placenta e o bebê.',
     indicacao:'Pode fazer parte da rotina ou ser pedido quando há necessidade de um acompanhamento mais de perto, sempre conforme orientação do obstetra.'},
-  {sortWeek:28.5,name:'Perfil Biofísico Fetal (PBF)',periodo:'A partir de 28 semanas, quando indicado',
+  {weekStart:28,weekEnd:42,name:'Perfil Biofísico Fetal (PBF)',periodo:'A partir de 28 semanas, quando indicado',
     desc:'Avalia o bem-estar do bebê observando os movimentos, a respiração, o tônus muscular e a quantidade de líquido amniótico.',
     indicacao:'É realizado quando o obstetra considerar necessário.'}
 ];
 
 const LABORATORIAIS=[
-  {sortWeek:8,name:'Exames laboratoriais iniciais',periodo:'8 a 10 semanas',
+  {weekStart:8,weekEnd:10,name:'Exames laboratoriais iniciais',periodo:'8 a 10 semanas',
     desc:'Avaliam a sua saúde e ajudam a identificar anemia, infecções, diabetes e outras condições que podem interferir na gestação.',
     lista:['Hemograma','Tipagem sanguínea (ABO e Rh)','Coombs indireto (quando Rh negativo)','Glicemia de jejum','Urina tipo I','Urocultura','HIV','Sífilis','Hepatite B','Hepatite C','Rubéola (IgG)','Toxoplasmose (IgG e IgM)','TSH','Vitamina D (opcional)','Citomegalovírus (quando indicado)'],
     nota:'A relação de exames pode variar conforme o seu histórico de saúde e a orientação do seu obstetra.'},
-  {sortWeek:24,name:'Teste para diabetes gestacional (TOTG 75 g)',periodo:'24 a 28 semanas',
+  {weekStart:24,weekEnd:28,name:'Teste para diabetes gestacional (TOTG 75 g)',periodo:'24 a 28 semanas',
     desc:'Avalia se houve desenvolvimento de diabetes durante a gestação.'},
-  {sortWeek:28,name:'Exames laboratoriais de acompanhamento',periodo:'28 semanas',
+  {weekStart:28,weekEnd:28,name:'Exames laboratoriais de acompanhamento',periodo:'28 semanas',
     desc:'Repetição de alguns exames para acompanhar a sua saúde e identificar alterações que podem surgir durante a gravidez.',
     lista:['Hemograma','Glicemia (quando indicada)','HIV','Sífilis','Hepatite B (conforme protocolo)','Coombs indireto (gestantes Rh negativo)','Toxoplasmose (quando suscetível)'],
     nota:'A relação de exames pode variar conforme o seu histórico de saúde e a orientação do seu obstetra.'},
-  {sortWeek:35,name:'Pesquisa para Streptococcus do Grupo B (GBS)',periodo:'35 a 37 semanas',
+  {weekStart:35,weekEnd:37,name:'Pesquisa para Streptococcus do Grupo B (GBS)',periodo:'35 a 37 semanas',
     desc:'Identifica a presença da bactéria Streptococcus do Grupo B (GBS), permitindo que medidas sejam tomadas durante o parto para reduzir o risco de infecção no bebê.'}
 ];
 
@@ -1065,6 +1076,7 @@ function animateRing(pct){
 }
 
 function renderPregResult(ig,dpp,method){
+  currentIG=ig;
   document.getElementById('noResult').classList.add('hidden');
   document.getElementById('fertResult').classList.add('hidden');
   const pr=document.getElementById('pregResult');
@@ -1117,6 +1129,7 @@ function renderPregResult(ig,dpp,method){
     if(c)tl.parentElement.scrollLeft=c.offsetLeft-tl.parentElement.clientWidth/2+23;
   },160);
 
+  renderExamGuide();
   showToast(`${ig.weeks}s ${ig.days}d calculado com sucesso`);
 }
 
@@ -1169,13 +1182,25 @@ function renderFertilResult(r){
 }
 
 /* ── Guia de exames ── */
+let currentIG=null;
+const STATUS_LBL={done:'✓ Já realizado',now:'● Fazendo agora',soon:'○ Ainda vai fazer'};
+function examStatus(ex){
+  if(!currentIG)return null;
+  const cur=currentIG.weeks+currentIG.days/7;
+  if(cur<ex.weekStart)return'soon';
+  if(cur>ex.weekEnd)return'done';
+  return'now';
+}
+function statusTag(st){return st?`<div class="exm-status ${st}">${STATUS_LBL[st]}</div>`:'';}
 function examCard(ex,idx,catId){
   const badge=ex.indicacao?`<div class="exm-badge">🔎 Conforme indicação médica</div>`:'';
-  return `<button class="exm-card" type="button" data-cat="${catId}" data-idx="${idx}">
+  const st=examStatus(ex);
+  return `<button class="exm-card${st?' status-'+st:''}" type="button" data-cat="${catId}" data-idx="${idx}">
     <div class="exm-card-top">
       <div class="exm-name">${ex.name}</div>
       <div class="exm-chevron">›</div>
     </div>
+    ${statusTag(st)}
     <div class="lbl">Período recomendado</div>
     <div class="exm-periodo">🗓️ ${ex.periodo}</div>
     <div class="exm-desc">${ex.desc}</div>
@@ -1184,6 +1209,7 @@ function examCard(ex,idx,catId){
 }
 function openExamDetail(ex){
   let html=`<div class="exm-sheet-name">${ex.name}</div>
+    ${statusTag(examStatus(ex))}
     <div class="lbl">Período recomendado</div>
     <div class="exm-periodo" style="margin-bottom:14px">🗓️ ${ex.periodo}</div>
     <div class="exm-sheet-desc">${ex.desc}</div>`;
@@ -1201,8 +1227,8 @@ document.getElementById('exmClose').addEventListener('click',closeExamDetail);
 document.getElementById('exmOverlay').addEventListener('click',e=>{if(e.target.id==='exmOverlay')closeExamDetail();});
 
 function renderExamGuide(){
-  const usg=[...ULTRASSONS].sort((a,b)=>a.sortWeek-b.sortWeek);
-  const lab=[...LABORATORIAIS].sort((a,b)=>a.sortWeek-b.sortWeek);
+  const usg=[...ULTRASSONS].sort((a,b)=>a.weekStart-b.weekStart);
+  const lab=[...LABORATORIAIS].sort((a,b)=>a.weekStart-b.weekStart);
   document.getElementById('exmUsgList').innerHTML=usg.map((ex,i)=>examCard(ex,i,'usg')).join('');
   document.getElementById('exmLabList').innerHTML=lab.map((ex,i)=>examCard(ex,i,'lab')).join('');
   document.querySelectorAll('.exm-card').forEach(card=>{
