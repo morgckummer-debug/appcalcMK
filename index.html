@@ -290,20 +290,75 @@ body::after{
   50%{box-shadow:4px 6px 22px rgba(217,149,112,.65),0 0 0 4px rgba(217,149,112,.15)}
 }
 
-/* Exams */
-.exam-list{display:flex;flex-direction:column;gap:10px}
-.exam-item{
-  display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:center;
-  background:var(--surf);border-radius:16px;padding:12px 14px;box-shadow:var(--cs);
+/* Exames guide */
+.exm-cta{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--surf2);border-radius:16px;padding:14px 16px;box-shadow:var(--ci);
+  cursor:pointer;transition:var(--trans);
+}
+.exm-cta:hover{transform:translateX(3px);background:var(--surfs)}
+.exm-cta-txt{font-size:13px;font-weight:700;color:var(--ink)}
+.exm-cta-sub{font-size:11px;color:var(--ink2);margin-top:2px;font-weight:400}
+.exm-cta-arrow{font-size:18px;color:var(--pd2);flex-shrink:0}
+
+.exm-list{display:flex;flex-direction:column;gap:10px}
+.exm-card{
+  display:block;width:100%;text-align:left;border:none;background:var(--surf);
+  border-radius:18px;padding:14px 16px;box-shadow:var(--cs);cursor:pointer;
   transition:var(--trans);
 }
-.exam-item:hover{transform:translateX(3px);box-shadow:6px 8px 18px rgba(168,134,100,.22)}
-.ex-ico{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:18px}
-.ex-ico.usg{background:radial-gradient(circle at 30% 25%,#dce6ee,var(--blue) 60%,var(--bd));box-shadow:3px 4px 8px rgba(111,139,163,.3)}
-.ex-ico.san{background:radial-gradient(circle at 30% 25%,#fad9d0,var(--rose) 60%,#e5b4a8);box-shadow:3px 4px 8px rgba(229,180,168,.35)}
-.ex-name{font-size:13px;font-weight:700;line-height:1.3;color:var(--ink)}
-.ex-when{font-size:11px;color:var(--ink3);margin-top:3px}
-.ex-week{font-family:'Fraunces',serif;font-size:18px;color:var(--pd);font-weight:500}
+.exm-card:hover{transform:translateX(3px);box-shadow:6px 8px 18px rgba(168,134,100,.22)}
+.exm-card:active{transform:scale(.98)}
+.exm-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.exm-name{font-family:'Fraunces',serif;font-size:16px;font-weight:500;color:var(--ink);line-height:1.3}
+.exm-chevron{font-size:16px;color:var(--ink3);flex-shrink:0;margin-top:2px}
+.exm-periodo{
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#fde3d0,var(--peach) 90%);color:var(--pd2);
+  font-size:11px;font-weight:700;padding:4px 11px;border-radius:var(--pill);
+  margin-bottom:8px;box-shadow:1px 2px 5px rgba(217,149,112,.25);
+}
+.exm-desc{font-size:12.5px;color:var(--ink2);line-height:1.5}
+.exm-badge{
+  display:inline-block;margin-top:8px;font-size:10.5px;font-weight:700;color:var(--bd);
+  background:rgba(111,139,163,.14);padding:4px 10px;border-radius:var(--pill);
+}
+[data-dark] .exm-badge{color:#9fc0d8;background:rgba(111,139,163,.2)}
+
+.exm-overlay{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(58,46,42,.45);backdrop-filter:blur(2px);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.exm-overlay.show{opacity:1;pointer-events:auto}
+.exm-sheet{
+  width:100%;max-width:480px;max-height:86vh;overflow-y:auto;
+  background:var(--surfs);border-radius:28px 28px 0 0;
+  padding:22px 22px calc(24px + env(safe-area-inset-bottom));
+  box-shadow:0 -12px 32px rgba(0,0,0,.25);
+  transform:translateY(24px);transition:transform .3s cubic-bezier(.22,.68,0,1.2);
+}
+.exm-overlay.show .exm-sheet{transform:translateY(0)}
+.exm-sheet-handle{width:40px;height:5px;background:var(--surf2);border-radius:var(--pill);margin:0 auto 16px}
+.exm-sheet-close{
+  position:absolute;top:16px;right:20px;width:32px;height:32px;border-radius:50%;
+  border:none;background:var(--surf2);color:var(--ink2);font-size:15px;cursor:pointer;
+  display:grid;place-items:center;box-shadow:var(--cs);
+}
+.exm-sheet-name{font-family:'Fraunces',serif;font-size:22px;font-weight:500;color:var(--ink);margin-bottom:10px;padding-right:36px}
+.exm-sheet-desc{font-size:14px;color:var(--ink2);line-height:1.65;margin-bottom:14px}
+.exm-sheet-note{
+  font-size:12.5px;color:var(--ink2);line-height:1.55;background:var(--surf2);
+  border-radius:14px;padding:12px 14px;margin-bottom:14px;box-shadow:var(--ci);
+}
+.exm-sheet-note strong{color:var(--ink)}
+.exm-sheet-sub{font-size:11px;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.exm-sheet-items{list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.exm-sheet-items li{
+  font-size:13px;color:var(--ink);background:var(--surf);border-radius:10px;
+  padding:8px 12px;box-shadow:var(--cs);
+}
 
 /* Fertil */
 .f-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
@@ -520,18 +575,18 @@ body::after{
   position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
   background:var(--surf);
   box-shadow:0 -8px 24px rgba(58,46,42,.12),0 -1px 0 rgba(58,46,42,.06);
-  display:grid;grid-template-columns:repeat(4,1fr);z-index:100;
+  display:grid;grid-template-columns:repeat(5,1fr);z-index:100;
   padding:0 6px;padding-bottom:env(safe-area-inset-bottom);
   transition:background .3s,box-shadow .3s;
 }
 .nav-btn{
   border:none;background:transparent;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-  cursor:pointer;font-family:inherit;padding:8px 4px;
-  transition:var(--trans);border-radius:14px;margin:6px 2px;
+  cursor:pointer;font-family:inherit;padding:8px 2px;
+  transition:var(--trans);border-radius:14px;margin:6px 1px;
 }
-.nav-btn .nav-ico{font-size:22px;line-height:1;transition:transform .22s cubic-bezier(.22,.68,0,1.4)}
-.nav-btn .nav-lbl{font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:.04em;transition:color .2s}
+.nav-btn .nav-ico{font-size:20px;line-height:1;transition:transform .22s cubic-bezier(.22,.68,0,1.4)}
+.nav-btn .nav-lbl{font-size:9px;font-weight:700;color:var(--ink3);letter-spacing:.02em;transition:color .2s}
 .nav-btn:hover .nav-ico{transform:translateY(-2px) scale(1.1)}
 .nav-btn.on .nav-lbl{color:var(--pd2)}
 .nav-btn.on .nav-ico{transform:scale(1.12)}
@@ -666,8 +721,14 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 
       <div class="card">
         <div class="lbl">Próximos passos</div>
-        <div class="card-title">Exames sugeridos</div>
-        <div class="exam-list" id="examsList"></div>
+        <div class="card-title">Exames da gestação</div>
+        <div class="exm-cta" data-page="exames">
+          <div>
+            <div class="exm-cta-txt">Ver guia completo de exames</div>
+            <div class="exm-cta-sub">Ultrassons e exames de sangue, período a período</div>
+          </div>
+          <div class="exm-cta-arrow">→</div>
+        </div>
       </div>
     </div>
 
@@ -695,6 +756,27 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div style="font-size:48px;margin-bottom:16px">🌸</div>
       <div class="serif" style="font-size:22px;color:var(--ink2);margin-bottom:8px">Nenhum cálculo ainda</div>
       <div style="font-size:14px;color:var(--ink3);line-height:1.6">Vá até a aba <strong>Calcular</strong> e informe a data para ver seu resultado aqui.</div>
+    </div>
+  </div>
+
+  <!-- ── Exames ── -->
+  <div class="page" id="pg-exames">
+    <div class="card feat">
+      <div class="lbl">Guia do pré-natal</div>
+      <div class="card-title">Exames da <span class="serif" style="color:var(--pd);font-style:italic">gestação</span></div>
+      <div class="helper">Aqui você encontra os principais exames do pré-natal e o período em que costumam ser feitos. Toque em qualquer exame para entender melhor pra que ele serve. <strong>Alguns exames só são pedidos quando o seu obstetra considerar necessário</strong> — o calendário pode variar de gestação para gestação.</div>
+    </div>
+
+    <div class="card">
+      <div class="lbl">🔊 Ultrassons</div>
+      <div class="card-title">Acompanhando o bebê</div>
+      <div class="exm-list" id="exmUsgList"></div>
+    </div>
+
+    <div class="card">
+      <div class="lbl">🧪 Exames laboratoriais</div>
+      <div class="card-title">Cuidando da sua saúde</div>
+      <div class="exm-list" id="exmLabList"></div>
     </div>
   </div>
 
@@ -738,10 +820,20 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- Exame detail sheet -->
+<div class="exm-overlay" id="exmOverlay">
+  <div class="exm-sheet" id="exmSheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="exmClose">✕</button>
+    <div id="exmSheetBody"></div>
+  </div>
+</div>
+
 <!-- Bottom Nav -->
 <nav class="bottom-nav">
   <button class="nav-btn on" data-page="calc"><span class="nav-ico">🧮</span><span class="nav-lbl">Calcular</span></button>
   <button class="nav-btn" data-page="result"><span class="nav-ico">📊</span><span class="nav-lbl">Resultado</span></button>
+  <button class="nav-btn" data-page="exames"><span class="nav-ico">🔬</span><span class="nav-lbl">Exames</span></button>
   <button class="nav-btn" data-page="check"><span class="nav-ico">✅</span><span class="nav-lbl">Checklist</span></button>
   <button class="nav-btn" data-page="about"><span class="nav-ico">ℹ️</span><span class="nav-lbl">Sobre</span></button>
 </nav>
@@ -795,16 +887,38 @@ function getMilestone(w){
   return{week:4,...MS[4]};
 }
 
-const EXAMS=[
-  {week:8,name:'Primeira consulta + Beta-hCG',cat:'san'},
-  {week:12,name:'Translucência Nucal (TN)',cat:'usg'},
-  {week:16,name:'Triagem do 2º trimestre',cat:'san'},
-  {week:22,name:'USG Morfológico',cat:'usg'},
-  {week:24,name:'TOTG — Curva glicêmica',cat:'san'},
-  {week:28,name:'Hemograma + Coombs Indireto',cat:'san'},
-  {week:32,name:'USG de crescimento',cat:'usg'},
-  {week:36,name:'Cultura Estrepto-B (GBS)',cat:'san'},
-  {week:40,name:'Avaliação do bem-estar fetal',cat:'usg'}
+const ULTRASSONS=[
+  {sortWeek:8,name:'Ultrassom inicial',periodo:'8 a 10 semanas',
+    desc:'Confirma a idade gestacional, os batimentos cardíacos do bebê, a localização da gestação e o número de bebês.'},
+  {sortWeek:12,name:'Ultrassom Morfológico do 1º trimestre',periodo:'12 semanas a 13 semanas e 6 dias',
+    desc:'Avalia detalhadamente o desenvolvimento do bebê e ajuda no rastreamento de algumas alterações cromossômicas e malformações. Durante esse exame também é feita a medida da translucência nucal (TN).',
+    nota:'Esse exame não é a mesma coisa que "Translucência Nucal" isoladamente — a TN faz parte dele, mas o Morfológico do 1º trimestre é bem mais completo.'},
+  {sortWeek:22,name:'Ultrassom Morfológico do 2º trimestre',periodo:'22 a 24 semanas',
+    desc:'Avalia detalhadamente a anatomia do bebê, o crescimento, a placenta, o líquido amniótico e o colo do útero.'},
+  {sortWeek:24,name:'Ecocardiograma Fetal',periodo:'24 a 30 semanas',
+    desc:'Avalia detalhadamente a estrutura e o funcionamento do coração do bebê.',
+    indicacao:'Pode ser indicado em situações específicas da gestação, ou quando o obstetra quer uma avaliação mais detalhada do coração do bebê — só é feito quando há indicação médica.'},
+  {sortWeek:28,name:'Ultrassom Obstétrico com Doppler',periodo:'A partir de 28 semanas (mais comum entre 28 e 32)',
+    desc:'Avalia o crescimento do bebê, a quantidade de líquido amniótico e a circulação de sangue entre a placenta e o bebê.',
+    indicacao:'Pode fazer parte da rotina ou ser pedido quando há necessidade de um acompanhamento mais de perto, sempre conforme orientação do obstetra.'},
+  {sortWeek:28.5,name:'Perfil Biofísico Fetal (PBF)',periodo:'A partir de 28 semanas, quando indicado',
+    desc:'Avalia o bem-estar do bebê observando os movimentos, a respiração, o tônus muscular e a quantidade de líquido amniótico.',
+    indicacao:'É realizado quando o obstetra considerar necessário.'}
+];
+
+const LABORATORIAIS=[
+  {sortWeek:8,name:'Exames laboratoriais iniciais',periodo:'8 a 10 semanas',
+    desc:'Avaliam a sua saúde e ajudam a identificar anemia, infecções, diabetes e outras condições que podem interferir na gestação.',
+    lista:['Hemograma','Tipagem sanguínea (ABO e Rh)','Coombs indireto (quando Rh negativo)','Glicemia de jejum','Urina tipo I','Urocultura','HIV','Sífilis','Hepatite B','Hepatite C','Rubéola (IgG)','Toxoplasmose (IgG e IgM)','TSH','Vitamina D (opcional)','Citomegalovírus (quando indicado)'],
+    nota:'A relação de exames pode variar conforme o seu histórico de saúde e a orientação do seu obstetra.'},
+  {sortWeek:24,name:'Teste para diabetes gestacional (TOTG 75 g)',periodo:'24 a 28 semanas',
+    desc:'Avalia se houve desenvolvimento de diabetes durante a gestação.'},
+  {sortWeek:28,name:'Exames laboratoriais de acompanhamento',periodo:'28 semanas',
+    desc:'Repetição de alguns exames para acompanhar a sua saúde e identificar alterações que podem surgir durante a gravidez.',
+    lista:['Hemograma','Glicemia (quando indicada)','HIV','Sífilis','Hepatite B (conforme protocolo)','Coombs indireto (gestantes Rh negativo)','Toxoplasmose (quando suscetível)'],
+    nota:'A relação de exames pode variar conforme o seu histórico de saúde e a orientação do seu obstetra.'},
+  {sortWeek:35,name:'Pesquisa para Streptococcus do Grupo B (GBS)',periodo:'35 a 37 semanas',
+    desc:'Identifica a presença da bactéria Streptococcus do Grupo B (GBS), permitindo que medidas sejam tomadas durante o parto para reduzir o risco de infecção no bebê.'}
 ];
 
 const CHECKLIST=[
@@ -832,17 +946,16 @@ document.getElementById('darkBtn').addEventListener('click',()=>{
 });
 
 /* ── Nav ── */
+function goToPage(pg){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.page===pg));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pg-'+pg).classList.add('active');
+  document.getElementById('app').scrollTop=0;
+}
 document.querySelectorAll('.nav-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
-    btn.classList.add('on');
-    const pg=btn.dataset.page;
-    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    const pageEl=document.getElementById('pg-'+pg);
-    pageEl.classList.add('active');
-    document.getElementById('app').scrollTop=0;
-  });
+  btn.addEventListener('click',()=>goToPage(btn.dataset.page));
 });
+document.querySelector('.exm-cta').addEventListener('click',()=>goToPage('exames'));
 
 /* ── Calc tabs ── */
 let curTab='dum';
@@ -935,13 +1048,7 @@ function runCalc(){
   if(ig&&dpp){renderPregResult(ig,dpp,method);goResult();}
 }
 
-function goResult(){
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
-  document.querySelector('[data-page="result"]').classList.add('on');
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('pg-result').classList.add('active');
-  document.getElementById('app').scrollTop=0;
-}
+function goResult(){goToPage('result');}
 
 /* ── Animated ring draw ── */
 function animateRing(pct){
@@ -1010,12 +1117,6 @@ function renderPregResult(ig,dpp,method){
     if(c)tl.parentElement.scrollLeft=c.offsetLeft-tl.parentElement.clientWidth/2+23;
   },160);
 
-  const el=document.getElementById('examsList');el.innerHTML='';
-  EXAMS.filter(e=>e.week>=ig.weeks).slice(0,4).forEach(e=>{
-    const away=e.week-ig.weeks;
-    el.innerHTML+=`<div class="exam-item"><div class="ex-ico ${e.cat}">${e.cat==='usg'?'🔊':'🧪'}</div><div><div class="ex-name">${e.name}</div><div class="ex-when">Sem. ${e.week} · ${away===0?'esta semana':'em ~'+away+' sem'}</div></div><div class="ex-week serif">${e.week}s</div></div>`;
-  });
-
   showToast(`${ig.weeks}s ${ig.days}d calculado com sucesso`);
 }
 
@@ -1066,6 +1167,52 @@ function renderFertilResult(r){
 
   showToast('Período fértil calculado');
 }
+
+/* ── Guia de exames ── */
+function examCard(ex,idx,catId){
+  const badge=ex.indicacao?`<div class="exm-badge">🔎 Conforme indicação médica</div>`:'';
+  return `<button class="exm-card" type="button" data-cat="${catId}" data-idx="${idx}">
+    <div class="exm-card-top">
+      <div class="exm-name">${ex.name}</div>
+      <div class="exm-chevron">›</div>
+    </div>
+    <div class="lbl">Período recomendado</div>
+    <div class="exm-periodo">🗓️ ${ex.periodo}</div>
+    <div class="exm-desc">${ex.desc}</div>
+    ${badge}
+  </button>`;
+}
+function openExamDetail(ex){
+  let html=`<div class="exm-sheet-name">${ex.name}</div>
+    <div class="lbl">Período recomendado</div>
+    <div class="exm-periodo" style="margin-bottom:14px">🗓️ ${ex.periodo}</div>
+    <div class="exm-sheet-desc">${ex.desc}</div>`;
+  if(ex.lista){
+    html+=`<div class="exm-sheet-sub">Ver detalhes</div>
+      <ul class="exm-sheet-items">${ex.lista.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+  }
+  if(ex.nota)html+=`<div class="exm-sheet-note"><strong>Importante:</strong> ${ex.nota}</div>`;
+  if(ex.indicacao)html+=`<div class="exm-sheet-note">🔎 <strong>Sobre a indicação:</strong> ${ex.indicacao}</div>`;
+  document.getElementById('exmSheetBody').innerHTML=html;
+  document.getElementById('exmOverlay').classList.add('show');
+}
+function closeExamDetail(){document.getElementById('exmOverlay').classList.remove('show');}
+document.getElementById('exmClose').addEventListener('click',closeExamDetail);
+document.getElementById('exmOverlay').addEventListener('click',e=>{if(e.target.id==='exmOverlay')closeExamDetail();});
+
+function renderExamGuide(){
+  const usg=[...ULTRASSONS].sort((a,b)=>a.sortWeek-b.sortWeek);
+  const lab=[...LABORATORIAIS].sort((a,b)=>a.sortWeek-b.sortWeek);
+  document.getElementById('exmUsgList').innerHTML=usg.map((ex,i)=>examCard(ex,i,'usg')).join('');
+  document.getElementById('exmLabList').innerHTML=lab.map((ex,i)=>examCard(ex,i,'lab')).join('');
+  document.querySelectorAll('.exm-card').forEach(card=>{
+    card.addEventListener('click',()=>{
+      const list=card.dataset.cat==='usg'?usg:lab;
+      openExamDetail(list[+card.dataset.idx]);
+    });
+  });
+}
+renderExamGuide();
 
 /* ── Checklist (persiste via localStorage) ── */
 const STORAGE_KEY='mkcalc_checked_v1';
