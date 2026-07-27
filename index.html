@@ -264,30 +264,33 @@ body::after{
 [data-dark] .baby-dev{background:rgba(30,20,10,.35)}
 
 /* Timeline */
-.tl-wrap{overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
+.tl-cap{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:2px}
+.tl-wrap{overflow-x:auto;padding:26px 6px 22px;-webkit-overflow-scrolling:touch}
 .tl-wrap::-webkit-scrollbar{display:none}
-.tl{display:flex;gap:6px;padding:2px}
-.wp{
-  flex-shrink:0;width:46px;height:54px;border-radius:12px;
-  background:var(--surf2);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  font-size:9px;color:var(--ink3);box-shadow:var(--ci);font-weight:600;
-  transition:var(--trans);
-}
-.wp:hover{transform:translateY(-2px) scale(1.05)}
-.wp .n{font-family:'Fraunces',serif;font-size:15px;color:var(--ink);margin-bottom:1px}
-.wp.past{background:var(--surf);box-shadow:var(--cs)}
-.wp.past .n{color:var(--pd)}
-.wp.cur{
-  background:linear-gradient(145deg,var(--peach),var(--pd));
-  box-shadow:4px 6px 14px rgba(217,149,112,.4);
-  transform:scale(1.08);color:white;
+.tl{position:relative;height:54px}
+.tl-line{position:absolute;left:0;right:0;top:23px;height:3px;background:var(--surf2);border-radius:3px}
+.tl-fill{position:absolute;left:0;top:0;width:0;height:100%;background:linear-gradient(90deg,var(--peach),var(--pd));border-radius:3px;transition:width .9s cubic-bezier(.22,.68,0,1)}
+.tl-weeks,.tl-months{position:absolute;left:0;top:0;right:0;height:0}
+.wtick{position:absolute;top:18px;width:2px;height:11px;background:var(--surf2);transform:translateX(-1px);transition:var(--trans)}
+.wtick.past{background:var(--pd);opacity:.5}
+.wtick .wnum{position:absolute;bottom:15px;left:0;transform:translateX(-50%);font-family:'Fraunces',serif;font-size:10px;color:var(--ink3);font-weight:600;white-space:nowrap}
+.wtick.cur .wnum{color:var(--pd);font-weight:800;font-size:12px}
+.tl-months{top:33px}
+.mlabel{position:absolute;top:0;transform:translateX(-50%);font-size:10px;color:var(--ink3);font-weight:700;white-space:nowrap}
+.mlabel.cur{color:var(--pd);font-weight:800}
+.tl-dot{
+  position:absolute;top:24px;width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff7e6,var(--cream));
+  box-shadow:3px 5px 10px rgba(168,134,100,.35),inset 2px 3px 4px rgba(255,250,240,.5);
+  border:2px solid var(--pd);
+  transform:translate(-50%,-50%);
+  transition:left .9s cubic-bezier(.22,.68,0,1);
   animation:pulseCur 2.2s ease-in-out infinite;
+  z-index:2;
 }
-.wp.cur .n{color:white}
 @keyframes pulseCur{
-  0%,100%{box-shadow:4px 6px 14px rgba(217,149,112,.4)}
-  50%{box-shadow:4px 6px 22px rgba(217,149,112,.65),0 0 0 4px rgba(217,149,112,.15)}
+  0%,100%{box-shadow:3px 5px 10px rgba(168,134,100,.35),inset 2px 3px 4px rgba(255,250,240,.5)}
+  50%{box-shadow:3px 5px 18px rgba(217,149,112,.6),0 0 0 4px rgba(217,149,112,.15),inset 2px 3px 4px rgba(255,250,240,.5)}
 }
 
 /* Exames guide */
@@ -716,7 +719,15 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div class="card">
         <div class="lbl">Timeline</div>
         <div class="card-title">Semana a semana</div>
-        <div class="tl-wrap"><div class="tl" id="tlEl"></div></div>
+        <div class="tl-cap"><span>Semanas</span><span>Meses</span></div>
+        <div class="tl-wrap">
+          <div class="tl" id="tlEl">
+            <div class="tl-line"><div class="tl-fill" id="tlFill"></div></div>
+            <div class="tl-weeks" id="tlWeeks"></div>
+            <div class="tl-dot" id="tlDot"></div>
+            <div class="tl-months" id="tlMonths"></div>
+          </div>
+        </div>
       </div>
 
       <div class="card">
@@ -1064,6 +1075,45 @@ function animateRing(pct){
   ring.style.strokeDashoffset=target+'';
 }
 
+/* ── Weeks/months line timeline ── */
+const TL_STEP=34; // px per week
+const TL_WEEKS_PER_MONTH=40/9; // 40 semanas = 9 meses
+function renderTimeline(ig){
+  const curWeek=Math.max(0,Math.min(40,ig.weeks+ig.days/7));
+
+  const tl=document.getElementById('tlEl');
+  tl.style.width=(40*TL_STEP+24)+'px';
+
+  const weeksWrap=document.getElementById('tlWeeks');
+  weeksWrap.innerHTML='';
+  for(let w=0;w<=40;w++){
+    const t=document.createElement('div');
+    t.className='wtick'+(w<ig.weeks?' past':'')+(w===ig.weeks?' cur':'');
+    t.style.left=(w*TL_STEP)+'px';
+    t.innerHTML=`<div class="wnum">${w}</div>`;
+    weeksWrap.appendChild(t);
+  }
+
+  document.getElementById('tlFill').style.width=(curWeek/40*100)+'%';
+  document.getElementById('tlDot').style.left=(curWeek*TL_STEP)+'px';
+
+  const curMonth=Math.max(1,Math.min(9,Math.ceil(curWeek/TL_WEEKS_PER_MONTH)||1));
+  const monthsWrap=document.getElementById('tlMonths');
+  monthsWrap.innerHTML='';
+  for(let m=1;m<=9;m++){
+    const centerWeek=(m-0.5)*TL_WEEKS_PER_MONTH;
+    const l=document.createElement('div');
+    l.className='mlabel'+(m===curMonth?' cur':'');
+    l.style.left=(centerWeek*TL_STEP)+'px';
+    l.textContent=m;
+    monthsWrap.appendChild(l);
+  }
+
+  setTimeout(()=>{
+    tl.parentElement.scrollLeft=curWeek*TL_STEP-tl.parentElement.clientWidth/2+23;
+  },160);
+}
+
 function renderPregResult(ig,dpp,method){
   currentIG=ig;
   document.getElementById('noResult').classList.add('hidden');
@@ -1092,7 +1142,7 @@ function renderPregResult(ig,dpp,method){
     <div class="stat"><div class="lbl">DPP</div><div class="val serif">${fmt(dpp)}</div></div>
     <div class="stat"><div class="lbl">Faltam</div><div class="val serif">${Math.max(0,280-ig.totalDays)} dias</div></div>
     <div class="stat"><div class="lbl">Progresso</div><div class="val serif">${Math.round(pct)}%</div></div>
-    <div class="stat"><div class="lbl">Meses (comercial)</div><div class="val serif">${commMonths}</div></div>`;
+    <div class="stat"><div class="lbl">Meses</div><div class="val serif">${commMonths}</div></div>`;
 
   // Animate tri bar
   setTimeout(()=>{
@@ -1102,17 +1152,7 @@ function renderPregResult(ig,dpp,method){
 
   ['t1l','t2l','t3l'].forEach((id,i)=>{document.getElementById(id).classList.toggle('on',tri===i+1);});
 
-  const tl=document.getElementById('tlEl');tl.innerHTML='';
-  for(let w=0;w<=40;w++){
-    const p=document.createElement('div');
-    p.className='wp'+(w<ig.weeks?' past':'')+(w===ig.weeks?' cur':'');
-    p.innerHTML=`<div class="n">${w}</div><div>sem</div>`;
-    tl.appendChild(p);
-  }
-  setTimeout(()=>{
-    const c=tl.querySelector('.cur');
-    if(c)tl.parentElement.scrollLeft=c.offsetLeft-tl.parentElement.clientWidth/2+23;
-  },160);
+  renderTimeline(ig);
 
   renderExamGuide();
   showToast(`${ig.weeks}s ${ig.days}d calculado com sucesso`);
