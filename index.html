@@ -1077,7 +1077,16 @@ function animateRing(pct){
 
 /* ── Weeks/months line timeline ── */
 const TL_STEP=34; // px per week
-const TL_WEEKS_PER_MONTH=40/9; // 40 semanas = 9 meses
+// Tabela padrão de meses gestacionais (semanas completas por mês, 40 semanas = 9 meses)
+const TL_MONTH_RANGES=[
+  {m:1,start:0,end:4},{m:2,start:4,end:8},{m:3,start:8,end:13},
+  {m:4,start:13,end:17},{m:5,start:17,end:22},{m:6,start:22,end:27},
+  {m:7,start:27,end:31},{m:8,start:31,end:35},{m:9,start:35,end:40}
+];
+function completedMonth(week){
+  for(const r of TL_MONTH_RANGES)if(week<=r.end)return r.m;
+  return 9;
+}
 function renderTimeline(ig){
   const curWeek=Math.max(0,Math.min(40,ig.weeks+ig.days/7));
 
@@ -1097,17 +1106,17 @@ function renderTimeline(ig){
   document.getElementById('tlFill').style.width=(curWeek/40*100)+'%';
   document.getElementById('tlDot').style.left=(curWeek*TL_STEP)+'px';
 
-  const curMonth=Math.max(1,Math.min(9,Math.ceil(curWeek/TL_WEEKS_PER_MONTH)||1));
+  const curMonth=completedMonth(curWeek);
   const monthsWrap=document.getElementById('tlMonths');
   monthsWrap.innerHTML='';
-  for(let m=1;m<=9;m++){
-    const centerWeek=(m-0.5)*TL_WEEKS_PER_MONTH;
+  TL_MONTH_RANGES.forEach(r=>{
+    const centerWeek=(r.start+r.end)/2;
     const l=document.createElement('div');
-    l.className='mlabel'+(m===curMonth?' cur':'');
+    l.className='mlabel'+(r.m===curMonth?' cur':'');
     l.style.left=(centerWeek*TL_STEP)+'px';
-    l.textContent=m;
+    l.textContent=r.m;
     monthsWrap.appendChild(l);
-  }
+  });
 
   setTimeout(()=>{
     tl.parentElement.scrollLeft=curWeek*TL_STEP-tl.parentElement.clientWidth/2+23;
