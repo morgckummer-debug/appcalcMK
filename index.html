@@ -858,6 +858,51 @@ const fmt = d => {
 const fmtS = d => `${d.getDate()}/${d.getMonth()+1}`;
 const toISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
+/* ── Fórmulas de cálculo gestacional (funções puras) ── */
+const GESTATION_DAYS = 280; // 40 semanas
+const MAX_WEEKS = 42;
+const MONTH_BREAKPOINTS = [0, 30, 59, 91, 121, 151, 182, 212, 243, 273];
+
+function normalizeUTCDate(d){
+  return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function diffDaysUTC(from, to){
+  return Math.round((normalizeUTCDate(to) - normalizeUTCDate(from)) / 86400000);
+}
+function daysToWeeksInfo(totalDaysRaw){
+  const totalDays = Math.max(0, totalDaysRaw);
+  return { totalDays, weeks: Math.floor(totalDays / 7), days: totalDays % 7 };
+}
+function daysToGestationalMonths(totalDays){
+  let meses = 0;
+  while (meses < 9 && MONTH_BREAKPOINTS[meses + 1] <= totalDays) meses++;
+  const diasNoMes = totalDays - MONTH_BREAKPOINTS[meses];
+  return { mesesCompletos: meses, diasNoMes };
+}
+function currentGestationalMonth(mesesCompletos, diasNoMes){
+  return diasNoMes === 0 ? Math.max(1, mesesCompletos) : Math.min(9, mesesCompletos + 1);
+}
+function trimesterFromWeeks(weeks){
+  if (weeks < 14) return 1;
+  if (weeks < 28) return 2;
+  return 3;
+}
+function timelinePct(weeks, daysInWeek){
+  const totalWeeks = weeks + daysInWeek / 7;
+  return Math.max(0, Math.min(100, (totalWeeks / MAX_WEEKS) * 100));
+}
+function pluralize(n, singular, plural){
+  return `${n} ${n === 1 ? singular : plural}`;
+}
+function formatWeeksText(weeks, daysInWeek){
+  const w = pluralize(weeks, 'semana', 'semanas');
+  return daysInWeek === 0 ? w : `${w} e ${pluralize(daysInWeek, 'dia', 'dias')}`;
+}
+function formatMonthsText(mesesCompletos, diasNoMes){
+  const m = pluralize(mesesCompletos, 'mês', 'meses');
+  return diasNoMes === 0 ? m : `${m} e ${pluralize(diasNoMes, 'dia', 'dias')}`;
+}
+
 function parseBR(s){
   const p=s.split('/');
   if(p.length!==3||p[2].length!==4)return null;
@@ -867,14 +912,14 @@ function parseBR(s){
 }
 function igFromLMP(s){
   const lmp=new Date(s+'T12:00:00');
-  const days=Math.round((Date.UTC(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate())-Date.UTC(lmp.getFullYear(),lmp.getMonth(),lmp.getDate()))/86400000);
-  if(days<0||days>320)return null;
-  return{weeks:Math.floor(days/7),days:days%7,totalDays:days,lmp};
+  const days=diffDaysUTC(lmp,TODAY);
+  const info=daysToWeeksInfo(days);
+  return{weeks:info.weeks,days:info.days,totalDays:info.totalDays,lmp};
 }
-function dppFromLMP(s){const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+280);return d;}
+function dppFromLMP(s){const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+GESTATION_DAYS);return d;}
 function igFromUSG(s,w,d){const e=new Date(s+'T12:00:00');const l=new Date(e);l.setDate(l.getDate()-(w*7+d));return igFromLMP(toISO(l));}
 function dppFromUSG(s,w,d){const e=new Date(s+'T12:00:00');const l=new Date(e);l.setDate(l.getDate()-(w*7+d));return dppFromLMP(toISO(l));}
-function igFromDPP(s){const dpp=new Date(s+'T12:00:00');const l=new Date(dpp);l.setDate(l.getDate()-280);return igFromLMP(toISO(l));}
+function igFromDPP(s){const dpp=new Date(s+'T12:00:00');const l=new Date(dpp);l.setDate(l.getDate()-GESTATION_DAYS);return igFromLMP(toISO(l));}
 function fertileFromDates(arr){
   const dates=arr.filter(Boolean).map(d=>new Date(d+'T12:00:00')).sort((a,b)=>a-b);
   if(dates.length<2)return null;
@@ -1052,7 +1097,7 @@ function runCalc(){
     renderFertilResult(fertRes);
     goResult();return;
   }
-  if(ig&&ig.totalDays>294){
+  if(ig&&ig.totalDays>MAX_WEEKS*7){
     showToast('Essa data resulta em mais de 42 semanas de gestação. Confira a data informada.',3000);
     return;
   }
@@ -1076,50 +1121,50 @@ function animateRing(pct){
 }
 
 /* ── Weeks/months line timeline ── */
-const TL_STEP=34; // px per week
-// Tabela padrão de meses gestacionais (semanas completas por mês, 40 semanas = 9 meses)
-const TL_MONTH_RANGES=[
-  {m:1,start:0,end:4},{m:2,start:4,end:8},{m:3,start:8,end:13},
-  {m:4,start:13,end:17},{m:5,start:17,end:22},{m:6,start:22,end:27},
-  {m:7,start:27,end:31},{m:8,start:31,end:35},{m:9,start:35,end:40}
-];
-function completedMonth(week){
-  for(const r of TL_MONTH_RANGES)if(week<=r.end)return r.m;
-  return 9;
-}
+const TL_STEP=34; // px per week (mantém a densidade visual atual)
+// Marcadores de mês derivados da tabela oficial de marcos (MONTH_BREAKPOINTS),
+// centralizados no meio de cada mês e convertidos de dias para semanas.
+const TL_MONTH_MARKERS=(()=>{
+  const markers=[];
+  for(let m=1;m<=9;m++){
+    const centerDays=(MONTH_BREAKPOINTS[m-1]+MONTH_BREAKPOINTS[m])/2;
+    markers.push({m,centerWeek:centerDays/7});
+  }
+  return markers;
+})();
 function renderTimeline(ig){
-  const curWeek=Math.max(0,Math.min(40,ig.weeks+ig.days/7));
+  const pct=timelinePct(ig.weeks,ig.days);
 
   const tl=document.getElementById('tlEl');
-  tl.style.width=(40*TL_STEP+24)+'px';
+  tl.style.width=(MAX_WEEKS*TL_STEP+24)+'px';
 
   const weeksWrap=document.getElementById('tlWeeks');
   weeksWrap.innerHTML='';
-  for(let w=0;w<=40;w++){
+  for(let w=0;w<=MAX_WEEKS;w++){
     const t=document.createElement('div');
     t.className='wtick'+(w<ig.weeks?' past':'')+(w===ig.weeks?' cur':'');
-    t.style.left=(w*TL_STEP)+'px';
+    t.style.left=((w/MAX_WEEKS)*100)+'%';
     t.innerHTML=`<div class="wnum">${w}</div>`;
     weeksWrap.appendChild(t);
   }
 
-  document.getElementById('tlFill').style.width=(curWeek/40*100)+'%';
-  document.getElementById('tlDot').style.left=(curWeek*TL_STEP)+'px';
+  document.getElementById('tlFill').style.width=pct+'%';
+  document.getElementById('tlDot').style.left=pct+'%';
 
-  const curMonth=completedMonth(curWeek);
+  const monthInfo=daysToGestationalMonths(ig.totalDays);
+  const curMonth=currentGestationalMonth(monthInfo.mesesCompletos,monthInfo.diasNoMes);
   const monthsWrap=document.getElementById('tlMonths');
   monthsWrap.innerHTML='';
-  TL_MONTH_RANGES.forEach(r=>{
-    const centerWeek=(r.start+r.end)/2;
+  TL_MONTH_MARKERS.forEach(r=>{
     const l=document.createElement('div');
     l.className='mlabel'+(r.m===curMonth?' cur':'');
-    l.style.left=(centerWeek*TL_STEP)+'px';
+    l.style.left=((r.centerWeek/MAX_WEEKS)*100)+'%';
     l.textContent=r.m;
     monthsWrap.appendChild(l);
   });
 
   setTimeout(()=>{
-    tl.parentElement.scrollLeft=curWeek*TL_STEP-tl.parentElement.clientWidth/2+23;
+    tl.parentElement.scrollLeft=(pct/100)*(MAX_WEEKS*TL_STEP)-tl.parentElement.clientWidth/2+23;
   },160);
 }
 
@@ -1134,24 +1179,24 @@ function renderPregResult(ig,dpp,method){
   void pr.offsetWidth;
   pr.classList.add('stagger');
 
-  const tri=ig.weeks<14?1:ig.weeks<28?2:3;
-  const pct=Math.min(100,(ig.totalDays/280)*100);
+  const tri=trimesterFromWeeks(ig.weeks);
+  const pct=Math.min(100,(ig.totalDays/GESTATION_DAYS)*100);
 
   document.getElementById('resMethod').textContent='Resultado · '+method;
-  document.getElementById('resTitle').innerHTML=`Você está em <span class="serif" style="color:var(--pd);font-style:italic">${ig.weeks}s ${ig.days}d</span>`;
+  document.getElementById('resTitle').innerHTML=`Você está em <span class="serif" style="color:var(--pd);font-style:italic">${formatWeeksText(ig.weeks,ig.days)}</span>`;
   document.getElementById('igBig').innerHTML=`<em>${ig.weeks}</em><span style="font-size:28px;color:var(--ink2)">+${ig.days}</span>`;
 
   // Animate ring after a small delay (let stagger start)
   setTimeout(()=>animateRing(pct), 180);
 
-  const commMonths=(ig.totalDays/30.44).toFixed(1).replace('.',',');
+  const monthInfo=daysToGestationalMonths(ig.totalDays);
 
   document.getElementById('statGrid').innerHTML=`
     <div class="stat"><div class="lbl">Trimestre</div><div class="val serif">${tri}º</div></div>
     <div class="stat"><div class="lbl">DPP</div><div class="val serif">${fmt(dpp)}</div></div>
-    <div class="stat"><div class="lbl">Faltam</div><div class="val serif">${Math.max(0,280-ig.totalDays)} dias</div></div>
+    <div class="stat"><div class="lbl">Faltam</div><div class="val serif">${Math.max(0,GESTATION_DAYS-ig.totalDays)} dias</div></div>
     <div class="stat"><div class="lbl">Progresso</div><div class="val serif">${Math.round(pct)}%</div></div>
-    <div class="stat"><div class="lbl">Meses</div><div class="val serif">${commMonths}</div></div>`;
+    <div class="stat"><div class="lbl">Meses</div><div class="val serif">${formatMonthsText(monthInfo.mesesCompletos,monthInfo.diasNoMes)}</div></div>`;
 
   // Animate tri bar
   setTimeout(()=>{
