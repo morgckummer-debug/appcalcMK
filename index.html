@@ -1147,7 +1147,6 @@ function applyMask(el){
     if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);
     if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5);
     el.value=v.slice(0,10);
-    if(el.value.length===10)runCalc();
   });
   el.addEventListener('keydown',e=>{if(e.key==='Backspace'&&el.value.slice(-1)==='/')el.value=el.value.slice(0,-1);});
 }
@@ -1156,7 +1155,6 @@ function applyMask(el){
 document.getElementById('usgW').addEventListener('input',e=>{
   if(String(e.target.value).length>=2){document.getElementById('usgD').focus();document.getElementById('usgD').select();}
 });
-document.getElementById('usgD').addEventListener('input',runCalc);
 
 /* ── Calculadora de fêmur (dentro do card do bebê) ── */
 document.getElementById('femurInp').addEventListener('input',e=>{
