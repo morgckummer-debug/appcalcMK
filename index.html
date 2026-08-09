@@ -756,14 +756,14 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         <div class="lbl">Próximos passos</div>
         <div class="card-title">Exames da gestação</div>
         <div style="display:flex;flex-direction:column;gap:10px">
-          <div class="exm-cta" data-page="exames" data-scroll="exmUsgList">
+          <div class="exm-cta" data-page="exames" data-filter="usg">
             <div>
               <div class="exm-cta-txt">🔊 Ultrassons na gravidez</div>
               <div class="exm-cta-sub">Acompanhe o bebê, período a período</div>
             </div>
             <div class="exm-cta-arrow">→</div>
           </div>
-          <div class="exm-cta" data-page="exames" data-scroll="exmLabList">
+          <div class="exm-cta" data-page="exames" data-filter="lab">
             <div>
               <div class="exm-cta-txt">🧪 Exames laboratoriais</div>
               <div class="exm-cta-sub">Exames de sangue e urina do pré-natal</div>
@@ -807,15 +807,22 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div class="lbl">Guia do pré-natal</div>
       <div class="card-title">Exames da <span class="serif" style="color:var(--pd);font-style:italic">gestação</span></div>
       <div class="helper">Aqui você encontra os principais exames do pré-natal e o período em que costumam ser feitos. Toque em qualquer exame para entender melhor pra que ele serve. <strong>Alguns exames só são pedidos quando o seu obstetra considerar necessário</strong> — o calendário pode variar de gestação para gestação.</div>
+      <div class="exm-cta hidden" id="exmShowAllBtn" style="margin-top:12px">
+        <div>
+          <div class="exm-cta-txt">Ver guia completo</div>
+          <div class="exm-cta-sub">Mostrar ultrassons e exames laboratoriais juntos</div>
+        </div>
+        <div class="exm-cta-arrow">↺</div>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="exmUsgCard">
       <div class="lbl">🔊 Ultrassons</div>
       <div class="card-title">Acompanhando o bebê</div>
       <div class="exm-list" id="exmUsgList"></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="exmLabCard">
       <div class="lbl">🧪 Exames laboratoriais</div>
       <div class="card-title">Cuidando da sua saúde</div>
       <div class="exm-list" id="exmLabList"></div>
@@ -1045,17 +1052,25 @@ function goToPage(pg){
   document.getElementById('app').scrollTop=0;
 }
 document.querySelectorAll('.nav-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>goToPage(btn.dataset.page));
+  btn.addEventListener('click',()=>{
+    goToPage(btn.dataset.page);
+    if(btn.dataset.page==='exames')filterExamGuide(null);
+  });
 });
+
+/* Filtra o guia de exames para mostrar só ultrassons, só laboratoriais, ou os dois */
+function filterExamGuide(category){
+  document.getElementById('exmUsgCard').classList.toggle('hidden',category==='lab');
+  document.getElementById('exmLabCard').classList.toggle('hidden',category==='usg');
+  document.getElementById('exmShowAllBtn').classList.toggle('hidden',!category);
+}
 document.querySelectorAll('.exm-cta[data-page]').forEach(cta=>{
   cta.addEventListener('click',()=>{
     goToPage(cta.dataset.page);
-    const scrollTarget=cta.dataset.scroll&&document.getElementById(cta.dataset.scroll);
-    if(scrollTarget){
-      setTimeout(()=>scrollTarget.closest('.card').scrollIntoView({block:'start'}),80);
-    }
+    filterExamGuide(cta.dataset.filter||null);
   });
 });
+document.getElementById('exmShowAllBtn').addEventListener('click',()=>filterExamGuide(null));
 
 /* ── Calc tabs ── */
 let curTab='dum';
