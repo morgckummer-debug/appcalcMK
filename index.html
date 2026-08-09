@@ -755,12 +755,21 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div class="card">
         <div class="lbl">Próximos passos</div>
         <div class="card-title">Exames da gestação</div>
-        <div class="exm-cta" data-page="exames">
-          <div>
-            <div class="exm-cta-txt">Ver guia completo de exames</div>
-            <div class="exm-cta-sub">Ultrassons e exames de sangue, período a período</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="exm-cta" data-page="exames" data-scroll="exmUsgList">
+            <div>
+              <div class="exm-cta-txt">🔊 Ultrassons na gravidez</div>
+              <div class="exm-cta-sub">Acompanhe o bebê, período a período</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
           </div>
-          <div class="exm-cta-arrow">→</div>
+          <div class="exm-cta" data-page="exames" data-scroll="exmLabList">
+            <div>
+              <div class="exm-cta-txt">🧪 Exames laboratoriais</div>
+              <div class="exm-cta-sub">Exames de sangue e urina do pré-natal</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1038,7 +1047,15 @@ function goToPage(pg){
 document.querySelectorAll('.nav-btn').forEach(btn=>{
   btn.addEventListener('click',()=>goToPage(btn.dataset.page));
 });
-document.querySelector('.exm-cta').addEventListener('click',()=>goToPage('exames'));
+document.querySelectorAll('.exm-cta[data-page]').forEach(cta=>{
+  cta.addEventListener('click',()=>{
+    goToPage(cta.dataset.page);
+    const scrollTarget=cta.dataset.scroll&&document.getElementById(cta.dataset.scroll);
+    if(scrollTarget){
+      setTimeout(()=>scrollTarget.closest('.card').scrollIntoView({block:'start'}),80);
+    }
+  });
+});
 
 /* ── Calc tabs ── */
 let curTab='dum';
