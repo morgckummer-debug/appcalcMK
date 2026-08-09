@@ -1017,18 +1017,25 @@ function getMilestone(w){
   return{week:4,...MS[4]};
 }
 
-/* Frutas usadas no balão do card do bebê, por faixa de semanas */
+/* Frutas usadas no balão do card do bebê, por faixa de semanas.
+   Ordenadas por tamanho real aproximado, da menor pra maior. */
 const FRUIT_RANGES=[
   {min:0,max:6,file:'semente',name:'Sementes de maçã',article:''},
-  {min:7,max:9,file:'ervilha',name:'Ervilha',article:'uma'},
-  {min:10,max:13,file:'Uva',name:'Uva',article:'uma'},
-  {min:14,max:18,file:'Limao',name:'Limão siciliano',article:'um'},
-  {min:19,max:24,file:'Manga',name:'Manga',article:'uma'},
-  {min:25,max:26,file:'Berinjela',name:'Berinjela',article:'uma'},
-  {min:27,max:28,file:'Melao',name:'Melão',article:'um'},
-  {min:29,max:32,file:'Mamao',name:'Mamão papaia',article:'um'},
-  {min:33,max:36,file:'Abacaxi',name:'Abacaxi',article:'um'},
-  {min:37,max:42,file:'Melancia',name:'Melancia',article:'uma'},
+  {min:7,max:8,file:'ervilha',name:'Ervilha',article:'uma'},
+  {min:9,max:11,file:'framboesa',name:'Framboesa',article:'uma'},
+  {min:12,max:13,file:'morango',name:'Morango',article:'um'},
+  {min:14,max:16,file:'Uva',name:'Uva',article:'uma'},
+  {min:17,max:18,file:'pessego',name:'Pêssego',article:'um'},
+  {min:19,max:21,file:'Limao',name:'Limão siciliano',article:'um'},
+  {min:22,max:23,file:'abacate',name:'Abacate',article:'um'},
+  {min:24,max:25,file:'Manga',name:'Manga',article:'uma'},
+  {min:26,max:28,file:'repolho',name:'Repolho',article:'um'},
+  {min:29,max:30,file:'Berinjela',name:'Berinjela',article:'uma'},
+  {min:31,max:33,file:'Melao',name:'Melão',article:'um'},
+  {min:34,max:35,file:'cocoverde',name:'Coco verde',article:'um'},
+  {min:36,max:38,file:'Mamao',name:'Mamão papaia',article:'um'},
+  {min:39,max:40,file:'Abacaxi',name:'Abacaxi',article:'um'},
+  {min:41,max:42,file:'Melancia',name:'Melancia',article:'uma'},
 ];
 function getFruitForWeek(weeks){
   for(const r of FRUIT_RANGES)if(weeks>=r.min&&weeks<=r.max)return r;
