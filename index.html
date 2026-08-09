@@ -321,6 +321,8 @@ body::after{
 .exm-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
 .exm-name{font-family:'Fraunces',serif;font-size:16px;font-weight:500;color:var(--ink);line-height:1.3}
 .exm-chevron{font-size:16px;color:var(--ink3);flex-shrink:0;margin-top:2px}
+.exm-card-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.exm-chk{cursor:pointer}
 .exm-periodo{
   display:inline-flex;align-items:center;gap:5px;
   background:linear-gradient(135deg,#fde3d0,var(--peach) 90%);color:var(--pd2);
@@ -342,8 +344,21 @@ body::after{
 .exm-status.done{background:var(--surf2);color:var(--ink3)}
 .exm-status.soon{background:rgba(111,139,163,.14);color:var(--bd)}
 [data-dark] .exm-status.soon{background:rgba(111,139,163,.2);color:#9fc0d8}
+.exm-status.late{background:linear-gradient(135deg,var(--rose),#e5b4a8);color:#5a3a32}
+[data-dark] .exm-status.late{color:#2a1a16}
 .exm-card.status-now{box-shadow:var(--cs),0 0 0 2px rgba(217,149,112,.35)}
+.exm-card.status-late{box-shadow:var(--cs),0 0 0 2px rgba(229,180,168,.55)}
 .exm-card.status-done{opacity:.72}
+
+.exm-sheet-check{
+  display:flex;align-items:center;gap:10px;width:100%;
+  background:var(--surf2);border:none;border-radius:14px;padding:12px 14px;
+  margin-bottom:14px;cursor:pointer;box-shadow:var(--ci);
+  font-family:inherit;font-size:13px;font-weight:700;color:var(--ink);
+  transition:var(--trans);
+}
+.exm-sheet-check:hover{background:var(--surfs)}
+.exm-sheet-check:active{transform:scale(.98)}
 
 .exm-overlay{
   position:fixed;inset:0;z-index:2000;
@@ -1275,22 +1290,48 @@ function renderFertilResult(r){
 
 /* ── Guia de exames ── */
 let currentIG=null;
-const STATUS_LBL={done:'✓ Já realizado',now:'● Fazendo agora',soon:'○ Ainda vai fazer'};
-function examStatus(ex){
-  if(!currentIG)return null;
-  const cur=currentIG.weeks+currentIG.days/7;
+const EXAM_DONE_KEY='mkcalc_exam_done_v1';
+function loadExamDone(){
+  try{const raw=localStorage.getItem(EXAM_DONE_KEY);return raw?JSON.parse(raw):{};}
+  catch{return{};}
+}
+function saveExamDone(){
+  try{localStorage.setItem(EXAM_DONE_KEY,JSON.stringify(examDone));}catch{}
+}
+const examDone=loadExamDone();
+const STATUS_LBL={done:'✓ Já realizado',now:'● Fazendo agora',soon:'○ Ainda vai fazer',late:'⚠ Ainda não marquei'};
+// Status do exame: uma marcação manual (checkbox) sempre vence o palpite
+// automático baseado na data; sem marcação, assume-se pela IG atual.
+function examStatus(ex,key){
+  const manual=examDone[key];
+  const cur=currentIG?currentIG.weeks+currentIG.days/7:null;
+  const autoDone=cur!=null&&cur>ex.weekEnd;
+  const checked=manual!==undefined?manual:autoDone;
+  if(checked)return'done';
+  if(cur==null)return null;
   if(cur<ex.weekStart)return'soon';
-  if(cur>ex.weekEnd)return'done';
-  return'now';
+  if(cur<=ex.weekEnd)return'now';
+  return'late';
+}
+function toggleExamDone(ex,key){
+  const wasDone=examStatus(ex,key)==='done';
+  examDone[key]=!wasDone;
+  saveExamDone();
+  if(!wasDone)showToast('Exame marcado como realizado',1500);
 }
 function statusTag(st){return st?`<div class="exm-status ${st}">${STATUS_LBL[st]}</div>`:'';}
 function examCard(ex,idx,catId){
   const badge=ex.indicacao?`<div class="exm-badge">🔎 Conforme indicação médica</div>`:'';
-  const st=examStatus(ex);
+  const key=`${catId}-${idx}`;
+  const st=examStatus(ex,key);
+  const checked=st==='done';
   return `<button class="exm-card${st?' status-'+st:''}" type="button" data-cat="${catId}" data-idx="${idx}">
     <div class="exm-card-top">
       <div class="exm-name">${ex.name}</div>
-      <div class="exm-chevron">›</div>
+      <div class="exm-card-actions">
+        <div class="chk-box exm-chk ${checked?'on':'off'}" data-key="${key}" title="Marcar como já realizado">${checked?'✓':''}</div>
+        <div class="exm-chevron">›</div>
+      </div>
     </div>
     ${statusTag(st)}
     <div class="lbl">Período recomendado</div>
@@ -1299,11 +1340,17 @@ function examCard(ex,idx,catId){
     ${badge}
   </button>`;
 }
-function openExamDetail(ex){
+function openExamDetail(ex,key){
+  const st=examStatus(ex,key);
+  const checked=st==='done';
   let html=`<div class="exm-sheet-name">${ex.name}</div>
-    ${statusTag(examStatus(ex))}
+    ${statusTag(st)}
     <div class="lbl">Período recomendado</div>
     <div class="exm-periodo" style="margin-bottom:14px">🗓️ ${ex.periodo}</div>
+    <button class="exm-sheet-check" id="exmSheetCheck" type="button">
+      <span class="chk-box ${checked?'on':'off'}">${checked?'✓':''}</span>
+      <span>${checked?'Marcado como realizado':'Marcar como já realizado'}</span>
+    </button>
     <div class="exm-sheet-desc">${ex.desc}</div>`;
   if(ex.lista){
     html+=`<div class="exm-sheet-sub">Ver detalhes</div>
@@ -1312,6 +1359,11 @@ function openExamDetail(ex){
   if(ex.nota)html+=`<div class="exm-sheet-note"><strong>Importante:</strong> ${ex.nota}</div>`;
   if(ex.indicacao)html+=`<div class="exm-sheet-note">🔎 <strong>Sobre a indicação:</strong> ${ex.indicacao}</div>`;
   document.getElementById('exmSheetBody').innerHTML=html;
+  document.getElementById('exmSheetCheck').addEventListener('click',()=>{
+    toggleExamDone(ex,key);
+    renderExamGuide();
+    openExamDetail(ex,key);
+  });
   document.getElementById('exmOverlay').classList.add('show');
 }
 function closeExamDetail(){document.getElementById('exmOverlay').classList.remove('show');}
@@ -1323,10 +1375,21 @@ function renderExamGuide(){
   const lab=[...LABORATORIAIS].sort((a,b)=>a.weekStart-b.weekStart);
   document.getElementById('exmUsgList').innerHTML=usg.map((ex,i)=>examCard(ex,i,'usg')).join('');
   document.getElementById('exmLabList').innerHTML=lab.map((ex,i)=>examCard(ex,i,'lab')).join('');
+  document.querySelectorAll('.exm-chk').forEach(box=>{
+    box.addEventListener('click',e=>{
+      e.stopPropagation();
+      const card=box.closest('.exm-card');
+      const list=card.dataset.cat==='usg'?usg:lab;
+      const ex=list[+card.dataset.idx];
+      toggleExamDone(ex,box.dataset.key);
+      renderExamGuide();
+    });
+  });
   document.querySelectorAll('.exm-card').forEach(card=>{
     card.addEventListener('click',()=>{
       const list=card.dataset.cat==='usg'?usg:lab;
-      openExamDetail(list[+card.dataset.idx]);
+      const idx=+card.dataset.idx;
+      openExamDetail(list[idx],`${card.dataset.cat}-${idx}`);
     });
   });
 }
