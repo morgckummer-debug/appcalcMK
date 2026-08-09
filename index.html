@@ -1405,13 +1405,26 @@ function saveChecked(){
   try{localStorage.setItem(STORAGE_KEY,JSON.stringify(checked));}catch{}
 }
 const checked=loadChecked();
+function updateChecklistOverall(){
+  const all=CHECKLIST.reduce((s,c)=>s+c.items.length,0);
+  const doneAll=Object.values(checked).filter(Boolean).length;
+  const pct=all?Math.round(doneAll/all*100):0;
+  document.getElementById('chkFill').style.width=pct+'%';
+  document.getElementById('chkTxt').textContent=`${pct}% concluído · ${all-doneAll} itens pendentes`;
+}
+function updateChecklistGroup(grp,cat,ci){
+  const done=cat.items.filter((_,ii)=>checked[`${ci}-${ii}`]).length;
+  const pct=cat.items.length?Math.round(done/cat.items.length*100):0;
+  grp.querySelector('.mini-bar-fill').style.width=pct+'%';
+  grp.querySelector('.chk-head-count').textContent=`${done}/${cat.items.length}`;
+}
 function buildChecklist(){
   const el=document.getElementById('chkList');el.innerHTML='';
   CHECKLIST.forEach((cat,ci)=>{
     const done=cat.items.filter((_,ii)=>checked[`${ci}-${ii}`]).length;
     const pct=cat.items.length?Math.round(done/cat.items.length*100):0;
     const grp=document.createElement('div');grp.className='chk-group';
-    grp.innerHTML=`<button class="chk-head"><span class="chk-head-title">${cat.cat}</span><span class="chk-head-r"><span class="mini-bar"><span class="mini-bar-fill" style="width:${pct}%"></span></span>${done}/${cat.items.length} <i class="chev">▾</i></span></button><div class="chk-items"></div>`;
+    grp.innerHTML=`<button class="chk-head"><span class="chk-head-title">${cat.cat}</span><span class="chk-head-r"><span class="mini-bar"><span class="mini-bar-fill" style="width:${pct}%"></span></span><span class="chk-head-count">${done}/${cat.items.length}</span> <i class="chev">▾</i></span></button><div class="chk-items"></div>`;
     const items=grp.querySelector('.chk-items');
     cat.items.forEach((txt,ii)=>{
       const k=`${ci}-${ii}`;const on=!!checked[k];
@@ -1421,8 +1434,14 @@ function buildChecklist(){
       item.addEventListener('click',()=>{
         checked[k]=!checked[k];
         saveChecked();
-        buildChecklist();
-        if(checked[k])showToast('Item marcado',1200);
+        const nowOn=checked[k];
+        item.classList.toggle('done',nowOn);
+        const box=item.querySelector('.chk-box');
+        box.className='chk-box'+(nowOn?' on':' off');
+        box.textContent=nowOn?'✓':'';
+        updateChecklistGroup(grp,cat,ci);
+        updateChecklistOverall();
+        if(nowOn)showToast('Item marcado',1200);
       });
       items.appendChild(item);
     });
@@ -1432,11 +1451,7 @@ function buildChecklist(){
     });
     el.appendChild(grp);
   });
-  const all=CHECKLIST.reduce((s,c)=>s+c.items.length,0);
-  const doneAll=Object.values(checked).filter(Boolean).length;
-  const pct=all?Math.round(doneAll/all*100):0;
-  document.getElementById('chkFill').style.width=pct+'%';
-  document.getElementById('chkTxt').textContent=`${pct}% concluído · ${all-doneAll} itens pendentes`;
+  updateChecklistOverall();
 }
 
 buildChecklist();
