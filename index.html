@@ -994,7 +994,8 @@ const LABORATORIAIS=[
     lista:['Hemograma','Tipagem sanguínea (ABO e Rh)','Coombs indireto (quando Rh negativo)','Glicemia de jejum','Urina tipo I','Urocultura','HIV','Sífilis','Hepatite B','Hepatite C','Rubéola (IgG)','Toxoplasmose (IgG e IgM)','TSH','Vitamina D (opcional)','Citomegalovírus (quando indicado)'],
     nota:'A relação de exames pode variar conforme o seu histórico de saúde e a orientação do seu obstetra.'},
   {weekStart:24,weekEnd:28,name:'Curva de tolerância à glicose (TOTG 75 g)',periodo:'24 a 28 semanas',
-    desc:'Avalia se houve desenvolvimento de diabetes durante a gestação.'},
+    desc:'Avalia se houve desenvolvimento de diabetes durante a gestação.',
+    valores:[{lbl:'Jejum',val:'≤ 92'},{lbl:'Após 1h',val:'< 180'},{lbl:'Após 2h',val:'< 153'}]},
   {weekStart:28,weekEnd:28,name:'Exames laboratoriais de acompanhamento',periodo:'28 semanas',
     desc:'Repetição de alguns exames para acompanhar a sua saúde e identificar alterações que podem surgir durante a gravidez.',
     lista:['Hemograma','Glicemia (quando indicada)','HIV','Sífilis','Hepatite B (conforme protocolo)','Coombs indireto (gestantes Rh negativo)','Toxoplasmose (quando suscetível)'],
@@ -1337,6 +1338,11 @@ function openExamDetail(ex,key){
       <span>${checked?'Marcado como realizado':'Marcar como já realizado'}</span>
     </button>
     <div class="exm-sheet-desc">${ex.desc}</div>`;
+  if(ex.valores){
+    html+=`<div class="exm-sheet-sub">Valores normais</div>
+      <div class="stat-grid" style="margin-bottom:4px">${ex.valores.map(v=>`<div class="stat"><div class="lbl">${v.lbl}</div><div class="val serif">${v.val}</div></div>`).join('')}</div>
+      <div style="text-align:center;font-size:10px;color:var(--ink3);margin-bottom:14px">Valores em mg/dL</div>`;
+  }
   if(ex.lista){
     html+=`<div class="exm-sheet-sub">Ver detalhes</div>
       <ul class="exm-sheet-items">${ex.lista.map(i=>`<li>${i}</li>`).join('')}</ul>`;
