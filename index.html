@@ -565,6 +565,12 @@ body::after{
   box-shadow:2px 3px 5px rgba(217,149,112,.35);color:white;
   transform:scale(1.1);
 }
+/* Checkbox dos exames usa a cor azul da paleta, pra não repetir o
+   pêssego já usado no selo de período recomendado */
+.exm-chk.on{
+  background:radial-gradient(circle at 30% 25%,#dce6ee,var(--blue) 60%,var(--bd));
+  box-shadow:2px 3px 5px rgba(111,139,163,.35);
+}
 .chk-box.off{background:var(--surf2);box-shadow:var(--ci)}
 .chk-txt{font-size:14px;font-weight:500;flex:1;line-height:1.35;color:var(--ink);transition:color .2s}
 .chk-item.done .chk-txt{text-decoration:line-through;color:var(--ink3)}
@@ -967,12 +973,12 @@ const ULTRASSONS=[
   {weekStart:8,weekEnd:10,name:'Ultrassom inicial',periodo:'8 a 10 semanas',
     desc:'Confirma a idade gestacional, os batimentos cardíacos do bebê, a localização da gestação e o número de bebês.'},
   {weekStart:12,weekEnd:13+6/7,name:'Ultrassom Morfológico do 1º trimestre',periodo:'12 semanas a 13 semanas e 6 dias',
-    desc:'Avalia detalhadamente o desenvolvimento do bebê e ajuda no rastreamento de algumas alterações cromossômicas e malformações. Durante esse exame também é feita a medida da translucência nucal (TN).',
+    desc:'Avalia detalhadamente o desenvolvimento do bebê e ajuda no rastreamento de algumas alterações cromossômicas e malformações. Durante esse exame também é feita a medida da translucência nucal (TN) e o rastreamento do risco de pré-eclâmpsia.',
     nota:'Esse exame não é a mesma coisa que "Translucência Nucal" isoladamente — a TN faz parte dele, mas o Morfológico do 1º trimestre é bem mais completo.'},
   {weekStart:22,weekEnd:24,name:'Ultrassom Morfológico do 2º trimestre',periodo:'22 a 24 semanas',
-    desc:'Avalia detalhadamente a anatomia do bebê, o crescimento, a placenta, o líquido amniótico e o colo do útero.'},
+    desc:'Avalia detalhadamente a anatomia do bebê, o crescimento, a placenta, o líquido amniótico e faz o rastreamento do parto prematuro através da medida do colo do útero por via vaginal.'},
   {weekStart:24,weekEnd:30,name:'Ecocardiograma Fetal',periodo:'24 a 30 semanas',
-    desc:'Avalia detalhadamente a estrutura e o funcionamento do coração do bebê.',
+    desc:'Avalia detalhadamente a estrutura e o funcionamento do coração do bebê, incluindo se as válvulas e o fluxo de sangue estão normais — uma avaliação que não é feita no ultrassom morfológico.',
     indicacao:'Pode ser indicado em situações específicas da gestação, ou quando o obstetra quer uma avaliação mais detalhada do coração do bebê — só é feito quando há indicação médica.'},
   {weekStart:28,weekEnd:42,name:'Ultrassom Obstétrico com Doppler',periodo:'A partir de 28 semanas (mais comum entre 28 e 32)',
     desc:'Avalia o crescimento do bebê, a quantidade de líquido amniótico e a circulação de sangue entre a placenta e o bebê.',
@@ -987,7 +993,7 @@ const LABORATORIAIS=[
     desc:'Avaliam a sua saúde e ajudam a identificar anemia, infecções, diabetes e outras condições que podem interferir na gestação.',
     lista:['Hemograma','Tipagem sanguínea (ABO e Rh)','Coombs indireto (quando Rh negativo)','Glicemia de jejum','Urina tipo I','Urocultura','HIV','Sífilis','Hepatite B','Hepatite C','Rubéola (IgG)','Toxoplasmose (IgG e IgM)','TSH','Vitamina D (opcional)','Citomegalovírus (quando indicado)'],
     nota:'A relação de exames pode variar conforme o seu histórico de saúde e a orientação do seu obstetra.'},
-  {weekStart:24,weekEnd:28,name:'Teste para diabetes gestacional (TOTG 75 g)',periodo:'24 a 28 semanas',
+  {weekStart:24,weekEnd:28,name:'Curva de tolerância à glicose (TOTG 75 g)',periodo:'24 a 28 semanas',
     desc:'Avalia se houve desenvolvimento de diabetes durante a gestação.'},
   {weekStart:28,weekEnd:28,name:'Exames laboratoriais de acompanhamento',periodo:'28 semanas',
     desc:'Repetição de alguns exames para acompanhar a sua saúde e identificar alterações que podem surgir durante a gravidez.',
@@ -1327,7 +1333,7 @@ function openExamDetail(ex,key){
     <div class="lbl">Período recomendado</div>
     <div class="exm-periodo" style="margin-bottom:14px">🗓️ ${ex.periodo}</div>
     <button class="exm-sheet-check" id="exmSheetCheck" type="button">
-      <span class="chk-box ${checked?'on':'off'}">${checked?'✓':''}</span>
+      <span class="chk-box exm-chk ${checked?'on':'off'}">${checked?'✓':''}</span>
       <span>${checked?'Marcado como realizado':'Marcar como já realizado'}</span>
     </button>
     <div class="exm-sheet-desc">${ex.desc}</div>`;
