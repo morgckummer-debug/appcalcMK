@@ -244,11 +244,20 @@ body::after{
 }
 .baby-orb-wrap{display:flex;justify-content:center;margin:14px 0}
 .baby-orb{
-  width:90px;height:90px;border-radius:50%;
-  background:radial-gradient(circle at 32% 28%,#fde3d0,var(--peach) 50%,var(--pd));
-  box-shadow:10px 14px 24px rgba(217,149,112,.35),inset -4px -5px 10px rgba(168,96,96,.2),inset 3px 4px 8px rgba(255,250,240,.5);
+  width:140px;height:140px;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,#eaf1f6,var(--blue) 60%,var(--bd));
+  box-shadow:10px 14px 24px rgba(111,139,163,.35),inset -4px -5px 10px rgba(90,120,150,.2),inset 3px 4px 8px rgba(255,250,240,.5);
   animation:floatOrb 3.5s ease-in-out infinite;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
+.baby-orb-img{width:76%;height:76%;object-fit:contain;filter:drop-shadow(2px 5px 6px rgba(40,55,70,.25))}
+.femur-calc{margin-top:14px;background:rgba(255,250,240,.5);border-radius:12px;padding:12px 14px}
+[data-dark] .femur-calc{background:rgba(30,20,10,.35)}
+.femur-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.femur-row .inp{padding:10px 12px;font-size:15px}
+.femur-unit{font-size:13px;color:var(--ink2);font-weight:700;flex-shrink:0}
+.femur-result{margin-top:10px;font-size:13.5px;color:var(--ink);line-height:1.55;background:var(--surf);border-radius:12px;padding:10px 12px;box-shadow:var(--cs)}
+.femur-result strong{color:var(--pd2)}
 @keyframes floatOrb{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-5px)}
@@ -738,6 +747,29 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         <div class="stat-grid" id="statGrid"></div>
       </div>
 
+      <div class="baby-card" id="babyCard">
+        <div class="lbl" id="babyWeekLbl">Bebê</div>
+        <div class="card-title serif" id="babyFruit">—</div>
+        <div class="baby-orb-wrap">
+          <div class="baby-orb">
+            <img class="baby-orb-img" id="babyFruitImg" src="" alt="" onerror="this.src='frutas/semente.png'">
+          </div>
+        </div>
+        <div class="baby-facts">
+          <div class="bfact"><div class="lbl">Comprimento</div><div class="val serif" id="babyLen">—</div></div>
+          <div class="bfact"><div class="lbl">Peso</div><div class="val serif" id="babyWt">—</div></div>
+        </div>
+        <div class="baby-dev" id="babyDev"></div>
+        <div class="femur-calc">
+          <div class="lbl">Calcular pela medida do fêmur (USG)</div>
+          <div class="femur-row">
+            <input class="inp" type="number" id="femurInp" placeholder="Comprimento do fêmur" step="0.1" min="0" inputmode="decimal">
+            <span class="femur-unit">cm</span>
+          </div>
+          <div class="femur-result hidden" id="femurResult"></div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="lbl">Timeline</div>
         <div class="card-title">Semana a semana</div>
@@ -985,6 +1017,31 @@ function getMilestone(w){
   return{week:4,...MS[4]};
 }
 
+/* Frutas usadas no balão do card do bebê, por faixa de semanas */
+const FRUIT_RANGES=[
+  {min:0,max:6,file:'semente',name:'Sementes de maçã',article:''},
+  {min:7,max:9,file:'ervilha',name:'Ervilha',article:'uma'},
+  {min:10,max:13,file:'Uva',name:'Uva',article:'uma'},
+  {min:14,max:18,file:'Limao',name:'Limão siciliano',article:'um'},
+  {min:19,max:24,file:'Manga',name:'Manga',article:'uma'},
+  {min:25,max:26,file:'Berinjela',name:'Berinjela',article:'uma'},
+  {min:27,max:28,file:'Melao',name:'Melão',article:'um'},
+  {min:29,max:32,file:'Mamao',name:'Mamão papaia',article:'um'},
+  {min:33,max:36,file:'Abacaxi',name:'Abacaxi',article:'um'},
+  {min:37,max:42,file:'Melancia',name:'Melancia',article:'uma'},
+];
+function getFruitForWeek(weeks){
+  for(const r of FRUIT_RANGES)if(weeks>=r.min&&weeks<=r.max)return r;
+  return FRUIT_RANGES[weeks<FRUIT_RANGES[0].min?0:FRUIT_RANGES.length-1];
+}
+function fruitPhrase(fruit){
+  return fruit.article?`${fruit.article} ${fruit.name.toLowerCase()}`:fruit.name.toLowerCase();
+}
+/* Fórmula da clínica: estatura fetal (cm) = comprimento do fêmur (cm) × 6,9 */
+function fetalHeightFromFemur(femurCm){
+  return femurCm*6.9;
+}
+
 const ULTRASSONS=[
   {weekStart:8,weekEnd:10,name:'Ultrassom inicial',periodo:'8 a 10 semanas',
     desc:'Confirma a idade gestacional, os batimentos cardíacos do bebê, a localização da gestação e o número de bebês.'},
@@ -1100,6 +1157,17 @@ document.getElementById('usgW').addEventListener('input',e=>{
   if(String(e.target.value).length>=2){document.getElementById('usgD').focus();document.getElementById('usgD').select();}
 });
 document.getElementById('usgD').addEventListener('input',runCalc);
+
+/* ── Calculadora de fêmur (dentro do card do bebê) ── */
+document.getElementById('femurInp').addEventListener('input',e=>{
+  const resEl=document.getElementById('femurResult');
+  const femur=parseFloat(e.target.value.replace(',','.'));
+  if(!femur||femur<=0){resEl.classList.add('hidden');return;}
+  const altura=fetalHeightFromFemur(femur);
+  const fruit=getFruitForWeek(currentIG?currentIG.weeks:0);
+  resEl.innerHTML=`Estatura estimada: <strong>${altura.toFixed(1)} cm</strong><br>Olha! Eu já tenho o tamanho de ${fruitPhrase(fruit)} 💕`;
+  resEl.classList.remove('hidden');
+});
 
 /* ── Fertil dates ── */
 let diDates=['',''];
@@ -1251,6 +1319,18 @@ function renderPregResult(ig,dpp,method){
     <div class="stat"><div class="lbl">Trimestre</div><div class="val serif">${tri}º</div></div>
     <div class="stat"><div class="lbl">DPP</div><div class="val serif">${fmt(dpp)}</div></div>
     <div class="stat"><div class="lbl">Faltam</div><div class="val serif">${Math.max(0,GESTATION_DAYS-ig.totalDays)} dias</div></div>`;
+
+  const milestone=getMilestone(ig.weeks);
+  const fruit=getFruitForWeek(ig.weeks);
+  document.getElementById('babyWeekLbl').textContent=`Bebê · semana ${ig.weeks}`;
+  document.getElementById('babyFruit').textContent=fruit.name;
+  document.getElementById('babyFruitImg').src=`frutas/${fruit.file}.png`;
+  document.getElementById('babyFruitImg').alt=fruit.name;
+  document.getElementById('babyLen').textContent=milestone.l;
+  document.getElementById('babyWt').textContent=milestone.w;
+  document.getElementById('babyDev').textContent=milestone.d;
+  document.getElementById('femurInp').value='';
+  document.getElementById('femurResult').classList.add('hidden');
 
   renderTimeline(ig);
 
