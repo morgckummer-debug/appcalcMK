@@ -1142,16 +1142,10 @@ function animateRing(pct){
 
 /* ── Weeks/months line timeline ── */
 const TL_STEP=34; // px per week (mantém a densidade visual atual)
-// Marcadores de mês derivados da tabela oficial de marcos (MONTH_BREAKPOINTS),
-// centralizados no meio de cada mês e convertidos de dias para semanas.
-const TL_MONTH_MARKERS=(()=>{
-  const markers=[];
-  for(let m=1;m<=9;m++){
-    const centerDays=(MONTH_BREAKPOINTS[m-1]+MONTH_BREAKPOINTS[m])/2;
-    markers.push({m,centerWeek:centerDays/7});
-  }
-  return markers;
-})();
+// Marcadores de mês posicionados exatamente no marco de conclusão de cada mês
+// (MONTH_BREAKPOINTS, convertido de dias para semanas) — ex.: "6" fica em 26
+// semanas (182 dias ÷ 7), o ponto exato em que o 6º mês se completa.
+const TL_MONTH_MARKERS=MONTH_BREAKPOINTS.slice(1).map((days,i)=>({m:i+1,week:days/7}));
 function renderTimeline(ig){
   const pct=timelinePct(ig.weeks,ig.days);
 
@@ -1178,7 +1172,7 @@ function renderTimeline(ig){
   TL_MONTH_MARKERS.forEach(r=>{
     const l=document.createElement('div');
     l.className='mlabel'+(r.m===curMonth?' cur':'');
-    l.style.left=((r.centerWeek/MAX_WEEKS)*100)+'%';
+    l.style.left=((r.week/MAX_WEEKS)*100)+'%';
     l.textContent=r.m;
     monthsWrap.appendChild(l);
   });
