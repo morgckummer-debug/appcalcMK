@@ -98,6 +98,7 @@ body::after{
 }
 .dark-btn:hover{transform:scale(1.1) rotate(15deg)}
 .dark-btn:active{transform:scale(.94)}
+#onbHelpBtn{font-weight:800;font-size:17px;color:var(--ink)}
 
 /* ── Onboarding ── */
 .onb-overlay{
@@ -118,6 +119,13 @@ body::after{
 .onb-ico{font-size:44px;margin-bottom:14px;animation:floatOrb 3.5s ease-in-out infinite}
 .onb-title{font-size:21px;font-weight:500;color:var(--ink);margin-bottom:10px;transition:color .3s}
 .onb-desc{font-size:14px;color:var(--ink2);line-height:1.6;margin-bottom:22px}
+.onb-desc strong{color:var(--ink)}
+.onb-help-mark{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--surf2);color:var(--ink);font-weight:800;font-size:11px;
+  vertical-align:-2px;
+}
 .onb-dots{display:flex;justify-content:center;gap:6px;margin-bottom:22px}
 .onb-dot{width:7px;height:7px;border-radius:50%;background:var(--surf2);transition:var(--trans)}
 .onb-dot.on{background:var(--pd);width:20px;border-radius:var(--pill)}
@@ -636,16 +644,10 @@ body::after{
 }
 .chk-box.on{
   background:radial-gradient(circle at 30% 25%,#fde3d0,var(--peach) 60%,var(--pd));
-  box-shadow:2px 3px 5px rgba(217,149,112,.35);color:white;
+  box-shadow:2px 3px 5px rgba(217,149,112,.35);color:var(--ink);
   transform:scale(1.1);
 }
-/* Checkbox dos exames usa a cor azul da paleta, pra não repetir o
-   pêssego já usado no selo de período recomendado */
-.exm-chk.on{
-  background:radial-gradient(circle at 30% 25%,#dce6ee,var(--blue) 60%,var(--bd));
-  box-shadow:2px 3px 5px rgba(111,139,163,.35);color:var(--ink);
-}
-.chk-box.off{background:var(--surf2);box-shadow:var(--ci)}
+.chk-box.off{background:var(--surf2);box-shadow:var(--ci);border:1.5px solid var(--ink3)}
 .chk-txt{font-size:14px;font-weight:500;flex:1;line-height:1.35;color:var(--ink);transition:color .2s}
 .chk-item.done .chk-txt{text-decoration:line-through;color:var(--ink3)}
 
@@ -765,7 +767,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
   <div class="hdr">
     <div class="brand serif">MK<span>Calc</span></div>
     <div class="hdr-actions">
-      <button class="dark-btn" id="onbHelpBtn" title="Ver tutorial">❔</button>
+      <button class="dark-btn" id="onbHelpBtn" title="Ver tutorial">?</button>
       <button class="dark-btn" id="darkBtn" title="Alternar tema">🌙</button>
     </div>
   </div>
@@ -1761,7 +1763,7 @@ const ONBOARDING_STEPS=[
   {ico:'🤰',title:'Bem-vinda ao MKCalc!',desc:'Um app simples pra acompanhar sua gestação: idade gestacional, período fértil, exames e muito mais.'},
   {ico:'🧭',title:'Use as abas aqui embaixo',desc:'Calcular, Resultado, Exames e Checklist ficam sempre a um toque de distância, na barra de navegação.'},
   {ico:'🧸',title:'Personalize na aba Perfil',desc:'Coloque aqui o nome e o sexo do seu bebê.'},
-  {ico:'✨',title:'Pronto!',desc:'Você já pode começar. Sempre que quiser rever este tutorial, é só tocar no ❔ lá em cima.'}
+  {ico:'✨',title:'Pronto!',desc:'Você já pode começar. Sempre que quiser rever este tutorial, é só tocar no <span class="onb-help-mark">?</span> lá em cima.'}
 ];
 let onbStep=0;
 function renderOnb(){
