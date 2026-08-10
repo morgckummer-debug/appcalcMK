@@ -634,6 +634,50 @@ body::after{
 
 /* ── About ── */
 footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);letter-spacing:.06em}
+.about-hero{text-align:center;padding:40px 22px 30px;position:relative;overflow:hidden}
+.about-hero::before{
+  content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(217,149,112,.28),transparent 70%);
+  pointer-events:none;
+}
+.about-avatar-ring{
+  width:112px;height:112px;border-radius:50%;margin:0 auto 18px;padding:4px;
+  background:linear-gradient(135deg,var(--peach),var(--pd));
+  box-shadow:var(--co);position:relative;
+  animation:floatOrb 4s ease-in-out infinite;
+}
+.about-avatar{
+  width:100%;height:100%;border-radius:50%;overflow:hidden;position:relative;
+  background:radial-gradient(circle at 35% 30%,#fde3d0,var(--peach) 60%,var(--pd));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 2px 3px 6px rgba(0,0,0,.08);
+}
+.about-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.about-avatar .mono{font-family:'Fraunces',serif;font-size:36px;font-weight:500;color:#fff8ef;letter-spacing:-.02em}
+.about-name{font-family:'Fraunces',serif;font-size:25px;font-weight:500;letter-spacing:-.02em;color:var(--ink);position:relative}
+.about-role{font-size:12.5px;color:var(--ink2);margin-top:5px;font-weight:600;letter-spacing:.01em}
+.about-loc{font-size:11.5px;color:var(--ink3);margin-top:4px;letter-spacing:.01em}
+.about-loc a{color:var(--pd2);text-decoration:none;font-weight:700}
+.about-badges{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:18px 0 2px}
+.about-badge{
+  font-size:10.5px;font-weight:700;color:var(--pd2);
+  background:linear-gradient(135deg,#fde3d0,var(--peach) 90%);
+  padding:5px 12px;border-radius:var(--pill);
+  box-shadow:1px 2px 5px rgba(217,149,112,.25);
+}
+[data-dark] .about-badge{color:#2a180f}
+.about-links{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;justify-content:center}
+.about-link{
+  display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+  color:var(--ink);background:var(--surf2);padding:10px 17px;border-radius:var(--pill);
+  box-shadow:var(--cs);text-decoration:none;transition:var(--trans);
+}
+.about-link:hover{transform:translateY(-2px);box-shadow:6px 8px 18px rgba(168,134,100,.22)}
+.about-link:active{transform:scale(.96)}
+.about-link .ico{font-size:13px}
+.about-bio{font-size:13.5px;color:var(--ink2);line-height:1.7;text-align:left;background:var(--surf2);border-radius:16px;padding:16px 18px;box-shadow:var(--ci)}
+.about-bio p+p{margin-top:10px}
 
 /* ── Toast ── */
 .toast{
@@ -872,27 +916,35 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 
   <!-- ── Sobre ── -->
   <div class="page" id="pg-about">
-    <div class="card" style="text-align:center;padding:36px 24px">
-      <div style="font-size:56px;margin-bottom:16px;display:inline-block;animation:floatOrb 3.5s ease-in-out infinite">🤰</div>
-      <div class="serif" style="font-size:28px;margin-bottom:6px">MK<span style="color:var(--pd)">Calc</span></div>
-      <div style="font-size:12px;color:var(--ink3);letter-spacing:.15em;text-transform:uppercase;font-weight:700;margin-bottom:20px">Calculadora Gestacional</div>
-      <div style="font-size:14px;color:var(--ink2);line-height:1.7;text-align:left;background:var(--surf2);border-radius:16px;padding:16px 18px;box-shadow:var(--ci)">
-        <p style="margin-bottom:10px">App desenvolvido para apoiar gestantes e mulheres em planejamento familiar com cálculos de idade gestacional, período fértil e acompanhamento pré-natal.</p>
-        <p style="color:var(--ink3);font-size:12px">⚠️ Os resultados são informativos. Confirme sempre com seu obstetra.</p>
+    <div class="card feat about-hero">
+      <div class="about-avatar-ring">
+        <div class="about-avatar">
+          <img src="foto-morgana.jpg" alt="Dra. Morgana Kummer" onerror="this.remove()">
+          <span class="mono">MK</span>
+        </div>
+      </div>
+      <div class="about-name">Dra. Morgana Kummer</div>
+      <div class="about-role">Ultrassonografia &amp; Medicina Fetal</div>
+      <div class="about-loc">📍 Sete Lagoas, MG · <a href="https://instagram.com/dramorganak" target="_blank" rel="noopener">@dramorganak</a></div>
+      <div class="about-badges">
+        <span class="about-badge">Ultrassom Geral</span>
+        <span class="about-badge">Ultrassom Obstétrico</span>
+        <span class="about-badge">Medicina Fetal</span>
+      </div>
+      <div class="about-links">
+        <a class="about-link" href="https://dramorgana.com.br" target="_blank" rel="noopener"><span class="ico">🌐</span>dramorgana.com.br</a>
+        <a class="about-link" href="https://instagram.com/dramorganak" target="_blank" rel="noopener"><span class="ico">📷</span>@dramorganak</a>
       </div>
     </div>
     <div class="card">
-      <div class="lbl">Desenvolvido por</div>
-      <div style="display:flex;align-items:center;gap:14px;margin-top:6px">
-        <div style="width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fde3d0,var(--peach) 60%,var(--pd));box-shadow:var(--cs);flex-shrink:0;animation:floatOrb 4s ease-in-out infinite"></div>
-        <div>
-          <div class="serif" style="font-size:19px">Dra. Morgana</div>
-          <div style="font-size:12px;color:var(--ink3);margin-top:2px">Especialista em Medicina Fetal</div>
-          <div style="font-size:12px;color:var(--pd);margin-top:1px;font-weight:600">dramorgana.com.br</div>
-        </div>
+      <div class="lbl">Sobre o app</div>
+      <div class="card-title" style="font-size:21px;margin-bottom:14px">MK<span style="color:var(--pd)">Calc</span> <span style="font-size:11px;color:var(--ink3);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-family:inherit">· Calculadora Gestacional</span></div>
+      <div class="about-bio">
+        <p>App desenvolvido para apoiar gestantes e mulheres em planejamento familiar com cálculos de idade gestacional, período fértil e acompanhamento pré-natal.</p>
+        <p style="color:var(--ink3);font-size:12px">⚠️ Os resultados são informativos. Confirme sempre com seu obstetra.</p>
       </div>
     </div>
-    <footer style="padding-bottom:8px">mkcalc v3 · resultados informativos</footer>
+    <footer style="padding-bottom:8px">mkcalc v3 · desenvolvido com carinho por Dra. Morgana Kummer</footer>
   </div>
 </div>
 
