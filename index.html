@@ -12,6 +12,7 @@
   --bg:#f2e8dc;
   --peach:#f4c8a8;--pd:#d99570;--pd2:#c07a52;
   --blue:#b9c8d6;--bd:#6f8ba3;
+  --track:var(--blue);--track2:var(--bd);
   --rose:#f0c9c0;
   --cream:#f8edd9;--cream2:#f0e0c4;
   --ink:#3a2e2a;--ink2:#6b574e;--ink3:#9a8678;
@@ -42,6 +43,7 @@
 /* ── Tema menina (rosa/lilás) ── */
 [data-girl]{
   --peach:#f7c9e3;--pd:#d98fc4;--pd2:#b866a3;
+  --track:var(--peach);--track2:var(--pd);
 }
 [data-dark][data-girl]{
   --peach:#a8577f;--pd:#9a4a8f;--pd2:#7f3d78;
@@ -283,7 +285,7 @@ body::after{
   background:radial-gradient(circle at 35% 30%,#302419,var(--cream) 70%);
 }
 .ig-big{font-family:'Fraunces',serif;font-size:48px;line-height:1;letter-spacing:-.03em}
-.ig-big em{color:var(--pd);font-style:italic}
+.ig-big em{color:var(--track2);font-style:italic}
 .ig-unit{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.18em;margin-top:4px;font-weight:700}
 
 .months-highlight{text-align:center;margin:2px 0 20px}
@@ -349,20 +351,20 @@ body::after{
 .tl-wrap::-webkit-scrollbar{display:none}
 .tl{position:relative;height:54px}
 .tl-line{position:absolute;left:0;right:0;top:23px;height:3px;background:var(--surf2);border-radius:3px}
-.tl-fill{position:absolute;left:0;top:0;width:0;height:100%;background:linear-gradient(90deg,var(--peach),var(--pd));border-radius:3px;transition:width .9s cubic-bezier(.22,.68,0,1)}
+.tl-fill{position:absolute;left:0;top:0;width:0;height:100%;background:linear-gradient(90deg,var(--track),var(--track2));border-radius:3px;transition:width .9s cubic-bezier(.22,.68,0,1)}
 .tl-weeks,.tl-months{position:absolute;left:0;top:0;right:0;height:0}
 .wtick{position:absolute;top:18px;width:2px;height:11px;background:var(--surf2);transform:translateX(-1px);transition:var(--trans)}
-.wtick.past{background:var(--pd);opacity:.5}
+.wtick.past{background:var(--track2);opacity:.5}
 .wtick .wnum{position:absolute;bottom:15px;left:0;transform:translateX(-50%);font-family:'Fraunces',serif;font-size:10px;color:var(--ink3);font-weight:600;white-space:nowrap}
-.wtick.cur .wnum{color:var(--pd);font-weight:800;font-size:12px}
+.wtick.cur .wnum{color:var(--track2);font-weight:800;font-size:12px}
 .tl-months{top:33px}
 .mlabel{position:absolute;top:0;transform:translateX(-50%);font-size:10px;color:var(--ink3);font-weight:700;white-space:nowrap}
-.mlabel.cur{color:var(--pd);font-weight:800}
+.mlabel.cur{color:var(--track2);font-weight:800}
 .tl-dot{
   position:absolute;top:24px;width:16px;height:16px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#fff7e6,var(--cream));
   box-shadow:3px 5px 10px rgba(168,134,100,.35),inset 2px 3px 4px rgba(255,250,240,.5);
-  border:2px solid var(--pd);
+  border:2px solid var(--track2);
   transform:translate(-50%,-50%);
   transition:left .9s cubic-bezier(.22,.68,0,1);
   animation:pulseCur 2.2s ease-in-out infinite;
@@ -922,8 +924,8 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             <svg class="ring-svg" width="180" height="180" viewBox="0 0 180 180">
               <defs>
                 <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style="stop-color:var(--peach)"/>
-                  <stop offset="100%" style="stop-color:var(--pd)"/>
+                  <stop offset="0%" style="stop-color:var(--track)"/>
+                  <stop offset="100%" style="stop-color:var(--track2)"/>
                 </linearGradient>
               </defs>
               <circle cx="90" cy="90" r="80" fill="none" stroke="var(--surf2)" stroke-width="12"/>
