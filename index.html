@@ -39,6 +39,14 @@
   --ci:inset 3px 3px 8px rgba(0,0,0,.3),inset -3px -3px 8px rgba(80,55,30,.12);
 }
 
+/* ── Tema menina (rosa/lilás) ── */
+[data-girl]{
+  --peach:#f7c9e3;--pd:#d98fc4;--pd2:#b866a3;
+}
+[data-dark][data-girl]{
+  --peach:#a8577f;--pd:#9a4a8f;--pd2:#7f3d78;
+}
+
 /* ── Base ── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow-x:hidden;background:var(--bg)}
@@ -146,6 +154,26 @@ body::after{
 .ctab.on{background:var(--ink);color:var(--cream);box-shadow:var(--cs)}
 .ctab:active{transform:scale(.95)}
 
+/* ── Sex tabs (Perfil) ── */
+.sex-tabs{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:5px;
+  background:var(--surf2);border-radius:var(--pill);padding:5px;
+  box-shadow:var(--ci);margin-bottom:18px;transition:background .3s;
+}
+.stab{
+  border:none;background:transparent;border-radius:var(--pill);
+  padding:10px 4px;font-family:inherit;font-size:12px;font-weight:700;
+  color:var(--ink2);cursor:pointer;
+  transition:var(--trans);
+  display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1;
+}
+.stab .ico{font-size:18px;transition:transform .2s}
+.stab:hover .ico{transform:scale(1.15)}
+.stab.on{background:var(--ink);color:var(--cream);box-shadow:var(--cs)}
+.stab:active{transform:scale(.95)}
+.card.feat .sex-tabs{background:rgba(224,208,180,.5)}
+[data-dark] .card.feat .sex-tabs{background:rgba(40,30,16,.5)}
+
 /* ── Fields ── */
 .field{margin-bottom:14px}
 .field label{display:block;font-size:11px;color:var(--ink2);letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-bottom:8px;transition:color .3s}
@@ -241,6 +269,12 @@ body::after{
 }
 [data-dark] .baby-card{
   background:linear-gradient(140deg,#2a3d4e 0%,#243040 50%,var(--cream));
+}
+[data-girl] .baby-card{
+  background:linear-gradient(140deg,var(--peach) 0%,#f3d4ea 50%,var(--cream));
+}
+[data-dark][data-girl] .baby-card{
+  background:linear-gradient(140deg,#5a2f4a 0%,#4a2640 50%,var(--cream));
 }
 .baby-orb-wrap{display:flex;justify-content:center;margin:14px 0}
 .baby-orb{
@@ -615,7 +649,7 @@ body::after{
   position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
   background:var(--surf);
   box-shadow:0 -8px 24px rgba(58,46,42,.12),0 -1px 0 rgba(58,46,42,.06);
-  display:grid;grid-template-columns:repeat(5,1fr);z-index:100;
+  display:grid;grid-template-columns:repeat(6,1fr);z-index:100;
   padding:0 6px;padding-bottom:env(safe-area-inset-bottom);
   transition:background .3s,box-shadow .3s;
 }
@@ -722,8 +756,8 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             <svg class="ring-svg" width="180" height="180" viewBox="0 0 180 180">
               <defs>
                 <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#f4c8a8"/>
-                  <stop offset="100%" stop-color="#d99570"/>
+                  <stop offset="0%" style="stop-color:var(--peach)"/>
+                  <stop offset="100%" style="stop-color:var(--pd)"/>
                 </linearGradient>
               </defs>
               <circle cx="90" cy="90" r="80" fill="none" stroke="var(--surf2)" stroke-width="12"/>
@@ -870,6 +904,24 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     </div>
   </div>
 
+  <!-- ── Perfil ── -->
+  <div class="page" id="pg-profile">
+    <div class="card feat">
+      <div class="lbl">Perfil</div>
+      <div class="card-title">Deixe o app com a <span class="serif" style="color:var(--pd);font-style:italic">cara do bebê</span></div>
+      <div class="field"><label>Nome do bebê</label>
+        <input class="inp" type="text" id="babyNameInp" placeholder="Ex: Alice, Miguel...">
+      </div>
+      <div class="field"><label>Sexo do bebê</label>
+        <div class="sex-tabs" id="sexTabs">
+          <button class="stab" data-sex="menino"><span class="ico">💙</span>Menino</button>
+          <button class="stab" data-sex="menina"><span class="ico">🩷</span>Menina</button>
+        </div>
+      </div>
+      <div class="helper">Ao escolher <strong>menina</strong>, as cores do app mudam para tons de rosa e lilás — no card do tamanho do bebê, nos checkboxes e na linha do tempo. Com <strong>menino</strong>, tudo continua como está.</div>
+    </div>
+  </div>
+
   <!-- ── Sobre ── -->
   <div class="page" id="pg-about">
     <div class="card" style="text-align:center;padding:36px 24px">
@@ -914,6 +966,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
   <button class="nav-btn" data-page="result"><span class="nav-ico">📊</span><span class="nav-lbl">Resultado</span></button>
   <button class="nav-btn" data-page="exames"><span class="nav-ico">🔬</span><span class="nav-lbl">Exames</span></button>
   <button class="nav-btn" data-page="check"><span class="nav-ico">✅</span><span class="nav-lbl">Checklist</span></button>
+  <button class="nav-btn" data-page="profile"><span class="nav-ico">🧸</span><span class="nav-lbl">Perfil</span></button>
   <button class="nav-btn" data-page="about"><span class="nav-ico">ℹ️</span><span class="nav-lbl">Sobre</span></button>
 </nav>
 
@@ -1110,6 +1163,39 @@ document.getElementById('darkBtn').addEventListener('click',()=>{
   document.getElementById('darkBtn').textContent=isDark?'☀️':'🌙';
   showToast(isDark?'Tema escuro ativado':'Tema claro ativado',1500);
 });
+
+/* ── Perfil (nome + sexo do bebê, persistido no localStorage) ── */
+const PROFILE_KEY='mkcalc_profile';
+function loadProfile(){
+  try{const raw=localStorage.getItem(PROFILE_KEY);return raw?JSON.parse(raw):{name:'',sex:''};}
+  catch{return {name:'',sex:''};}
+}
+function saveProfile(){
+  try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));}catch{}
+}
+let profile=loadProfile();
+function applyProfileTheme(){
+  document.documentElement.toggleAttribute('data-girl',profile.sex==='menina');
+}
+function renderProfileUI(){
+  document.getElementById('babyNameInp').value=profile.name||'';
+  document.querySelectorAll('.stab').forEach(b=>b.classList.toggle('on',b.dataset.sex===profile.sex));
+}
+document.getElementById('babyNameInp').addEventListener('input',e=>{
+  profile.name=e.target.value;
+  saveProfile();
+});
+document.querySelectorAll('.stab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    profile.sex=btn.dataset.sex;
+    saveProfile();
+    renderProfileUI();
+    applyProfileTheme();
+    showToast(profile.sex==='menina'?'Tema rosa/lilás ativado 🩷':'Tema padrão ativado 💙',1500);
+  });
+});
+applyProfileTheme();
+renderProfileUI();
 
 /* ── Nav ── */
 function goToPage(pg){
@@ -1333,7 +1419,7 @@ function renderPregResult(ig,dpp,method){
 
   const milestone=getMilestone(ig.weeks);
   const fruit=getFruitForWeek(ig.weeks);
-  document.getElementById('babyWeekLbl').textContent=`Bebê · semana ${ig.weeks}`;
+  document.getElementById('babyWeekLbl').textContent=`${profile.name||'Bebê'} · semana ${ig.weeks}`;
   document.getElementById('babyFruit').textContent=fruit.name;
   document.getElementById('babyFruitImg').src=`frutas/${fruit.file}.png`;
   document.getElementById('babyFruitImg').alt=fruit.name;
