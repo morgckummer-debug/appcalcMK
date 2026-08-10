@@ -920,7 +920,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 
     <div class="card" id="exmUsgCard">
       <div class="lbl">🔊 Ultrassons</div>
-      <div class="card-title">Acompanhando o bebê</div>
+      <div class="card-title" id="exmUsgTitle">Acompanhando o bebê</div>
       <div class="exm-list" id="exmUsgList"></div>
     </div>
 
@@ -1231,9 +1231,13 @@ function renderProfileUI(){
   document.getElementById('babyNameInp').value=profile.name||'';
   document.querySelectorAll('.stab').forEach(b=>b.classList.toggle('on',b.dataset.sex===profile.sex));
 }
+function updateBabyNameUI(){
+  document.getElementById('exmUsgTitle').textContent=profile.name?`Acompanhando ${profile.sex==='menina'?'a':'o'} ${profile.name}`:'Acompanhando o bebê';
+}
 document.getElementById('babyNameInp').addEventListener('input',e=>{
   profile.name=e.target.value;
   saveProfile();
+  updateBabyNameUI();
 });
 document.querySelectorAll('.stab').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -1241,11 +1245,13 @@ document.querySelectorAll('.stab').forEach(btn=>{
     saveProfile();
     renderProfileUI();
     applyProfileTheme();
+    updateBabyNameUI();
     showToast(profile.sex==='menina'?'Tema rosa/lilás ativado 🩷':'Tema padrão ativado 💙',1500);
   });
 });
 applyProfileTheme();
 renderProfileUI();
+updateBabyNameUI();
 
 /* ── Nav ── */
 function goToPage(pg){
@@ -1474,7 +1480,9 @@ function renderPregResult(ig,dpp,method){
   document.getElementById('babyFruitImg').src=`frutas/${fruit.file}.png`;
   document.getElementById('babyFruitImg').alt=fruit.name;
   document.getElementById('babyDev').textContent=milestone.d;
-  document.getElementById('babyPhrase').textContent=`Olha, eu já tenho o tamanho de ${fruitPhrase(fruit)} 🥰`;
+  document.getElementById('babyPhrase').textContent=profile.name
+    ?`Olha, mamãe! ${profile.sex==='menina'?'A':'O'} ${profile.name} já tem o tamanho de ${fruitPhrase(fruit)} 🥰`
+    :`Olha, eu já tenho o tamanho de ${fruitPhrase(fruit)} 🥰`;
   document.getElementById('femurInp').value='';
   document.getElementById('femurResult').classList.add('hidden');
 
