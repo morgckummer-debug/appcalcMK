@@ -978,9 +978,14 @@ function formatMonthsHTML(mesesCompletos, diasNoMes){
 function parseBR(s){
   const p=s.split('/');
   if(p.length!==3||p[2].length!==4)return null;
+  const day=+p[0],month=+p[1],year=+p[2];
+  const minYear=TODAY.getFullYear()-100,maxYear=TODAY.getFullYear()+1;
+  if(year<minYear||year>maxYear)return null;
   const iso=`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
   const d=new Date(iso+'T12:00:00');
-  return isNaN(d)?null:iso;
+  if(isNaN(d))return null;
+  if(d.getFullYear()!==year||d.getMonth()+1!==month||d.getDate()!==day)return null;
+  return iso;
 }
 function igFromLMP(s){
   const lmp=new Date(s+'T12:00:00');
@@ -1209,15 +1214,19 @@ function runCalc(){
   let ig=null,dpp=null,method='',fertRes=null;
   if(curTab==='dum'){
     const v=parseBR(document.getElementById('lmpInp').value);
-    if(v){ig=igFromLMP(v);dpp=dppFromLMP(v);method='DUM';}
+    if(!v){showToast('Data inválida. Confira o dia, mês e ano informados.',2500);return;}
+    ig=igFromLMP(v);dpp=dppFromLMP(v);method='DUM';
   } else if(curTab==='usg'){
     const v=parseBR(document.getElementById('usgDate').value);
     const w=+document.getElementById('usgW').value;
     const d=+document.getElementById('usgD').value;
-    if(v&&w){ig=igFromUSG(v,w,d||0);dpp=dppFromUSG(v,w,d||0);method='Ultrassom';}
+    if(!v){showToast('Data inválida. Confira o dia, mês e ano informados.',2500);return;}
+    if(!w){showToast('Informe as semanas do ultrassom',2000);return;}
+    ig=igFromUSG(v,w,d||0);dpp=dppFromUSG(v,w,d||0);method='Ultrassom';
   } else if(curTab==='dpp'){
     const v=parseBR(document.getElementById('dppInp').value);
-    if(v){ig=igFromDPP(v);if(ig)dpp=new Date(v+'T12:00:00');method='DPP';}
+    if(!v){showToast('Data inválida. Confira o dia, mês e ano informados.',2500);return;}
+    ig=igFromDPP(v);if(ig)dpp=new Date(v+'T12:00:00');method='DPP';
   } else if(curTab==='fertil'){
     const validDates=diDates.filter(Boolean);
     if(validDates.length<2){showToast('Informe pelo menos 2 datas',2000);return;}
