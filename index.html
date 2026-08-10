@@ -469,6 +469,28 @@ body::after{
   padding:8px 12px;box-shadow:var(--cs);
 }
 
+/* Contador de movimentos fetais */
+.kick-count-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;margin:20px 0 24px}
+.kick-count-num{font-family:'Fraunces',serif;font-size:52px;font-weight:500;color:var(--pd2);line-height:1}
+.kick-count-lbl{font-size:11px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-top:2px}
+.kick-timer{font-size:14px;color:var(--ink2);margin-top:6px;font-variant-numeric:tabular-nums}
+.kick-tap-btn{
+  width:100%;border:none;border-radius:18px;padding:18px;cursor:pointer;font-family:inherit;
+  background:linear-gradient(135deg,var(--peach),var(--pd));color:#fff;
+  font-size:15px;font-weight:700;box-shadow:var(--cs);transition:var(--trans);
+}
+.kick-tap-btn:active{transform:scale(.96)}
+.kick-cancel-btn{
+  display:block;width:100%;border:none;background:transparent;color:var(--ink3);
+  font-family:inherit;font-size:12.5px;cursor:pointer;margin-top:12px;padding:6px;text-decoration:underline;
+}
+.kick-history-item{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:10px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink2);
+}
+.kick-history-item:first-child{border-top:none}
+.kick-history-w{color:var(--ink3);font-size:11px}
+
 /* Fertil */
 .f-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .fc{padding:16px;border-radius:16px;background:var(--surf);box-shadow:var(--cs);transition:var(--trans)}
@@ -898,6 +920,20 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         </div>
       </div>
 
+      <div class="card" id="kickCard">
+        <div class="lbl">🤰 Bem-estar fetal</div>
+        <div class="card-title">Movimentos do <span class="serif" style="color:var(--pd);font-style:italic">bebê</span></div>
+        <div class="helper">Escolha um momento tranquilo — de preferência sempre no mesmo horário — e conte até sentir <strong>10 movimentos</strong>. Não existe um número "certo" de minutos: o que importa é você conhecer o seu próprio padrão, não comparar com números fixos. <span style="color:var(--ink3)">Sentiu diferente do seu costume, ou está preocupada? Fale com seu obstetra a qualquer momento — não precisa esperar a contagem terminar.</span></div>
+        <div class="exm-cta" id="kickStartBtn" style="margin-top:12px">
+          <div>
+            <div class="exm-cta-txt">👣 Começar contagem</div>
+            <div class="exm-cta-sub" id="kickLastSub">Nenhum registro ainda</div>
+          </div>
+          <div class="exm-cta-arrow">→</div>
+        </div>
+        <div id="kickHistoryWrap"></div>
+      </div>
+
       <div class="card">
         <div class="lbl">Próximos passos</div>
         <div class="card-title">Exames da gestação</div>
@@ -1073,6 +1109,15 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     <div class="exm-sheet-handle"></div>
     <button class="exm-sheet-close" id="exmClose">✕</button>
     <div id="exmSheetBody"></div>
+  </div>
+</div>
+
+<!-- Contador de movimentos fetais -->
+<div class="exm-overlay" id="kickOverlay">
+  <div class="exm-sheet" id="kickSheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="kickClose">✕</button>
+    <div id="kickSheetBody"></div>
   </div>
 </div>
 
@@ -1803,6 +1848,108 @@ function buildChecklist(){
 }
 
 buildChecklist();
+
+/* ── Contador de movimentos fetais ── */
+/* Método "conta até dez": sem julgamento por número de minutos — só registro
+   do padrão da própria gestante. Nunca mostrar veredito/alerta por tempo. */
+const KICK_KEY='mkcalc_kicks_v1';
+function loadKicks(){
+  try{const raw=localStorage.getItem(KICK_KEY);return raw?JSON.parse(raw):[];}
+  catch{return[];}
+}
+function saveKicks(){
+  try{localStorage.setItem(KICK_KEY,JSON.stringify(kickSessions));}catch{}
+}
+const kickSessions=loadKicks();
+let kickActive=null;
+let kickTimerInt=null;
+
+function fmtKickDuration(ms){
+  const totalSec=Math.round(ms/1000);
+  const m=Math.floor(totalSec/60),s=totalSec%60;
+  return m?`${m} min${s?` ${s}s`:''}`:`${s}s`;
+}
+function renderKickCard(){
+  const last=kickSessions[kickSessions.length-1];
+  document.getElementById('kickLastSub').textContent=last
+    ?`Último registro: ${fmt(new Date(last.date))} · ${fmtKickDuration(last.ms)}`
+    :'Nenhum registro ainda';
+  const wrap=document.getElementById('kickHistoryWrap');
+  if(!kickSessions.length){wrap.innerHTML='';return;}
+  const items=[...kickSessions].slice(-7).reverse();
+  wrap.innerHTML=`<div class="lbl" style="margin-top:18px">Seus últimos registros</div>`+
+    items.map(k=>`<div class="kick-history-item"><span>${fmt(new Date(k.date))}</span><span>${fmtKickDuration(k.ms)}${k.weeks!=null?` <span class="kick-history-w">· ${k.weeks}s</span>`:''}</span></div>`).join('');
+}
+function startKickTimerLoop(){
+  if(kickTimerInt)return;
+  kickTimerInt=setInterval(()=>{
+    const el=document.getElementById('kickTimerTxt');
+    if(!el||!kickActive){clearInterval(kickTimerInt);kickTimerInt=null;return;}
+    const s=Math.floor((Date.now()-kickActive.start)/1000);
+    el.textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  },1000);
+}
+function stopKickTimerLoop(){
+  if(kickTimerInt){clearInterval(kickTimerInt);kickTimerInt=null;}
+}
+function renderKickSheetBody(){
+  const body=document.getElementById('kickSheetBody');
+  if(kickActive.count>=10){
+    stopKickTimerLoop();
+    const ms=Date.now()-kickActive.start;
+    body.innerHTML=`
+      <div class="exm-sheet-name">Contagem concluída</div>
+      <div class="kick-count-wrap">
+        <div class="kick-count-num">${fmtKickDuration(ms)}</div>
+        <div class="kick-count-lbl">para sentir 10 movimentos</div>
+      </div>
+      <div class="exm-sheet-note">Isso é só um retrato de hoje — o importante é conhecer o <strong>seu</strong> padrão ao longo do tempo, não comparar com um número fixo de minutos. Sentiu algo diferente do seu costume, ou está preocupada? <strong>Fale com seu obstetra a qualquer momento</strong> — não é preciso esperar a contagem terminar.</div>
+      <button class="kick-tap-btn" id="kickSaveBtn" type="button">Salvar registro</button>
+      <button class="kick-cancel-btn" id="kickDiscardBtn" type="button">Descartar</button>`;
+    document.getElementById('kickSaveBtn').addEventListener('click',()=>{
+      kickSessions.push({date:new Date().toISOString(),ms,weeks:currentIG?currentIG.weeks:null});
+      saveKicks();
+      renderKickCard();
+      closeKickSheet();
+      showToast('Registro salvo',1500);
+    });
+    document.getElementById('kickDiscardBtn').addEventListener('click',closeKickSheet);
+    return;
+  }
+  body.innerHTML=`
+    <div class="exm-sheet-name">Contagem de movimentos</div>
+    <div class="exm-sheet-desc">Toque o botão a cada movimento que sentir, até completar 10.</div>
+    <div class="kick-count-wrap">
+      <div class="kick-count-num" id="kickCountNum">${kickActive.count}<span style="font-size:22px;color:var(--ink3)">/10</span></div>
+      <div class="kick-timer" id="kickTimerTxt">00:00</div>
+    </div>
+    <button class="kick-tap-btn" id="kickTapBtn" type="button">👣 Senti um movimento</button>
+    <button class="kick-cancel-btn" id="kickCancelBtn" type="button">Cancelar contagem</button>`;
+  document.getElementById('kickTapBtn').addEventListener('click',()=>{
+    kickActive.count++;
+    if(kickActive.count>=10){
+      renderKickSheetBody();
+    }else{
+      document.getElementById('kickCountNum').innerHTML=`${kickActive.count}<span style="font-size:22px;color:var(--ink3)">/10</span>`;
+    }
+  });
+  document.getElementById('kickCancelBtn').addEventListener('click',closeKickSheet);
+}
+function openKickSheet(){
+  kickActive={count:0,start:Date.now()};
+  renderKickSheetBody();
+  startKickTimerLoop();
+  document.getElementById('kickOverlay').classList.add('show');
+}
+function closeKickSheet(){
+  document.getElementById('kickOverlay').classList.remove('show');
+  stopKickTimerLoop();
+  kickActive=null;
+}
+document.getElementById('kickStartBtn').addEventListener('click',openKickSheet);
+document.getElementById('kickClose').addEventListener('click',closeKickSheet);
+document.getElementById('kickOverlay').addEventListener('click',e=>{if(e.target.id==='kickOverlay')closeKickSheet();});
+renderKickCard();
 
 /* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
 const ONB_KEY='mkcalc_onboarded';
