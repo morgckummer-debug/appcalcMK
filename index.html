@@ -647,13 +647,7 @@ body::after{
   box-shadow:2px 3px 5px rgba(217,149,112,.35);color:white;
   transform:scale(1.1);
 }
-/* Checkbox dos exames usa a cor azul da paleta, pra não repetir o
-   pêssego já usado no selo de período recomendado */
-.exm-chk.on{
-  background:radial-gradient(circle at 30% 25%,#dce6ee,var(--blue) 60%,var(--bd));
-  box-shadow:2px 3px 5px rgba(111,139,163,.35);color:var(--ink);
-}
-.chk-box.off{background:var(--surf2);box-shadow:var(--ci)}
+.chk-box.off{background:var(--surf2);box-shadow:var(--ci);border:1.5px solid var(--ink3)}
 .chk-txt{font-size:14px;font-weight:500;flex:1;line-height:1.35;color:var(--ink);transition:color .2s}
 .chk-item.done .chk-txt{text-decoration:line-through;color:var(--ink3)}
 
