@@ -469,11 +469,11 @@ body::after{
   padding:8px 12px;box-shadow:var(--cs);
 }
 
-/* Contador de movimentos fetais */
-.kick-count-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;margin:20px 0 24px}
+/* Contador de movimentos fetais / monitor de contrações */
+.kick-count-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;margin:14px 0 22px}
 .kick-count-num{font-family:'Fraunces',serif;font-size:52px;font-weight:500;color:var(--pd2);line-height:1}
 .kick-count-lbl{font-size:11px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-top:2px}
-.kick-timer{font-size:14px;color:var(--ink2);margin-top:6px;font-variant-numeric:tabular-nums}
+.kick-timer{font-family:'Fraunces',serif;font-size:20px;color:var(--ink);margin-top:14px;font-variant-numeric:tabular-nums}
 .kick-tap-btn{
   width:100%;border:none;border-radius:18px;padding:18px;cursor:pointer;font-family:inherit;
   background:linear-gradient(135deg,var(--peach),var(--pd));color:#fff;
@@ -482,14 +482,65 @@ body::after{
 .kick-tap-btn:active{transform:scale(.96)}
 .kick-cancel-btn{
   display:block;width:100%;border:none;background:transparent;color:var(--ink3);
-  font-family:inherit;font-size:12.5px;cursor:pointer;margin-top:12px;padding:6px;text-decoration:underline;
+  font-family:inherit;font-size:12.5px;cursor:pointer;margin-top:14px;padding:6px;text-decoration:underline;
 }
 .kick-history-item{
   display:flex;justify-content:space-between;align-items:center;gap:10px;
-  padding:10px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink2);
+  padding:11px 2px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink2);
 }
 .kick-history-item:first-child{border-top:none}
 .kick-history-w{color:var(--ink3);font-size:11px}
+.kick-history-pill{
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--pd2);
+  background:linear-gradient(135deg,#fde3d0,var(--peach) 90%);padding:3px 10px;border-radius:var(--pill);
+  box-shadow:1px 2px 5px rgba(217,149,112,.25);white-space:nowrap;
+}
+
+/* Botão circular "orb" — ação principal dos monitores */
+.mv-ring-btn{
+  width:148px;height:148px;border-radius:50%;border:none;cursor:pointer;
+  margin:4px auto 0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 32% 28%,#fff2df,var(--peach) 55%,var(--pd) 100%);
+  box-shadow:6px 12px 26px rgba(217,149,112,.4),inset 2px 3px 6px rgba(255,250,240,.55);
+  font-family:inherit;color:#fff;transition:var(--trans);animation:mvPulseGlow 2.6s ease-in-out infinite;
+}
+.mv-ring-btn:active{transform:scale(.94)}
+@keyframes mvPulseGlow{
+  0%,100%{box-shadow:6px 12px 26px rgba(217,149,112,.4),inset 2px 3px 6px rgba(255,250,240,.55)}
+  50%{box-shadow:6px 16px 38px rgba(217,149,112,.6),inset 2px 3px 6px rgba(255,250,240,.55)}
+}
+.mv-ring-btn .mv-ico{font-size:34px;display:block;filter:drop-shadow(1px 3px 4px rgba(90,50,20,.25))}
+.mv-ring-btn .mv-txt{display:block;font-size:12.5px;font-weight:700;margin-top:5px;letter-spacing:.02em}
+.mv-ring-btn.sm{width:96px;height:96px;animation:none}
+.mv-ring-btn.sm .mv-ico{font-size:22px}
+.mv-ring-btn.sm .mv-txt{font-size:10.5px;margin-top:2px}
+.mv-ring-btn.stop{background:radial-gradient(circle at 32% 28%,#fbe7e1,var(--rose) 55%,#e5b4a8 100%)}
+
+/* 10 pontinhos de progresso da contagem de movimentos */
+.mv-dots{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:18px auto 0;max-width:210px}
+.mv-dot{width:15px;height:15px;border-radius:50%;background:var(--surf2);box-shadow:var(--ci);transition:var(--trans)}
+.mv-dot.on{
+  background:radial-gradient(circle at 35% 30%,#fff7e6,var(--peach) 60%,var(--pd) 100%);
+  box-shadow:2px 3px 7px rgba(217,149,112,.45);animation:dotPop .35s cubic-bezier(.22,.68,0,1.4);
+}
+@keyframes dotPop{0%{transform:scale(.3)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+
+/* Círculo de respiração — contração em andamento */
+.mv-breathe-wrap{position:relative;display:flex;align-items:center;justify-content:center;height:172px;margin:6px 0 6px}
+.mv-breathe{
+  position:absolute;width:118px;height:118px;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,rgba(255,242,223,.95),rgba(217,149,112,.5) 75%);
+  box-shadow:0 0 0 1px rgba(255,250,240,.4) inset;
+  animation:mvBreathe 4s ease-in-out infinite;
+}
+.mv-breathe::before{
+  content:'';position:absolute;inset:-16px;border-radius:50%;
+  border:1.5px solid rgba(217,149,112,.35);animation:mvBreatheRing 4s ease-in-out infinite;
+}
+@keyframes mvBreathe{0%,100%{transform:scale(.8);opacity:.7}50%{transform:scale(1.15);opacity:1}}
+@keyframes mvBreatheRing{0%,100%{transform:scale(.85);opacity:.15}50%{transform:scale(1.3);opacity:.5}}
+.mv-breathe-timer{position:relative;z-index:1;font-family:'Fraunces',serif;font-size:28px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+.mv-breathe-lbl{text-align:center;font-size:11px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:2px}
 
 /* Fertil */
 .f-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
@@ -920,7 +971,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         </div>
       </div>
 
-      <div class="card" id="kickCard">
+      <div class="card feat" id="kickCard">
         <div class="lbl">🤰 Bem-estar fetal</div>
         <div class="card-title">Movimentos do <span class="serif" style="color:var(--pd);font-style:italic">bebê</span></div>
         <div class="helper">Escolha um momento tranquilo — de preferência sempre no mesmo horário — e conte até sentir <strong>10 movimentos</strong>. Não existe um número "certo" de minutos: o que importa é você conhecer o seu próprio padrão, não comparar com números fixos. <span style="color:var(--ink3)">Sentiu diferente do seu costume, ou está preocupada? Fale com seu obstetra a qualquer momento — não precisa esperar a contagem terminar.</span></div>
@@ -934,7 +985,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         <div id="kickHistoryWrap"></div>
       </div>
 
-      <div class="card" id="contrCard">
+      <div class="card feat" id="contrCard">
         <div class="lbl">🌀 Trabalho de parto</div>
         <div class="card-title">Monitor de <span class="serif" style="color:var(--pd);font-style:italic">contrações</span></div>
         <div class="helper">Toque para marcar o início e o fim de cada contração — o app só registra os horários, sem dar veredito sobre estar ou não em trabalho de parto. <span style="color:var(--ink3)">Essa decisão é sempre sua, junto com o seu obstetra.</span></div>
@@ -1914,13 +1965,17 @@ function startKickTimerLoop(){
 function stopKickTimerLoop(){
   if(kickTimerInt){clearInterval(kickTimerInt);kickTimerInt=null;}
 }
+function mvDotsHtml(count,total){
+  return `<div class="mv-dots">${Array.from({length:total},(_,i)=>`<div class="mv-dot${i<count?' on':''}"></div>`).join('')}</div>`;
+}
 function renderKickSheetBody(){
   const body=document.getElementById('kickSheetBody');
   if(kickActive.count>=10){
     stopKickTimerLoop();
     const ms=Date.now()-kickActive.start;
     body.innerHTML=`
-      <div class="exm-sheet-name">Contagem concluída</div>
+      <div class="exm-sheet-name">Contagem concluída 🎉</div>
+      ${mvDotsHtml(10,10)}
       <div class="kick-count-wrap">
         <div class="kick-count-num">${fmtKickDuration(ms)}</div>
         <div class="kick-count-lbl">para sentir 10 movimentos</div>
@@ -1942,17 +1997,19 @@ function renderKickSheetBody(){
     <div class="exm-sheet-name">Contagem de movimentos</div>
     <div class="exm-sheet-desc">Toque o botão a cada movimento que sentir, até completar 10.</div>
     <div class="kick-count-wrap">
-      <div class="kick-count-num" id="kickCountNum">${kickActive.count}<span style="font-size:22px;color:var(--ink3)">/10</span></div>
+      <button class="mv-ring-btn" id="kickTapBtn" type="button">
+        <span><span class="mv-ico">👣</span><span class="mv-txt">Toquei</span></span>
+      </button>
       <div class="kick-timer" id="kickTimerTxt">00:00</div>
     </div>
-    <button class="kick-tap-btn" id="kickTapBtn" type="button">👣 Senti um movimento</button>
+    <div id="kickDotsWrap">${mvDotsHtml(kickActive.count,10)}</div>
     <button class="kick-cancel-btn" id="kickCancelBtn" type="button">Cancelar contagem</button>`;
   document.getElementById('kickTapBtn').addEventListener('click',()=>{
     kickActive.count++;
     if(kickActive.count>=10){
       renderKickSheetBody();
     }else{
-      document.getElementById('kickCountNum').innerHTML=`${kickActive.count}<span style="font-size:22px;color:var(--ink3)">/10</span>`;
+      document.getElementById('kickDotsWrap').innerHTML=mvDotsHtml(kickActive.count,10);
     }
   });
   document.getElementById('kickCancelBtn').addEventListener('click',closeKickSheet);
@@ -2027,18 +2084,21 @@ function renderContrSheetBody(){
   const body=document.getElementById('contrSheetBody');
   const recent=[...contractions].slice(-8).reverse();
   const listHtml=recent.length
-    ?`<div class="lbl" style="margin-top:18px">Contrações registradas</div>`+
-      recent.map(c=>`<div class="kick-history-item"><span>${fmtClock(new Date(c.start))} · ${fmtKickDuration(c.ms)}</span><span class="kick-history-w">intervalo ${fmtGap(c.gapMs)}</span></div>`).join('')
+    ?`<div class="lbl" style="margin-top:20px">Contrações registradas</div>`+
+      recent.map(c=>`<div class="kick-history-item"><span>${fmtClock(new Date(c.start))} · intervalo ${fmtGap(c.gapMs)}</span><span class="kick-history-pill">⏱ ${fmtKickDuration(c.ms)}</span></div>`).join('')
     :'';
   if(contrActive){
     body.innerHTML=`
       <div class="exm-sheet-name">Contração em andamento</div>
       <div class="exm-sheet-note">${contrHelperText()}</div>
-      <div class="kick-count-wrap">
-        <div class="kick-timer" id="contrTimerTxt" style="font-family:'Fraunces',serif;font-size:34px;color:var(--pd2)">00:00</div>
-        <div class="kick-count-lbl">duração da contração</div>
+      <div class="mv-breathe-lbl">respire fundo</div>
+      <div class="mv-breathe-wrap">
+        <div class="mv-breathe"></div>
+        <div class="mv-breathe-timer" id="contrTimerTxt">00:00</div>
       </div>
-      <button class="kick-tap-btn" id="contrStopBtn" type="button">⏹ Finalizar contração</button>
+      <button class="mv-ring-btn sm stop" id="contrStopBtn" type="button" style="margin:8px auto 0">
+        <span><span class="mv-ico">⏹</span><span class="mv-txt">Finalizar</span></span>
+      </button>
       ${listHtml}`;
     document.getElementById('contrStopBtn').addEventListener('click',()=>{
       stopContrTimerLoop();
@@ -2055,7 +2115,11 @@ function renderContrSheetBody(){
     body.innerHTML=`
       <div class="exm-sheet-name">Monitor de contrações</div>
       <div class="exm-sheet-note">${contrHelperText()}</div>
-      <button class="kick-tap-btn" id="contrStartTapBtn" type="button">🌀 Iniciar contração</button>
+      <div class="kick-count-wrap">
+        <button class="mv-ring-btn" id="contrStartTapBtn" type="button">
+          <span><span class="mv-ico">🌀</span><span class="mv-txt">Iniciar</span></span>
+        </button>
+      </div>
       ${listHtml}`;
     document.getElementById('contrStartTapBtn').addEventListener('click',()=>{
       contrActive={start:Date.now()};
