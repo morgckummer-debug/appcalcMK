@@ -916,6 +916,13 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             </div>
             <div class="exm-cta-arrow">→</div>
           </div>
+          <div class="exm-cta" data-page="exames" data-filter="vac">
+            <div>
+              <div class="exm-cta-txt">💉 Vacinas na gestação</div>
+              <div class="exm-cta-sub">Calendário de vacinação da gestante (PNI)</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
         </div>
       </div>
     </div>
@@ -956,7 +963,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div class="exm-cta hidden" id="exmShowAllBtn" style="margin-top:12px">
         <div>
           <div class="exm-cta-txt">Ver guia completo</div>
-          <div class="exm-cta-sub">Mostrar ultrassons e exames laboratoriais juntos</div>
+          <div class="exm-cta-sub">Mostrar ultrassons, exames laboratoriais e vacinas juntos</div>
         </div>
         <div class="exm-cta-arrow">↺</div>
       </div>
@@ -972,6 +979,13 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div class="lbl">🧪 Exames laboratoriais</div>
       <div class="card-title">Cuidando da sua saúde</div>
       <div class="exm-list" id="exmLabList"></div>
+    </div>
+
+    <div class="card" id="exmVacCard">
+      <div class="lbl">💉 Vacinas</div>
+      <div class="card-title">Vacinação na gestação</div>
+      <div class="helper">O esquema de vacinação deve ser individualizado conforme o seu histórico vacinal, a idade gestacional, condições clínicas e a situação epidemiológica — sempre converse com o seu obstetra. <span style="color:var(--ink3)">Fonte: Ministério da Saúde, Programa Nacional de Imunizações (PNI) — Calendário Técnico Nacional de Vacinação da Gestante, 2026.</span></div>
+      <div class="exm-list" id="exmVacList"></div>
     </div>
   </div>
 
@@ -1242,10 +1256,31 @@ const LABORATORIAIS=[
     desc:'Detecta se há a bactéria Streptococcus do Grupo B (GBS) na vagina e no ânus da mãe, permitindo que medidas sejam tomadas durante o parto para reduzir o risco de infecção no bebê.'}
 ];
 
+const VACINAS=[
+  {weekStart:0,weekEnd:42,name:'Influenza',periodo:'Durante a gestação',
+    desc:'Protege contra a gripe, reduzindo o risco de complicações respiratórias graves na gestante e no bebê.'},
+  {weekStart:0,weekEnd:42,name:'COVID-19',periodo:'Durante a gestação',
+    desc:'Protege contra formas graves da COVID-19, reduzindo riscos para a gestante e para o bebê.'},
+  {weekStart:20,weekEnd:42,name:'dTpa (difteria, tétano e coqueluche)',periodo:'A partir de 20 semanas',
+    desc:'Protege a gestante contra difteria e tétano e transfere anticorpos para o bebê, protegendo-o contra a coqueluche nos primeiros meses de vida.'},
+  {weekStart:28,weekEnd:42,name:'VSR (vírus sincicial respiratório)',periodo:'A partir de 28 semanas',
+    desc:'Protege o bebê contra o vírus sincicial respiratório (VSR) nos primeiros meses de vida, reduzindo o risco de bronquiolite e pneumonia.'},
+  {weekStart:0,weekEnd:42,name:'Hepatite B',periodo:'Conforme histórico vacinal',
+    desc:'Protege contra a hepatite B.',
+    indicacao:'Indicada para gestantes não vacinadas ou com esquema vacinal incompleto, conforme avaliação da caderneta de vacinação.'},
+  {weekStart:0,weekEnd:42,name:'dT (dupla adulto)',periodo:'Conforme histórico vacinal',
+    desc:'Protege contra difteria e tétano.',
+    indicacao:'Indicada para gestantes com esquema vacinal incompleto ou desatualizado, conforme avaliação da caderneta de vacinação.'},
+  {weekStart:0,weekEnd:42,name:'Febre amarela',periodo:'Apenas quando indicada',
+    desc:'Vacina de vírus vivo atenuado.',
+    indicacao:'Só é indicada na gestação após avaliação de risco-benefício pelo obstetra, em situação de risco epidemiológico.',
+    nota:'Por ser uma vacina de vírus vivo, não faz parte da rotina da gestação — a decisão deve ser sempre individualizada com o seu médico.'}
+];
+
 const CHECKLIST=[
-  {cat:'1º Trimestre · até 13s',items:['Confirmação de gravidez (beta-hCG)','Primeira consulta obstétrica','Hemograma + tipo sanguíneo + Fator Rh','Toxoplasmose, rubéola, CMV','HIV + sífilis (VDRL)','Hepatite B e C','Translucência Nucal (12–13s6d)','Ácido fólico e vitaminas']},
-  {cat:'2º Trimestre · 13–28s',items:['Triagem 2º tri (sem. 16)','USG Morfológico (sem. 20–24)','TOTG (sem. 24–28)','Escolher maternidade e obstetra','Curso pré-natal']},
-  {cat:'3º Trimestre · 28s ao parto',items:['Hemograma + Coombs (sem. 28)','USG de crescimento (sem. 32)','Cultura GBS (sem. 36)','Bem-estar fetal (sem. 40)','Mala da maternidade pronta','Plano de parto definido']},
+  {cat:'1º Trimestre · até 13s',items:['Confirmação de gravidez (beta-hCG)','Primeira consulta obstétrica','Hemograma + tipo sanguíneo + Fator Rh','Toxoplasmose, rubéola, CMV','HIV + sífilis (VDRL)','Hepatite B e C','Translucência Nucal (12–13s6d)','Ácido fólico e vitaminas','Vacinas Influenza e COVID-19 (a qualquer momento)','Verificar caderneta de vacinação (Hepatite B, dT)']},
+  {cat:'2º Trimestre · 13–28s',items:['Triagem 2º tri (sem. 16)','USG Morfológico (sem. 20–24)','Vacina dTpa (a partir de 20s)','TOTG (sem. 24–28)','Escolher maternidade e obstetra','Curso pré-natal']},
+  {cat:'3º Trimestre · 28s ao parto',items:['Hemograma + Coombs (sem. 28)','Vacina VSR (a partir de 28s)','USG de crescimento (sem. 32)','Cultura GBS (sem. 36)','Bem-estar fetal (sem. 40)','Mala da maternidade pronta','Plano de parto definido']},
   {cat:'Mala do bebê',items:['Roupinhas para saída','Fraldas RN e P','Pomada para assaduras','4 bodies','2 macacões','2 casaquinhos','2 mantas','Sabonete neutro','Cadeirinha instalada no carro','Pediatra escolhido']},
   {cat:'Mala da mamãe',items:['2 camisolas para amamentação','Sutiãs de amamentação','Absorventes para seios','Produtos de higiene','Chinelo','Roupa para saída da maternidade']}
 ];
@@ -1321,8 +1356,9 @@ document.querySelectorAll('.nav-btn').forEach(btn=>{
 
 /* Filtra o guia de exames para mostrar só ultrassons, só laboratoriais, ou os dois */
 function filterExamGuide(category){
-  document.getElementById('exmUsgCard').classList.toggle('hidden',category==='lab');
-  document.getElementById('exmLabCard').classList.toggle('hidden',category==='usg');
+  document.getElementById('exmUsgCard').classList.toggle('hidden',!!category&&category!=='usg');
+  document.getElementById('exmLabCard').classList.toggle('hidden',!!category&&category!=='lab');
+  document.getElementById('exmVacCard').classList.toggle('hidden',!!category&&category!=='vac');
   document.getElementById('exmShowAllBtn').classList.toggle('hidden',!category);
 }
 document.querySelectorAll('.exm-cta[data-page]').forEach(cta=>{
@@ -1682,13 +1718,16 @@ document.getElementById('exmOverlay').addEventListener('click',e=>{if(e.target.i
 function renderExamGuide(){
   const usg=[...ULTRASSONS].sort((a,b)=>a.weekStart-b.weekStart);
   const lab=[...LABORATORIAIS].sort((a,b)=>a.weekStart-b.weekStart);
+  const vac=[...VACINAS];
+  const lists={usg,lab,vac};
   document.getElementById('exmUsgList').innerHTML=usg.map((ex,i)=>examCard(ex,i,'usg')).join('');
   document.getElementById('exmLabList').innerHTML=lab.map((ex,i)=>examCard(ex,i,'lab')).join('');
+  document.getElementById('exmVacList').innerHTML=vac.map((ex,i)=>examCard(ex,i,'vac')).join('');
   document.querySelectorAll('.exm-chk').forEach(box=>{
     box.addEventListener('click',e=>{
       e.stopPropagation();
       const card=box.closest('.exm-card');
-      const list=card.dataset.cat==='usg'?usg:lab;
+      const list=lists[card.dataset.cat];
       const ex=list[+card.dataset.idx];
       toggleExamDone(ex,box.dataset.key);
       renderExamGuide();
@@ -1696,7 +1735,7 @@ function renderExamGuide(){
   });
   document.querySelectorAll('.exm-card').forEach(card=>{
     card.addEventListener('click',()=>{
-      const list=card.dataset.cat==='usg'?usg:lab;
+      const list=lists[card.dataset.cat];
       const idx=+card.dataset.idx;
       openExamDetail(list[idx],`${card.dataset.cat}-${idx}`);
     });
