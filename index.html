@@ -39,6 +39,14 @@
   --ci:inset 3px 3px 8px rgba(0,0,0,.3),inset -3px -3px 8px rgba(80,55,30,.12);
 }
 
+/* ── Tema menina (rosa/lilás) ── */
+[data-girl]{
+  --peach:#f7c9e3;--pd:#d98fc4;--pd2:#b866a3;
+}
+[data-dark][data-girl]{
+  --peach:#a8577f;--pd:#9a4a8f;--pd2:#7f3d78;
+}
+
 /* ── Base ── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow-x:hidden;background:var(--bg)}
@@ -80,6 +88,7 @@ body::after{
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px}
 .brand{font-family:'Fraunces',serif;font-size:24px;letter-spacing:-.01em;transition:color .3s}
 .brand span{color:var(--pd)}
+.hdr-actions{display:flex;gap:8px}
 .dark-btn{
   width:40px;height:40px;border-radius:50%;border:none;
   background:var(--surf);color:var(--ink2);cursor:pointer;
@@ -89,6 +98,38 @@ body::after{
 }
 .dark-btn:hover{transform:scale(1.1) rotate(15deg)}
 .dark-btn:active{transform:scale(.94)}
+
+/* ── Onboarding ── */
+.onb-overlay{
+  position:fixed;inset:0;z-index:3000;
+  background:rgba(58,46,42,.5);backdrop-filter:blur(2px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;padding:20px;
+}
+.onb-overlay.show{opacity:1;pointer-events:auto}
+.onb-sheet{
+  width:100%;max-width:360px;
+  background:var(--surfs);border-radius:28px;
+  padding:32px 26px 26px;text-align:center;
+  box-shadow:0 20px 48px rgba(0,0,0,.3);
+  transform:scale(.94) translateY(10px);transition:transform .3s cubic-bezier(.22,.68,0,1.2),background .3s;
+}
+.onb-overlay.show .onb-sheet{transform:scale(1) translateY(0)}
+.onb-ico{font-size:44px;margin-bottom:14px;animation:floatOrb 3.5s ease-in-out infinite}
+.onb-title{font-size:21px;font-weight:500;color:var(--ink);margin-bottom:10px;transition:color .3s}
+.onb-desc{font-size:14px;color:var(--ink2);line-height:1.6;margin-bottom:22px}
+.onb-dots{display:flex;justify-content:center;gap:6px;margin-bottom:22px}
+.onb-dot{width:7px;height:7px;border-radius:50%;background:var(--surf2);transition:var(--trans)}
+.onb-dot.on{background:var(--pd);width:20px;border-radius:var(--pill)}
+.onb-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.onb-skip{border:none;background:transparent;color:var(--ink3);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:8px}
+.onb-next{
+  flex:1;padding:14px;border-radius:var(--pill);border:none;
+  font-family:inherit;font-size:14px;font-weight:700;
+  background:var(--ink);color:var(--cream);box-shadow:var(--cs);cursor:pointer;
+  transition:transform .18s cubic-bezier(.22,.68,0,1.4);
+}
+.onb-next:active{transform:scale(.96)}
 
 /* ── Pages ── */
 .page{display:none;padding:0 16px;animation:fadeUp .28s cubic-bezier(.22,.68,0,1.2) both}
@@ -145,6 +186,26 @@ body::after{
 .ctab:hover .ico{transform:scale(1.15)}
 .ctab.on{background:var(--ink);color:var(--cream);box-shadow:var(--cs)}
 .ctab:active{transform:scale(.95)}
+
+/* ── Sex tabs (Perfil) ── */
+.sex-tabs{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:5px;
+  background:var(--surf2);border-radius:var(--pill);padding:5px;
+  box-shadow:var(--ci);margin-bottom:18px;transition:background .3s;
+}
+.stab{
+  border:none;background:transparent;border-radius:var(--pill);
+  padding:10px 4px;font-family:inherit;font-size:12px;font-weight:700;
+  color:var(--ink2);cursor:pointer;
+  transition:var(--trans);
+  display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1;
+}
+.stab .ico{font-size:18px;transition:transform .2s}
+.stab:hover .ico{transform:scale(1.15)}
+.stab.on{background:var(--ink);color:var(--cream);box-shadow:var(--cs)}
+.stab:active{transform:scale(.95)}
+.card.feat .sex-tabs{background:rgba(224,208,180,.5)}
+[data-dark] .card.feat .sex-tabs{background:rgba(40,30,16,.5)}
 
 /* ── Fields ── */
 .field{margin-bottom:14px}
@@ -241,6 +302,12 @@ body::after{
 }
 [data-dark] .baby-card{
   background:linear-gradient(140deg,#2a3d4e 0%,#243040 50%,var(--cream));
+}
+[data-girl] .baby-card{
+  background:linear-gradient(140deg,var(--peach) 0%,#f3d4ea 50%,var(--cream));
+}
+[data-dark][data-girl] .baby-card{
+  background:linear-gradient(140deg,#5a2f4a 0%,#4a2640 50%,var(--cream));
 }
 .baby-orb-wrap{display:flex;justify-content:center;margin:14px 0}
 .baby-orb{
@@ -615,7 +682,7 @@ body::after{
   position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
   background:var(--surf);
   box-shadow:0 -8px 24px rgba(58,46,42,.12),0 -1px 0 rgba(58,46,42,.06);
-  display:grid;grid-template-columns:repeat(5,1fr);z-index:100;
+  display:grid;grid-template-columns:repeat(6,1fr);z-index:100;
   padding:0 6px;padding-bottom:env(safe-area-inset-bottom);
   transition:background .3s,box-shadow .3s;
 }
@@ -697,7 +764,10 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 <div id="app">
   <div class="hdr">
     <div class="brand serif">MK<span>Calc</span></div>
-    <button class="dark-btn" id="darkBtn" title="Alternar tema">🌙</button>
+    <div class="hdr-actions">
+      <button class="dark-btn" id="onbHelpBtn" title="Ver tutorial">❔</button>
+      <button class="dark-btn" id="darkBtn" title="Alternar tema">🌙</button>
+    </div>
   </div>
 
   <!-- ── Calcular ── -->
@@ -766,8 +836,8 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             <svg class="ring-svg" width="180" height="180" viewBox="0 0 180 180">
               <defs>
                 <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#f4c8a8"/>
-                  <stop offset="100%" stop-color="#d99570"/>
+                  <stop offset="0%" style="stop-color:var(--peach)"/>
+                  <stop offset="100%" style="stop-color:var(--pd)"/>
                 </linearGradient>
               </defs>
               <circle cx="90" cy="90" r="80" fill="none" stroke="var(--surf2)" stroke-width="12"/>
@@ -914,6 +984,24 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     </div>
   </div>
 
+  <!-- ── Perfil ── -->
+  <div class="page" id="pg-profile">
+    <div class="card feat">
+      <div class="lbl">Perfil</div>
+      <div class="card-title">Deixe o app com a <span class="serif" style="color:var(--pd);font-style:italic">cara do bebê</span></div>
+      <div class="field"><label>Nome do bebê</label>
+        <input class="inp" type="text" id="babyNameInp" placeholder="Ex: Alice, Miguel...">
+      </div>
+      <div class="field"><label>Sexo do bebê</label>
+        <div class="sex-tabs" id="sexTabs">
+          <button class="stab" data-sex="menino"><span class="ico">💙</span>Menino</button>
+          <button class="stab" data-sex="menina"><span class="ico">🩷</span>Menina</button>
+        </div>
+      </div>
+      <div class="helper">Ao escolher <strong>menina</strong>, as cores do app mudam para tons de rosa e lilás — no card do tamanho do bebê, nos checkboxes e na linha do tempo. Com <strong>menino</strong>, tudo continua como está.</div>
+    </div>
+  </div>
+
   <!-- ── Sobre ── -->
   <div class="page" id="pg-about">
     <div class="card feat about-hero">
@@ -951,6 +1039,18 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- Onboarding -->
+<div class="onb-overlay" id="onbOverlay">
+  <div class="onb-sheet" id="onbSheet">
+    <div id="onbBody"></div>
+    <div class="onb-dots" id="onbDots"></div>
+    <div class="onb-actions">
+      <button class="onb-skip" id="onbSkip">Pular</button>
+      <button class="onb-next" id="onbNext">Próximo</button>
+    </div>
+  </div>
+</div>
+
 <!-- Exame detail sheet -->
 <div class="exm-overlay" id="exmOverlay">
   <div class="exm-sheet" id="exmSheet">
@@ -966,6 +1066,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
   <button class="nav-btn" data-page="result"><span class="nav-ico">📊</span><span class="nav-lbl">Resultado</span></button>
   <button class="nav-btn" data-page="exames"><span class="nav-ico">🔬</span><span class="nav-lbl">Exames</span></button>
   <button class="nav-btn" data-page="check"><span class="nav-ico">✅</span><span class="nav-lbl">Checklist</span></button>
+  <button class="nav-btn" data-page="profile"><span class="nav-ico">🧸</span><span class="nav-lbl">Perfil</span></button>
   <button class="nav-btn" data-page="about"><span class="nav-ico">ℹ️</span><span class="nav-lbl">Sobre</span></button>
 </nav>
 
@@ -1162,6 +1263,39 @@ document.getElementById('darkBtn').addEventListener('click',()=>{
   document.getElementById('darkBtn').textContent=isDark?'☀️':'🌙';
   showToast(isDark?'Tema escuro ativado':'Tema claro ativado',1500);
 });
+
+/* ── Perfil (nome + sexo do bebê, persistido no localStorage) ── */
+const PROFILE_KEY='mkcalc_profile';
+function loadProfile(){
+  try{const raw=localStorage.getItem(PROFILE_KEY);return raw?JSON.parse(raw):{name:'',sex:''};}
+  catch{return {name:'',sex:''};}
+}
+function saveProfile(){
+  try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));}catch{}
+}
+let profile=loadProfile();
+function applyProfileTheme(){
+  document.documentElement.toggleAttribute('data-girl',profile.sex==='menina');
+}
+function renderProfileUI(){
+  document.getElementById('babyNameInp').value=profile.name||'';
+  document.querySelectorAll('.stab').forEach(b=>b.classList.toggle('on',b.dataset.sex===profile.sex));
+}
+document.getElementById('babyNameInp').addEventListener('input',e=>{
+  profile.name=e.target.value;
+  saveProfile();
+});
+document.querySelectorAll('.stab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    profile.sex=btn.dataset.sex;
+    saveProfile();
+    renderProfileUI();
+    applyProfileTheme();
+    showToast(profile.sex==='menina'?'Tema rosa/lilás ativado 🩷':'Tema padrão ativado 💙',1500);
+  });
+});
+applyProfileTheme();
+renderProfileUI();
 
 /* ── Nav ── */
 function goToPage(pg){
@@ -1385,7 +1519,7 @@ function renderPregResult(ig,dpp,method){
 
   const milestone=getMilestone(ig.weeks);
   const fruit=getFruitForWeek(ig.weeks);
-  document.getElementById('babyWeekLbl').textContent=`Bebê · semana ${ig.weeks}`;
+  document.getElementById('babyWeekLbl').textContent=`${profile.name||'Bebê'} · semana ${ig.weeks}`;
   document.getElementById('babyFruit').textContent=fruit.name;
   document.getElementById('babyFruitImg').src=`frutas/${fruit.file}.png`;
   document.getElementById('babyFruitImg').alt=fruit.name;
@@ -1620,6 +1754,41 @@ function buildChecklist(){
 }
 
 buildChecklist();
+
+/* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
+const ONB_KEY='mkcalc_onboarded';
+const ONBOARDING_STEPS=[
+  {ico:'🤰',title:'Bem-vinda ao MKCalc!',desc:'Um app simples pra acompanhar sua gestação: idade gestacional, período fértil, exames e muito mais.'},
+  {ico:'🧭',title:'Use as abas aqui embaixo',desc:'Calcular, Resultado, Exames e Checklist ficam sempre a um toque de distância, na barra de navegação.'},
+  {ico:'🧸',title:'Personalize na aba Perfil',desc:'Coloque aqui o nome e o sexo do seu bebê.'},
+  {ico:'✨',title:'Pronto!',desc:'Você já pode começar. Sempre que quiser rever este tutorial, é só tocar no ❔ lá em cima.'}
+];
+let onbStep=0;
+function renderOnb(){
+  const s=ONBOARDING_STEPS[onbStep];
+  document.getElementById('onbBody').innerHTML=`
+    <div class="onb-ico">${s.ico}</div>
+    <div class="onb-title serif">${s.title}</div>
+    <div class="onb-desc">${s.desc}</div>`;
+  document.getElementById('onbDots').innerHTML=ONBOARDING_STEPS.map((_,i)=>`<span class="onb-dot${i===onbStep?' on':''}"></span>`).join('');
+  document.getElementById('onbNext').textContent=onbStep===ONBOARDING_STEPS.length-1?'Começar':'Próximo';
+}
+function openOnboarding(){
+  onbStep=0;
+  renderOnb();
+  document.getElementById('onbOverlay').classList.add('show');
+}
+function closeOnboarding(){
+  document.getElementById('onbOverlay').classList.remove('show');
+  try{localStorage.setItem(ONB_KEY,'1');}catch{}
+}
+document.getElementById('onbNext').addEventListener('click',()=>{
+  if(onbStep<ONBOARDING_STEPS.length-1){onbStep++;renderOnb();}
+  else closeOnboarding();
+});
+document.getElementById('onbSkip').addEventListener('click',closeOnboarding);
+document.getElementById('onbHelpBtn').addEventListener('click',openOnboarding);
+if(!localStorage.getItem(ONB_KEY))openOnboarding();
 </script>
 </body>
 </html>
