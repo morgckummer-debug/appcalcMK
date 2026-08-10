@@ -934,6 +934,19 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         <div id="kickHistoryWrap"></div>
       </div>
 
+      <div class="card" id="contrCard">
+        <div class="lbl">🌀 Trabalho de parto</div>
+        <div class="card-title">Monitor de <span class="serif" style="color:var(--pd);font-style:italic">contrações</span></div>
+        <div class="helper">Toque para marcar o início e o fim de cada contração — o app só registra os horários, sem dar veredito sobre estar ou não em trabalho de parto. <span style="color:var(--ink3)">Essa decisão é sempre sua, junto com o seu obstetra.</span></div>
+        <div class="exm-cta" id="contrStartBtn" style="margin-top:12px">
+          <div>
+            <div class="exm-cta-txt">🌀 Abrir monitor de contrações</div>
+            <div class="exm-cta-sub" id="contrLastSub">Nenhum registro ainda</div>
+          </div>
+          <div class="exm-cta-arrow">→</div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="lbl">Próximos passos</div>
         <div class="card-title">Exames da gestação</div>
@@ -1118,6 +1131,15 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     <div class="exm-sheet-handle"></div>
     <button class="exm-sheet-close" id="kickClose">✕</button>
     <div id="kickSheetBody"></div>
+  </div>
+</div>
+
+<!-- Monitor de contrações -->
+<div class="exm-overlay" id="contrOverlay">
+  <div class="exm-sheet" id="contrSheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="contrClose">✕</button>
+    <div id="contrSheetBody"></div>
   </div>
 </div>
 
@@ -1950,6 +1972,112 @@ document.getElementById('kickStartBtn').addEventListener('click',openKickSheet);
 document.getElementById('kickClose').addEventListener('click',closeKickSheet);
 document.getElementById('kickOverlay').addEventListener('click',e=>{if(e.target.id==='kickOverlay')closeKickSheet();});
 renderKickCard();
+
+/* ── Monitor de contrações ── */
+/* Só registra horários e duração — o app nunca declara "está em trabalho de
+   parto" nem dispara alerta por intervalo. Orientação de procurar a
+   maternidade é sempre textual e vale a qualquer momento, independente do padrão. */
+const CONTR_KEY='mkcalc_contractions_v1';
+function loadContractions(){
+  try{const raw=localStorage.getItem(CONTR_KEY);return raw?JSON.parse(raw):[];}
+  catch{return[];}
+}
+function saveContractions(){
+  try{localStorage.setItem(CONTR_KEY,JSON.stringify(contractions));}catch{}
+}
+const contractions=loadContractions();
+let contrActive=null;
+let contrTimerInt=null;
+
+function fmtClock(d){
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function fmtGap(ms){
+  if(ms==null)return'—';
+  const totalMin=Math.round(ms/60000);
+  if(totalMin<1)return'menos de 1 min';
+  return totalMin===1?'1 min':`${totalMin} min`;
+}
+function renderContrCard(){
+  const last=contractions[contractions.length-1];
+  document.getElementById('contrLastSub').textContent=last
+    ?`Última: ${fmtClock(new Date(last.start))} · duração ${fmtKickDuration(last.ms)}`
+    :'Nenhum registro ainda';
+}
+function contrHelperText(){
+  const weeks=currentIG?currentIG.weeks:null;
+  if(weeks!=null&&weeks<37){
+    return 'Você está com menos de 37 semanas. Contrações regulares nessa fase merecem avaliação médica o quanto antes — mesmo que ainda estejam bem espaçadas. <strong>Ligue para o seu obstetra.</strong>';
+  }
+  return 'Contrações de treinamento (Braxton Hicks) são comuns, especialmente no 3º trimestre, e costumam ser irregulares e sem dor. Um padrão às vezes citado para trabalho de parto ativo é contrações a cada 5 minutos, durando cerca de 1 minuto, por 1 hora seguida — mas isso varia de gestante para gestante. <strong>Sentiu contrações regulares e dolorosas, perdeu líquido ou está com qualquer dúvida? Ligue para o seu obstetra ou vá à maternidade</strong> — não é preciso esperar um padrão exato.';
+}
+function startContrTimerLoop(){
+  if(contrTimerInt)return;
+  contrTimerInt=setInterval(()=>{
+    const el=document.getElementById('contrTimerTxt');
+    if(!el||!contrActive){clearInterval(contrTimerInt);contrTimerInt=null;return;}
+    const s=Math.floor((Date.now()-contrActive.start)/1000);
+    el.textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  },1000);
+}
+function stopContrTimerLoop(){
+  if(contrTimerInt){clearInterval(contrTimerInt);contrTimerInt=null;}
+}
+function renderContrSheetBody(){
+  const body=document.getElementById('contrSheetBody');
+  const recent=[...contractions].slice(-8).reverse();
+  const listHtml=recent.length
+    ?`<div class="lbl" style="margin-top:18px">Contrações registradas</div>`+
+      recent.map(c=>`<div class="kick-history-item"><span>${fmtClock(new Date(c.start))} · ${fmtKickDuration(c.ms)}</span><span class="kick-history-w">intervalo ${fmtGap(c.gapMs)}</span></div>`).join('')
+    :'';
+  if(contrActive){
+    body.innerHTML=`
+      <div class="exm-sheet-name">Contração em andamento</div>
+      <div class="exm-sheet-note">${contrHelperText()}</div>
+      <div class="kick-count-wrap">
+        <div class="kick-timer" id="contrTimerTxt" style="font-family:'Fraunces',serif;font-size:34px;color:var(--pd2)">00:00</div>
+        <div class="kick-count-lbl">duração da contração</div>
+      </div>
+      <button class="kick-tap-btn" id="contrStopBtn" type="button">⏹ Finalizar contração</button>
+      ${listHtml}`;
+    document.getElementById('contrStopBtn').addEventListener('click',()=>{
+      stopContrTimerLoop();
+      const last=contractions[contractions.length-1];
+      const gapMs=last?contrActive.start-new Date(last.start).getTime():null;
+      contractions.push({start:new Date(contrActive.start).toISOString(),ms:Date.now()-contrActive.start,gapMs,weeks:currentIG?currentIG.weeks:null});
+      saveContractions();
+      contrActive=null;
+      renderContrCard();
+      renderContrSheetBody();
+      showToast('Contração registrada',1200);
+    });
+  }else{
+    body.innerHTML=`
+      <div class="exm-sheet-name">Monitor de contrações</div>
+      <div class="exm-sheet-note">${contrHelperText()}</div>
+      <button class="kick-tap-btn" id="contrStartTapBtn" type="button">🌀 Iniciar contração</button>
+      ${listHtml}`;
+    document.getElementById('contrStartTapBtn').addEventListener('click',()=>{
+      contrActive={start:Date.now()};
+      startContrTimerLoop();
+      renderContrSheetBody();
+    });
+  }
+}
+function openContrSheet(){
+  contrActive=null;
+  renderContrSheetBody();
+  document.getElementById('contrOverlay').classList.add('show');
+}
+function closeContrSheet(){
+  document.getElementById('contrOverlay').classList.remove('show');
+  stopContrTimerLoop();
+  contrActive=null;
+}
+document.getElementById('contrStartBtn').addEventListener('click',openContrSheet);
+document.getElementById('contrClose').addEventListener('click',closeContrSheet);
+document.getElementById('contrOverlay').addEventListener('click',e=>{if(e.target.id==='contrOverlay')closeContrSheet();});
+renderContrCard();
 
 /* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
 const ONB_KEY='mkcalc_onboarded';
