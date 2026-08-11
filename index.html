@@ -927,7 +927,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     <div class="brand serif">MK<span>Calc</span></div>
     <div class="hdr-actions">
       <button class="dark-btn" id="onbHelpBtn" title="Ver tutorial">?</button>
-      <button class="dark-btn" id="darkBtn" title="Alternar tema">🌙</button>
+      <button class="dark-btn" id="darkBtn" title="Alternar tema"><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--peach)" stroke="var(--pd2)" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" style="display:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
     </div>
   </div>
 
@@ -1504,11 +1504,12 @@ function showToast(msg, duration=2000){
 }
 
 /* ── Dark mode ── */
+const MOON_ICON='<svg viewBox="0 0 24 24" width="20" height="20" fill="var(--peach)" stroke="var(--pd2)" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" style="display:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 let isDark=false;
 document.getElementById('darkBtn').addEventListener('click',()=>{
   isDark=!isDark;
   document.documentElement.toggleAttribute('data-dark',isDark);
-  document.getElementById('darkBtn').textContent=isDark?'☀️':'🌙';
+  document.getElementById('darkBtn').innerHTML=isDark?'☀️':MOON_ICON;
   showToast(isDark?'Tema escuro ativado':'Tema claro ativado',1500);
 });
 
