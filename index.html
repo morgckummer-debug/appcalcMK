@@ -2193,6 +2193,18 @@ const contractions=loadContractions();
 let contrActive=null;
 let contrTimerInt=null;
 
+/* Marca de "fim de monitoramento": contrações registradas depois dessa marca
+   não calculam intervalo contra contrações de antes dela — evita um intervalo
+   enorme quando a gestante retoma o monitoramento horas depois. */
+const CONTR_SESSION_KEY='mkcalc_contractions_session_v1';
+function loadContrSessionBreak(){
+  try{const raw=localStorage.getItem(CONTR_SESSION_KEY);return raw?Number(raw):0;}catch{return 0;}
+}
+function saveContrSessionBreak(ts){
+  try{localStorage.setItem(CONTR_SESSION_KEY,String(ts));}catch{}
+}
+let contrSessionBreakAt=loadContrSessionBreak();
+
 function fmtClock(d){
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
@@ -2267,7 +2279,8 @@ function renderContrSheetBody(){
     document.getElementById('contrStopBtn').addEventListener('click',()=>{
       stopContrTimerLoop();
       const last=contractions[contractions.length-1];
-      const gapMs=last?contrActive.start-new Date(last.start).getTime():null;
+      const lastStart=last?new Date(last.start).getTime():null;
+      const gapMs=(lastStart!=null&&lastStart>contrSessionBreakAt)?contrActive.start-lastStart:null;
       contractions.push({start:new Date(contrActive.start).toISOString(),ms:Date.now()-contrActive.start,gapMs,weeks:currentIG?currentIG.weeks:null});
       saveContractions();
       contrActive=null;
@@ -2315,11 +2328,18 @@ function renderContrSheetBody(){
           <span><span class="mv-ico">🌀</span><span class="mv-txt">Iniciar</span></span>
         </button>
       </div>
+      ${contractions.length?'<button class="mv-cancel-btn" id="contrEndSessionBtn" type="button">Encerrar monitoramento</button>':''}
       ${listHtml}`;
     document.getElementById('contrStartTapBtn').addEventListener('click',()=>{
       contrActive={start:Date.now()};
       startContrTimerLoop();
       renderContrSheetBody();
+    });
+    const endSessionBtn=document.getElementById('contrEndSessionBtn');
+    if(endSessionBtn)endSessionBtn.addEventListener('click',()=>{
+      contrSessionBreakAt=Date.now();
+      saveContrSessionBreak(contrSessionBreakAt);
+      showToast('Monitoramento encerrado — a próxima contração começa sem intervalo',1800);
     });
     document.querySelectorAll('#contrCheckList input[data-flag]').forEach(cb=>{
       cb.addEventListener('change',()=>{
