@@ -528,6 +528,9 @@ body::after{
 .kick-bar{width:100%;max-width:22px;border-radius:5px 5px 2px 2px;
   background:linear-gradient(180deg,var(--peach),var(--pd));min-height:6px;transition:var(--trans)}
 .kick-bar.is-last{background:linear-gradient(180deg,#fff2df,var(--pd2))}
+/* Menina já herda rosa/lilás de --peach/--pd via [data-girl]; menino fica azul, espelhando a cor usada no checkbox de exames. */
+.kick-bar.boy{background:linear-gradient(180deg,var(--blue),var(--bd))}
+.kick-bar.boy.is-last{background:linear-gradient(180deg,#dce6ee,var(--bd))}
 
 /* Botão circular "orb" — ação principal dos monitores */
 .mv-ring-btn{
@@ -1540,6 +1543,7 @@ document.querySelectorAll('.stab').forEach(btn=>{
     renderProfileUI();
     applyProfileTheme();
     updateBabyNameUI();
+    renderKickCard();
     showToast(profile.sex==='menina'?'Tema rosa/lilás ativado 🩷':'Tema padrão ativado 💙',1500);
   });
 });
@@ -2077,7 +2081,8 @@ function renderKickCard(){
       </div>
       <div class="kick-chart">${recent.map((k,i)=>{
         const h=Math.max(8,Math.round((k.ms/maxMs)*100));
-        return `<div class="kick-bar-col"><div class="kick-bar${i===recent.length-1?' is-last':''}" style="height:${h}%" title="${fmt(new Date(k.date))} · ${fmtKickDuration(k.ms)}"></div></div>`;
+        const cls=['kick-bar',profile.sex==='menino'?'boy':'',i===recent.length-1?'is-last':''].filter(Boolean).join(' ');
+        return `<div class="kick-bar-col"><div class="${cls}" style="height:${h}%" title="${fmt(new Date(k.date))} · ${fmtKickDuration(k.ms)}"></div></div>`;
       }).join('')}</div>`;
   }
   const items=[...recent].reverse();
