@@ -1446,7 +1446,7 @@ const ULTRASSONS=[
   {weekStart:28,weekEnd:42,name:'Ultrassom Obstétrico com Doppler',periodo:'A partir de 28 semanas (mais comum entre 28 e 32)',
     desc:'Avalia o crescimento do bebê, a quantidade de líquido amniótico e a circulação de sangue entre a placenta e o bebê.',
     indicacao:'Pode fazer parte da rotina ou ser pedido quando há necessidade de um acompanhamento mais de perto, sempre conforme orientação do obstetra.'},
-  {weekStart:28,weekEnd:42,name:'Perfil Biofísico Fetal (PBF)',periodo:'A partir de 28 semanas, quando indicado',
+  {weekStart:28,weekEnd:42,name:'Ultrassom com Perfil Biofísico Fetal (PBF)',periodo:'A partir de 28 semanas, quando indicado',
     desc:'Avalia o bem-estar do bebê observando os movimentos, a respiração, o tônus muscular e a quantidade de líquido amniótico.',
     indicacao:'É realizado quando o obstetra considerar necessário.'}
 ];
@@ -1456,7 +1456,7 @@ const LABORATORIAIS=[
     desc:'Avaliam a sua saúde e ajudam a identificar anemia, infecções, diabetes e outras condições que podem interferir na gestação.',
     lista:['Hemograma','Tipagem sanguínea (ABO e Rh)','Coombs indireto (quando Rh negativo)','Glicemia de jejum','Urina tipo I','Urocultura','HIV','Sífilis','Hepatite B','Hepatite C','Rubéola (IgG)','Toxoplasmose (IgG e IgM)','TSH','Vitamina D (opcional)','Citomegalovírus (quando indicado)'],
     nota:'A relação de exames pode variar conforme o seu histórico de saúde e a orientação do seu obstetra.'},
-  {weekStart:24,weekEnd:28,name:'Curva de tolerância à glicose (TOTG 75 g)',periodo:'24 a 28 semanas',
+  {weekStart:24,weekEnd:28,name:'Curva glicêmica (TOTG)',periodo:'24 a 28 semanas',
     desc:'Avalia se houve desenvolvimento de diabetes durante a gestação.',
     valores:[{lbl:'Jejum',val:'≤ 92'},{lbl:'Após 1h',val:'< 180'},{lbl:'Após 2h',val:'< 153'}]},
   {weekStart:28,weekEnd:28,name:'Exames laboratoriais de acompanhamento',periodo:'28 semanas',
@@ -1474,7 +1474,7 @@ const VACINAS=[
     desc:'Protege contra formas graves da COVID-19, reduzindo riscos para a gestante e para o bebê.'},
   {weekStart:20,weekEnd:42,name:'dTpa (difteria, tétano e coqueluche)',periodo:'A partir de 20 semanas',
     desc:'Protege a gestante contra difteria e tétano e transfere anticorpos para o bebê, protegendo-o contra a coqueluche nos primeiros meses de vida.'},
-  {weekStart:28,weekEnd:42,name:'VSR (vírus sincicial respiratório)',periodo:'A partir de 28 semanas',
+  {weekStart:28,weekEnd:42,name:'Vacina da Bronquiolite (VSR)',periodo:'A partir de 28 semanas',
     desc:'Protege o bebê contra o vírus sincicial respiratório (VSR) nos primeiros meses de vida, reduzindo o risco de bronquiolite e pneumonia.'},
   {weekStart:0,weekEnd:42,name:'Hepatite B',periodo:'Conforme histórico vacinal',
     desc:'Protege contra a hepatite B.',
@@ -1489,9 +1489,9 @@ const VACINAS=[
 ];
 
 const CHECKLIST=[
-  {cat:'1º Trimestre · até 13s',items:['Confirmação de gravidez (beta-hCG)','Primeira consulta obstétrica','Hemograma + tipo sanguíneo + Fator Rh','Toxoplasmose, rubéola, CMV','HIV + sífilis (VDRL)','Hepatite B e C','Translucência Nucal (12–13s6d)','Ácido fólico e vitaminas','Vacinas Influenza e COVID-19 (a qualquer momento)','Verificar caderneta de vacinação (Hepatite B, dT)']},
-  {cat:'2º Trimestre · 13–28s',items:['Triagem 2º tri (sem. 16)','USG Morfológico (sem. 20–24)','Vacina dTpa (a partir de 20s)','TOTG (sem. 24–28)','Escolher maternidade e obstetra','Curso pré-natal']},
-  {cat:'3º Trimestre · 28s ao parto',items:['Hemograma + Coombs (sem. 28)','Vacina VSR (a partir de 28s)','USG de crescimento (sem. 32)','Cultura GBS (sem. 36)','Bem-estar fetal (sem. 40)','Mala da maternidade pronta','Plano de parto definido']},
+  {cat:'1º Trimestre · até 13s',items:['Confirmação de gravidez (beta-hCG)','Primeira consulta obstétrica','Hemograma + tipo sanguíneo + Fator Rh','Toxoplasmose, rubéola, CMV','HIV + sífilis (VDRL)','Hepatite B e C','Ultrassom Morfológico do 1º trimestre (12–13 semanas e 6 dias)','Ácido fólico e vitaminas','Vacinas Influenza e COVID-19 (a qualquer momento)','Verificar caderneta de vacinação (Hepatite B, dT)']},
+  {cat:'2º Trimestre · 13–28s',items:['Triagem 2º tri (16 semanas)','USG Morfológico (sem. 22–24)','Vacina dTpa (a partir de 20s)','Curva glicêmica (TOTG) (sem. 24–28)','Escolher maternidade e obstetra','Curso pré-natal']},
+  {cat:'3º Trimestre · 28s ao parto',items:['Hemograma + Coombs (sem. 28)','Vacina da Bronquiolite (VSR) (a partir de 28s)','USG de crescimento (sem. 32)','Exame do Cotonete (sem. 36)','Ultrassom com Perfil Biofísico Fetal (PBF) (sem. 40)','Mala da maternidade pronta (sem. 36)','Plano de parto definido']},
   {cat:'Mala do bebê',items:['Roupinhas para saída','Fraldas RN e P','Pomada para assaduras','4 bodies','2 macacões','2 casaquinhos','2 mantas','Sabonete neutro','Cadeirinha instalada no carro','Pediatra escolhido']},
   {cat:'Mala da mamãe',items:['2 camisolas para amamentação','Sutiãs de amamentação','Absorventes para seios','Produtos de higiene','Chinelo','Roupa para saída da maternidade']}
 ];
