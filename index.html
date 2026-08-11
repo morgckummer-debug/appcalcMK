@@ -142,6 +142,13 @@ body::after{
   transition:transform .18s cubic-bezier(.22,.68,0,1.4);
 }
 .onb-next:active{transform:scale(.96)}
+.onb-cta{
+  width:100%;padding:14px;border-radius:var(--pill);border:1.5px solid var(--pd);
+  background:transparent;color:var(--pd2);font-family:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;margin-bottom:14px;transition:transform .18s cubic-bezier(.22,.68,0,1.4),background .18s,color .18s;
+}
+.onb-cta:hover{background:var(--pd);color:var(--cream)}
+.onb-cta:active{transform:scale(.96)}
 
 /* ── Pages ── */
 .page{display:none;padding:0 16px;animation:fadeUp .28s cubic-bezier(.22,.68,0,1.2) both}
@@ -270,6 +277,16 @@ body::after{
 }
 .btn-calc:hover{transform:scale(1.02);box-shadow:6px 9px 20px rgba(168,134,100,.3)}
 .btn-calc:active{transform:scale(.96)}
+
+/* ── Nova gestação (reset) ── */
+.btn-danger{
+  width:100%;padding:16px;border-radius:var(--pill);
+  border:1.5px solid var(--pd2);background:transparent;color:var(--pd2);
+  font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+  transition:transform .18s cubic-bezier(.22,.68,0,1.4),background .18s,color .18s;
+}
+.btn-danger:hover{background:var(--pd2);color:var(--cream)}
+.btn-danger:active{transform:scale(.96)}
 
 /* ── IG Ring ── */
 .ring-wrap{display:flex;flex-direction:column;align-items:center;margin:6px 0 20px}
@@ -519,6 +536,12 @@ body::after{
 .mv-ring-btn.sm .mv-ico{font-size:22px}
 .mv-ring-btn.sm .mv-txt{font-size:10.5px;margin-top:2px}
 .mv-ring-btn.stop{background:radial-gradient(circle at 32% 28%,#fbe7e1,var(--rose) 55%,#e5b4a8 100%)}
+.mv-cancel-btn{
+  display:block;margin:14px auto 0;border:none;background:transparent;
+  color:var(--ink3);font-family:inherit;font-size:12.5px;font-weight:600;
+  text-decoration:underline;cursor:pointer;padding:6px;
+}
+.mv-cancel-btn:active{opacity:.6}
 
 /* 10 pontinhos de progresso da contagem de movimentos */
 .mv-dots{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:18px auto 0;max-width:210px}
@@ -1163,6 +1186,13 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       </div>
       <div class="helper">Ao escolher <strong>menina</strong>, as cores do app mudam para tons de rosa e lilás — ao escolher <strong>menino</strong>, muda-se para tons de azul.</div>
     </div>
+
+    <div class="card">
+      <div class="lbl">Nova gestação</div>
+      <div class="card-title" style="font-size:17px">Começando <span class="serif" style="color:var(--pd);font-style:italic">tudo de novo?</span></div>
+      <div class="helper">Isso apaga, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos e as contrações — pra você recomeçar do zero em uma nova gestação.</div>
+      <button class="btn-danger" id="resetPregBtn">🔄 Começar nova gestação</button>
+    </div>
   </div>
 
   <!-- ── Sobre ── -->
@@ -1519,6 +1549,31 @@ document.querySelectorAll('.nav-btn').forEach(btn=>{
   });
 });
 
+/* ── Gestação atual (referência persistida p/ IG sempre atualizada) ── */
+const PREG_KEY='mkcalc_pregnancy';
+function loadPregnancy(){
+  try{const raw=localStorage.getItem(PREG_KEY);return raw?JSON.parse(raw):null;}catch{return null;}
+}
+function savePregnancy(lmpDate,method){
+  try{localStorage.setItem(PREG_KEY,JSON.stringify({lmp:toISO(lmpDate),method}));}catch{}
+}
+function loadStoredPregnancy(){
+  const saved=loadPregnancy();
+  if(!saved)return;
+  const ig=igFromLMP(saved.lmp);
+  if(ig.totalDays>MAX_WEEKS*7)return;
+  const dpp=dppFromLMP(saved.lmp);
+  renderPregResult(ig,dpp,saved.method,true);
+  goToPage('result');
+}
+
+document.getElementById('resetPregBtn').addEventListener('click',()=>{
+  const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos e as contrações — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
+  if(!ok)return;
+  [PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY].forEach(k=>{try{localStorage.removeItem(k);}catch{}});
+  location.reload();
+});
+
 /* Filtra o guia de exames para mostrar só ultrassons, só laboratoriais, ou os dois */
 function filterExamGuide(category){
   document.getElementById('exmUsgCard').classList.toggle('hidden',!!category&&category!=='usg');
@@ -1634,7 +1689,7 @@ function runCalc(){
     showToast('Essa data resulta em mais de 42 semanas de gestação. Confira a data informada.',3000);
     return;
   }
-  if(ig&&dpp){renderPregResult(ig,dpp,method);goResult();}
+  if(ig&&dpp){savePregnancy(ig.lmp,method);renderPregResult(ig,dpp,method);goResult();}
 }
 
 function goResult(){goToPage('result');}
@@ -1695,7 +1750,7 @@ function renderTimeline(ig){
   },160);
 }
 
-function renderPregResult(ig,dpp,method){
+function renderPregResult(ig,dpp,method,silent){
   currentIG=ig;
   document.getElementById('noResult').classList.add('hidden');
   document.getElementById('fertResult').classList.add('hidden');
@@ -1742,7 +1797,7 @@ function renderPregResult(ig,dpp,method){
   renderTimeline(ig);
 
   renderExamGuide();
-  showToast(`${ig.weeks}s ${ig.days}d calculado com sucesso`);
+  if(!silent)showToast(`${ig.weeks}s ${ig.days}d calculado com sucesso`);
 }
 
 function renderFertilResult(r){
@@ -2162,6 +2217,7 @@ function renderContrSheetBody(){
       <button class="mv-ring-btn sm stop" id="contrStopBtn" type="button" style="margin:8px auto 0">
         <span><span class="mv-ico">⏹</span><span class="mv-txt">Finalizar</span></span>
       </button>
+      <button class="mv-cancel-btn" id="contrCancelBtn" type="button">Parar contagem sem registrar</button>
       ${listHtml}`;
     document.getElementById('contrStopBtn').addEventListener('click',()=>{
       stopContrTimerLoop();
@@ -2173,6 +2229,12 @@ function renderContrSheetBody(){
       renderContrCard();
       renderContrSheetBody();
       showToast('Contração registrada',1200);
+    });
+    document.getElementById('contrCancelBtn').addEventListener('click',()=>{
+      stopContrTimerLoop();
+      contrActive=null;
+      renderContrSheetBody();
+      showToast('Contagem cancelada',1200);
     });
   }else{
     const weeks=currentIG?currentIG.weeks:null;
@@ -2242,9 +2304,10 @@ renderContrCard();
 const ONB_KEY='mkcalc_onboarded';
 const ONBOARDING_STEPS=[
   {ico:'🤰',title:'Bem-vinda ao MKCalc!',desc:'Um app simples pra acompanhar sua gestação: idade gestacional, período fértil, exames e muito mais.'},
+  {ico:'📅',title:'Qual sua idade gestacional?',desc:'Você pode informar pela <strong>DUM</strong>, pelo <strong>1º ultrassom</strong> ou pela <strong>DPP</strong>. A partir daí, o app calcula sua idade gestacional sozinho — sempre atualizada, toda vez que você abrir.',cta:'Informar agora',ctaPage:'calc'},
   {ico:'🧭',title:'Use as abas aqui embaixo',desc:'Calcular, Resultado, Exames e Checklist ficam sempre a um toque de distância, na barra de navegação.'},
   {ico:'🧸',title:'Personalize na aba Perfil',desc:'Coloque aqui o nome e o sexo do seu bebê.'},
-  {ico:'✨',title:'Pronto!',desc:'Você já pode começar. Sempre que quiser rever este tutorial, é só tocar no <span class="onb-help-mark">?</span> lá em cima.'}
+  {ico:'✨',title:'Pronto!',desc:'Você já pode começar. Sempre que quiser rever este tutorial, é só tocar no <span class="onb-help-mark">?</span> lá em cima. Começando uma <strong>nova gestação</strong>? Na aba Perfil tem a opção "Começar nova gestação", que apaga os dados antigos pra você recomeçar do zero.'}
 ];
 let onbStep=0;
 function renderOnb(){
@@ -2252,7 +2315,15 @@ function renderOnb(){
   document.getElementById('onbBody').innerHTML=`
     <div class="onb-ico">${s.ico}</div>
     <div class="onb-title serif">${s.title}</div>
-    <div class="onb-desc">${s.desc}</div>`;
+    <div class="onb-desc">${s.desc}</div>
+    ${s.cta?`<button class="onb-cta" id="onbCta">${s.cta}</button>`:''}`;
+  if(s.cta){
+    document.getElementById('onbCta').addEventListener('click',()=>{
+      closeOnboarding();
+      goToPage(s.ctaPage);
+      if(s.ctaPage==='calc')setTimeout(()=>document.getElementById('lmpInp').focus(),320);
+    });
+  }
   document.getElementById('onbDots').innerHTML=ONBOARDING_STEPS.map((_,i)=>`<span class="onb-dot${i===onbStep?' on':''}"></span>`).join('');
   document.getElementById('onbNext').textContent=onbStep===ONBOARDING_STEPS.length-1?'Começar':'Próximo';
 }
@@ -2272,6 +2343,8 @@ document.getElementById('onbNext').addEventListener('click',()=>{
 document.getElementById('onbSkip').addEventListener('click',closeOnboarding);
 document.getElementById('onbHelpBtn').addEventListener('click',openOnboarding);
 if(!localStorage.getItem(ONB_KEY))openOnboarding();
+
+loadStoredPregnancy();
 </script>
 </body>
 </html>
