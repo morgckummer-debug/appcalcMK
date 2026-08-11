@@ -499,6 +499,18 @@ body::after{
   background:linear-gradient(135deg,#fde3d0,var(--peach) 90%);padding:3px 10px;border-radius:var(--pill);
   box-shadow:1px 2px 5px rgba(217,149,112,.25);white-space:nowrap;
 }
+.kick-avg-tile{
+  background:var(--surf);border-radius:14px;padding:14px 16px;box-shadow:var(--cs);
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.kick-avg-tile .val{font-family:'Fraunces',serif;font-size:26px;font-weight:500;color:var(--pd2);
+  line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kick-avg-tile .txt{font-size:12px;color:var(--ink2);line-height:1.4}
+.kick-chart{display:flex;align-items:flex-end;gap:5px;height:56px;margin-top:12px;padding:0 2px}
+.kick-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.kick-bar{width:100%;max-width:22px;border-radius:5px 5px 2px 2px;
+  background:linear-gradient(180deg,var(--peach),var(--pd));min-height:6px;transition:var(--trans)}
+.kick-bar.is-last{background:linear-gradient(180deg,#fff2df,var(--pd2))}
 
 /* Botão circular "orb" — ação principal dos monitores */
 .mv-ring-btn{
@@ -997,7 +1009,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
           <div class="femur-title">Quer saber a altura do bebê?</div>
           <div class="femur-sub">Coloque aqui a medida do fêmur, em centímetros.</div>
           <div class="femur-row">
-            <input class="inp" type="number" id="femurInp" placeholder="Comprimento do fêmur" step="0.1" min="0" inputmode="decimal">
+            <input class="inp" type="number" id="femurInp" placeholder="Comprimento do fêmur" step="0.1" min="0" max="8" inputmode="decimal">
             <span class="femur-unit">cm</span>
           </div>
           <div class="femur-result hidden" id="femurResult"></div>
@@ -1564,7 +1576,8 @@ document.getElementById('usgW').addEventListener('input',e=>{
 /* ── Calculadora de fêmur (dentro do card do bebê) ── */
 document.getElementById('femurInp').addEventListener('input',e=>{
   const resEl=document.getElementById('femurResult');
-  const femur=parseFloat(e.target.value.replace(',','.'));
+  let femur=parseFloat(e.target.value.replace(',','.'));
+  if(femur>8){femur=8;e.target.value='8';}
   if(!femur||femur<=0){resEl.classList.add('hidden');return;}
   const altura=fetalHeightFromFemur(femur);
   resEl.innerHTML=`Estatura estimada: <strong>${altura.toFixed(1)} cm</strong>`;
@@ -1996,8 +2009,25 @@ function renderKickCard(){
     :'Nenhum registro ainda';
   const wrap=document.getElementById('kickHistoryWrap');
   if(!kickSessions.length){wrap.innerHTML='';return;}
-  const items=[...kickSessions].slice(-7).reverse();
-  wrap.innerHTML=`<div class="lbl" style="margin-top:18px">Seus últimos registros</div>`+
+  const recent=kickSessions.slice(-7);
+  let statsHtml='';
+  if(recent.length>=2){
+    const avgMs=recent.reduce((sum,k)=>sum+k.ms,0)/recent.length;
+    const maxMs=Math.max(...recent.map(k=>k.ms));
+    statsHtml=`
+      <div class="lbl" style="margin-top:18px">Sua média recente</div>
+      <div class="kick-avg-tile">
+        <div class="val">${fmtKickDuration(avgMs)}</div>
+        <div class="txt">Tempo médio para sentir 10 movimentos, nas últimas ${recent.length} contagens — esse é o <strong>seu</strong> padrão, não uma meta.</div>
+      </div>
+      <div class="kick-chart">${recent.map((k,i)=>{
+        const h=Math.max(8,Math.round((k.ms/maxMs)*100));
+        return `<div class="kick-bar-col"><div class="kick-bar${i===recent.length-1?' is-last':''}" style="height:${h}%" title="${fmt(new Date(k.date))} · ${fmtKickDuration(k.ms)}"></div></div>`;
+      }).join('')}</div>`;
+  }
+  const items=[...recent].reverse();
+  wrap.innerHTML=statsHtml+
+    `<div class="lbl" style="margin-top:18px">Seus últimos registros</div>`+
     items.map(k=>`<div class="kick-history-item"><span>${fmt(new Date(k.date))}</span><span>${fmtKickDuration(k.ms)}${k.weeks!=null?` <span class="kick-history-w">· ${k.weeks}s</span>`:''}</span></div>`).join('');
 }
 function startKickTimerLoop(){
