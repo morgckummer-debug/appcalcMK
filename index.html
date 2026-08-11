@@ -363,6 +363,7 @@ body::after{
 .baby-avg .val{font-family:'Fraunces',serif;font-size:17px;font-weight:500;color:var(--ink)}
 .baby-dev{font-size:13px;color:var(--ink2);line-height:1.6;margin-top:12px;background:rgba(255,250,240,.5);border-radius:12px;padding:12px 14px}
 [data-dark] .baby-dev{background:rgba(30,20,10,.35)}
+.baby-name-em{color:var(--pd2);font-weight:800}
 
 /* Timeline */
 .tl-cap{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:2px}
@@ -1521,6 +1522,7 @@ function saveProfile(){
   try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));}catch{}
 }
 let profile=loadProfile();
+let currentIG=null;
 function applyProfileTheme(){
   document.documentElement.toggleAttribute('data-girl',profile.sex==='menina');
 }
@@ -1528,8 +1530,25 @@ function renderProfileUI(){
   document.getElementById('babyNameInp').value=profile.name||'';
   document.querySelectorAll('.stab').forEach(b=>b.classList.toggle('on',b.dataset.sex===profile.sex));
 }
+function babyNameHTML(){
+  return `<strong class="baby-name-em">${profile.name.toUpperCase()}</strong>`;
+}
+function updateBabyLabels(ig){
+  if(!ig)return;
+  const milestone=getMilestone(ig.weeks);
+  const fruit=getFruitForWeek(ig.weeks);
+  document.getElementById('babyWeekLbl').textContent=`${profile.name||'Bebê'} · semana ${ig.weeks}`;
+  document.getElementById('babyFruit').textContent=fruit.name;
+  document.getElementById('babyFruitImg').src=`frutas/${fruit.file}.png`;
+  document.getElementById('babyFruitImg').alt=fruit.name;
+  document.getElementById('babyDev').textContent=milestone.d;
+  document.getElementById('babyPhrase').innerHTML=profile.name
+    ?`Olha, mamãe! ${profile.sex==='menina'?'A':'O'} ${babyNameHTML()} já tem o tamanho de ${fruitPhrase(fruit)} 🥰`
+    :`Olha, eu já tenho o tamanho de ${fruitPhrase(fruit)} 🥰`;
+}
 function updateBabyNameUI(){
-  document.getElementById('exmUsgTitle').textContent=profile.name?`Acompanhando ${profile.sex==='menina'?'a':'o'} ${profile.name}`:'Acompanhando o bebê';
+  document.getElementById('exmUsgTitle').innerHTML=profile.name?`Acompanhando ${profile.sex==='menina'?'a':'o'} ${babyNameHTML()}`:'Acompanhando o bebê';
+  updateBabyLabels(currentIG);
 }
 document.getElementById('babyNameInp').addEventListener('input',e=>{
   profile.name=e.target.value;
@@ -1798,16 +1817,7 @@ function renderPregResult(ig,dpp,method,silent){
     <div class="stat"><div class="lbl">DPP</div><div class="val serif">${fmt(dpp)}</div></div>
     <div class="stat"><div class="lbl">Faltam</div><div class="val serif">${Math.max(0,GESTATION_DAYS-ig.totalDays)} dias</div></div>`;
 
-  const milestone=getMilestone(ig.weeks);
-  const fruit=getFruitForWeek(ig.weeks);
-  document.getElementById('babyWeekLbl').textContent=`${profile.name||'Bebê'} · semana ${ig.weeks}`;
-  document.getElementById('babyFruit').textContent=fruit.name;
-  document.getElementById('babyFruitImg').src=`frutas/${fruit.file}.png`;
-  document.getElementById('babyFruitImg').alt=fruit.name;
-  document.getElementById('babyDev').textContent=milestone.d;
-  document.getElementById('babyPhrase').textContent=profile.name
-    ?`Olha, mamãe! ${profile.sex==='menina'?'A':'O'} ${profile.name} já tem o tamanho de ${fruitPhrase(fruit)} 🥰`
-    :`Olha, eu já tenho o tamanho de ${fruitPhrase(fruit)} 🥰`;
+  updateBabyLabels(ig);
   document.getElementById('femurInp').value='';
   document.getElementById('femurResult').classList.add('hidden');
 
@@ -1866,7 +1876,6 @@ function renderFertilResult(r){
 }
 
 /* ── Guia de exames ── */
-let currentIG=null;
 const EXAM_DONE_KEY='mkcalc_exam_done_v1';
 function loadExamDone(){
   try{const raw=localStorage.getItem(EXAM_DONE_KEY);return raw?JSON.parse(raw):{};}
