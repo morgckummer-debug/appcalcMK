@@ -405,6 +405,13 @@ body::after{
 .exm-cta-txt{font-size:13px;font-weight:700;color:var(--ink)}
 .exm-cta-sub{font-size:11px;color:var(--ink2);margin-top:2px;font-weight:400}
 .exm-cta-arrow{font-size:18px;color:var(--pd2);flex-shrink:0}
+/* CTA de destaque dentro de cards "feat" (fundo em gradiente creme/pêssego) —
+   o fundo padrão do .exm-cta (--surf2) quase não contrasta com esse gradiente. */
+.card.feat .exm-cta{background:linear-gradient(135deg,var(--pd),var(--pd2));box-shadow:4px 8px 20px rgba(192,122,82,.35),inset 0 1px 0 rgba(255,255,255,.25)}
+.card.feat .exm-cta:hover{background:linear-gradient(135deg,var(--pd2),var(--pd))}
+.card.feat .exm-cta .exm-cta-txt,
+.card.feat .exm-cta .exm-cta-arrow{color:var(--cream)}
+.card.feat .exm-cta .exm-cta-sub{color:rgba(255,250,240,.85)}
 
 .exm-list{display:flex;flex-direction:column;gap:10px}
 .exm-card{
