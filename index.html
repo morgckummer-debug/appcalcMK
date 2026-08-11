@@ -1706,7 +1706,7 @@ function runCalc(){
     showToast('Essa data resulta em mais de 42 semanas de gestação. Confira a data informada.',3000);
     return;
   }
-  if(ig&&dpp){savePregnancy(ig.lmp,method);renderPregResult(ig,dpp,method);goResult();}
+  if(ig&&dpp){savePregnancy(ig.lmp,method);renderPregResult(ig,dpp,method);goResult();resumeOnboardingAfterCalc();}
 }
 
 function goResult(){goToPage('result');}
@@ -2345,6 +2345,7 @@ const ONBOARDING_STEPS=[
   {ico:'✨',title:'Pronto!',desc:'Você já pode começar. Sempre que quiser rever este tutorial, é só tocar no <span class="onb-help-mark">?</span> lá em cima. Começando uma <strong>nova gestação</strong>? Na aba Perfil tem a opção "Começar nova gestação", que apaga os dados antigos pra você recomeçar do zero.'}
 ];
 let onbStep=0;
+let onbPendingResume=false;
 function renderOnb(){
   const s=ONBOARDING_STEPS[onbStep];
   document.getElementById('onbBody').innerHTML=`
@@ -2354,7 +2355,8 @@ function renderOnb(){
     ${s.cta?`<button class="onb-cta" id="onbCta">${s.cta}</button>`:''}`;
   if(s.cta){
     document.getElementById('onbCta').addEventListener('click',()=>{
-      closeOnboarding();
+      document.getElementById('onbOverlay').classList.remove('show');
+      onbPendingResume=true;
       goToPage(s.ctaPage);
       if(s.ctaPage==='calc')setTimeout(()=>document.getElementById('lmpInp').focus(),320);
     });
@@ -2369,7 +2371,17 @@ function openOnboarding(){
 }
 function closeOnboarding(){
   document.getElementById('onbOverlay').classList.remove('show');
+  onbPendingResume=false;
   try{localStorage.setItem(ONB_KEY,'1');}catch{}
+}
+function resumeOnboardingAfterCalc(){
+  if(!onbPendingResume)return;
+  onbPendingResume=false;
+  onbStep=Math.min(onbStep+1,ONBOARDING_STEPS.length-1);
+  setTimeout(()=>{
+    renderOnb();
+    document.getElementById('onbOverlay').classList.add('show');
+  },500);
 }
 document.getElementById('onbNext').addEventListener('click',()=>{
   if(onbStep<ONBOARDING_STEPS.length-1){onbStep++;renderOnb();}
