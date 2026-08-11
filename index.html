@@ -14,6 +14,7 @@
   --blue:#b9c8d6;--bd:#6f8ba3;
   --track:var(--blue);--track2:var(--bd);
   --rose:#f0c9c0;
+  --alert:#c14f3c;--alert-bg:#f7ded6;
   --cream:#f8edd9;--cream2:#f0e0c4;
   --ink:#3a2e2a;--ink2:#6b574e;--ink3:#9a8678;
   --surf:#f8edd9;--surf2:#efe0c4;--surfs:#fdf5ea;
@@ -32,6 +33,7 @@
   --peach:#c8845a;--pd:#b06a40;--pd2:#a05830;
   --blue:#3d5568;--bd:#5a7a96;
   --rose:#7a4a42;
+  --alert:#e2735c;--alert-bg:#3a231e;
   --cream:#2a211a;--cream2:#322719;
   --ink:#f0e4d4;--ink2:#c4aa94;--ink3:#8a7060;
   --surf:#251e17;--surf2:#2e2418;--surfs:#332820;
@@ -543,6 +545,38 @@ body::after{
 @keyframes mvBreatheRing{0%,100%{transform:scale(.85);opacity:.15}50%{transform:scale(1.3);opacity:.5}}
 .mv-breathe-timer{position:relative;z-index:1;font-family:'Fraunces',serif;font-size:28px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
 .mv-breathe-lbl{text-align:center;font-size:11px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:2px}
+
+/* Padrão calculado + checklist de sinais — monitor de contrações */
+.contr-pattern{
+  border-radius:14px;padding:12px 14px;margin-bottom:14px;
+  background:linear-gradient(135deg,#fbe3d0,var(--peach) 120%);box-shadow:var(--cs);
+}
+.contr-pattern-lbl{
+  font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--pd2);margin-bottom:6px;display:flex;align-items:center;gap:6px;
+}
+.contr-pattern-lbl .dot{width:6px;height:6px;border-radius:50%;background:var(--pd2);animation:contrPulse 1.6s ease-in-out infinite}
+@keyframes contrPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.contr-pattern-stats{display:flex;gap:18px;margin-bottom:4px}
+.contr-pattern-stat .v{font-family:'Fraunces',serif;font-size:19px;color:var(--ink);font-variant-numeric:tabular-nums}
+.contr-pattern-stat .k{font-size:9.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
+.contr-pattern-foot{font-size:11px;color:var(--ink2);line-height:1.4;margin-top:4px}
+.contr-check-lbl{font-size:10px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.contr-check-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.contr-check-item{
+  display:flex;align-items:center;gap:10px;background:var(--surf);border-radius:11px;
+  padding:9px 12px;font-size:12.5px;color:var(--ink);cursor:pointer;user-select:none;
+  border:1px solid transparent;transition:var(--trans);
+}
+.contr-check-item input{accent-color:var(--pd2);width:15px;height:15px;flex-shrink:0}
+.contr-check-item.on{border-color:var(--alert);background:var(--alert-bg)}
+.contr-alert{
+  display:none;border-radius:14px;padding:13px 14px;margin-bottom:14px;
+  background:var(--alert-bg);border:1px solid rgba(193,79,58,.28);
+}
+.contr-alert.show{display:block}
+.contr-alert-title{font-size:13px;font-weight:700;color:var(--alert);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.contr-alert-body{font-size:11.5px;color:var(--ink2);line-height:1.5}
 
 /* Fertil */
 .f-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
@@ -2081,6 +2115,22 @@ function contrHelperText(){
   }
   return 'Contrações de treinamento (Braxton Hicks) são comuns, especialmente no 3º trimestre, e costumam ser irregulares e sem dor. Um padrão às vezes citado para trabalho de parto ativo é contrações a cada 5 minutos, durando cerca de 1 minuto, por 1 hora seguida — mas isso varia de gestante para gestante. <strong>Sentiu contrações regulares e dolorosas, perdeu líquido ou está com qualquer dúvida? Ligue para o seu obstetra ou vá à maternidade</strong> — não é preciso esperar um padrão exato.';
 }
+/* Só aritmética sobre o que já foi registrado — média de intervalo e duração
+   das últimas contrações. Nunca usada sozinha para sugerir veredito: a
+   checklist de sinais (não relacionados a tempo) é quem decide o alerta. */
+function computeContrPattern(){
+  const recent=contractions.slice(-6);
+  const gaps=recent.map(c=>c.gapMs).filter(g=>g!=null);
+  if(gaps.length<3)return null;
+  const avgGap=gaps.reduce((a,b)=>a+b,0)/gaps.length;
+  const avgDur=recent.reduce((a,c)=>a+c.ms,0)/recent.length;
+  return{avgGap,avgDur,n:recent.length};
+}
+function contrPatternFootText(p){
+  const close=p.avgGap<=7*60000&&p.avgDur>=40000;
+  if(close)return'Isso se aproxima do padrão às vezes citado para trabalho de parto ativo (a cada 5 min, ~1 min, por 1h seguida). Não é um diagnóstico — vale conferir a checklist abaixo.';
+  return'Cada gestante tem um padrão diferente — isso é só um retrato das últimas contrações registradas, não uma indicação de trabalho de parto.';
+}
 function startContrTimerLoop(){
   if(contrTimerInt)return;
   contrTimerInt=setInterval(()=>{
@@ -2125,9 +2175,34 @@ function renderContrSheetBody(){
       showToast('Contração registrada',1200);
     });
   }else{
+    const weeks=currentIG?currentIG.weeks:null;
+    const isPreterm=weeks!=null&&weeks<37;
+    const pattern=computeContrPattern();
+    const noteHtml=(isPreterm||!pattern)?`<div class="exm-sheet-note">${contrHelperText()}</div>`:'';
+    const patternHtml=pattern?`
+      <div class="contr-pattern">
+        <div class="contr-pattern-lbl"><span class="dot"></span>Padrão das últimas ${pattern.n} contrações</div>
+        <div class="contr-pattern-stats">
+          <div class="contr-pattern-stat"><div class="v">${fmtGap(pattern.avgGap)}</div><div class="k">intervalo médio</div></div>
+          <div class="contr-pattern-stat"><div class="v">${fmtKickDuration(pattern.avgDur)}</div><div class="k">duração média</div></div>
+        </div>
+        <div class="contr-pattern-foot">${contrPatternFootText(pattern)}</div>
+      </div>`:'';
     body.innerHTML=`
       <div class="exm-sheet-name">Monitor de contrações</div>
-      <div class="exm-sheet-note">${contrHelperText()}</div>
+      ${noteHtml}
+      ${patternHtml}
+      <div class="contr-check-lbl">Além do tempo, você sente algum destes agora?</div>
+      <div class="contr-check-list" id="contrCheckList">
+        <label class="contr-check-item"><input type="checkbox" data-flag/>Perdeu líquido (bolsa)</label>
+        <label class="contr-check-item"><input type="checkbox" data-flag/>Sangramento vaginal</label>
+        <label class="contr-check-item"><input type="checkbox" data-flag/>Bebê mexendo bem menos</label>
+        <label class="contr-check-item"><input type="checkbox" data-flag/>Dor forte que não passa</label>
+      </div>
+      <div class="contr-alert" id="contrAlert">
+        <div class="contr-alert-title">📞 Isso merece uma ligação agora</div>
+        <div class="contr-alert-body">Não espere um horário exato — ligue para o seu obstetra ou vá à maternidade.</div>
+      </div>
       <div class="kick-count-wrap">
         <button class="mv-ring-btn" id="contrStartTapBtn" type="button">
           <span><span class="mv-ico">🌀</span><span class="mv-txt">Iniciar</span></span>
@@ -2138,6 +2213,13 @@ function renderContrSheetBody(){
       contrActive={start:Date.now()};
       startContrTimerLoop();
       renderContrSheetBody();
+    });
+    document.querySelectorAll('#contrCheckList input[data-flag]').forEach(cb=>{
+      cb.addEventListener('change',()=>{
+        cb.closest('.contr-check-item').classList.toggle('on',cb.checked);
+        const any=[...document.querySelectorAll('#contrCheckList input[data-flag]')].some(x=>x.checked);
+        document.getElementById('contrAlert').classList.toggle('show',any);
+      });
     });
   }
 }
