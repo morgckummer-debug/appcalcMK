@@ -650,7 +650,10 @@ body::after{
 .wg-summary-val{font-family:'Fraunces',serif;font-size:19px;color:var(--ink)}
 .wg-bar{height:10px;background:var(--surf2);border-radius:var(--pill);box-shadow:var(--ci);overflow:hidden;position:relative;margin-bottom:8px}
 .wg-bar-fill{height:100%;border-radius:var(--pill);transition:width .5s cubic-bezier(.22,.68,0,1)}
-.wg-bar-fill.tone-ok{background:linear-gradient(90deg,var(--good),#79a870)}
+/* Estado normal segue a cor do bebê (azul no menino, rosa na menina), igual ao
+   anel de IG, timeline e gráfico de evolução do peso — só os estados de
+   atenção (abaixo/acima do esperado) ficam com cor fixa de alerta. */
+.wg-bar-fill.tone-ok{background:linear-gradient(90deg,var(--track),var(--track2))}
 .wg-bar-fill.tone-low{background:linear-gradient(90deg,var(--bd),#8fa8bc)}
 .wg-bar-fill.tone-high{background:linear-gradient(90deg,var(--alert),#d97a63)}
 .wg-summary-txt{font-size:12px;color:var(--ink2);line-height:1.5}
@@ -2489,12 +2492,39 @@ function bmiClass(bmi){
 }
 /* Faixa de ganho de peso total recomendado numa gestação única, por categoria
    de IMC pré-gestacional (Institute of Medicine, 2009 — adotado também pelo
-   Ministério da Saúde no pré-natal). Não é veredito, só referência. */
+   Ministério da Saúde no pré-natal). Essa faixa é a meta pro FINAL da
+   gestação — comparar o ganho parcial (com poucas semanas) direto contra ela
+   sempre vai parecer "abaixo", então ela só serve como referência de meta,
+   nunca pra julgar o ganho até agora (ver expectedGainRange). */
 function gestGainRange(prePregBmi){
   if(prePregBmi<18.5)return[12.5,18];
   if(prePregBmi<25)return[11.5,16];
   if(prePregBmi<30)return[7,11.5];
   return[5,9];
+}
+/* Ritmo de ganho recomendado por semana, no 2º/3º trimestre (IOM, 2009). */
+function gestGainRate(prePregBmi){
+  if(prePregBmi<18.5)return[0.44,0.58];
+  if(prePregBmi<25)return[0.35,0.50];
+  if(prePregBmi<30)return[0.23,0.33];
+  return[0.17,0.27];
+}
+/* No 1º trimestre (até ~13 semanas) o ganho esperado é pequeno e parecido
+   entre as categorias de IMC — por isso o IOM não dá um ritmo semanal pra
+   essa fase, só um total de até ~13 semanas. */
+const FIRST_TRI_GAIN_KG=[0.5,2];
+/* Faixa de ganho esperada ATÉ a semana gestacional informada — é essa faixa,
+   não a meta total, que deve ser usada pra dizer se o ganho até agora está
+   dentro do esperado. */
+function expectedGainRange(prePregBmi,week){
+  if(week==null||week<0)return null;
+  if(week<=13){
+    const frac=week/13;
+    return[FIRST_TRI_GAIN_KG[0]*frac,FIRST_TRI_GAIN_KG[1]*frac];
+  }
+  const[rMin,rMax]=gestGainRate(prePregBmi);
+  const extraWeeks=week-13;
+  return[FIRST_TRI_GAIN_KG[0]+extraWeeks*rMin,FIRST_TRI_GAIN_KG[1]+extraWeeks*rMax];
 }
 function fmtKg(kg){
   return `${kg.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} kg`;
@@ -2522,15 +2552,25 @@ function renderWeightSummary(){
   const baseBmi=heightCm?calcBMI(baseKg,heightCm):null;
   if(baseBmi){
     const gain=last.kg-baseKg;
-    const[min,max]=gestGainRange(baseBmi);
-    let tone='ok',statusTxt=`Dentro da faixa recomendada (${fmtKg(min)}–${fmtKg(max)}) pra gestação única.`;
-    if(gain<min){tone='low';statusTxt=`Abaixo da faixa recomendada (${fmtKg(min)}–${fmtKg(max)}) pra gestação única.`;}
-    else if(gain>max){tone='high';statusTxt=`Acima da faixa recomendada (${fmtKg(min)}–${fmtKg(max)}) pra gestação única.`;}
-    const pct=Math.max(4,Math.min(100,(gain/max)*100));
+    const[totMin,totMax]=gestGainRange(baseBmi);
+    const week=last.weeks;
+    const expected=expectedGainRange(baseBmi,week);
+    let tone,statusTxt,pct;
+    if(expected){
+      const[expMin,expMax]=expected;
+      if(gain<expMin){tone='low';statusTxt=`Abaixo do esperado pra semana ${week} (${fmtKg(expMin)}–${fmtKg(expMax)} até aqui).`;}
+      else if(gain>expMax){tone='high';statusTxt=`Acima do esperado pra semana ${week} (${fmtKg(expMin)}–${fmtKg(expMax)} até aqui).`;}
+      else{tone='ok';statusTxt=`Dentro do esperado pra semana ${week} (${fmtKg(expMin)}–${fmtKg(expMax)} até aqui).`;}
+      pct=Math.max(4,Math.min(100,(gain/Math.max(expMax,0.1))*100));
+    }else{
+      tone='ok';
+      statusTxt=`Ainda não dá pra comparar por semana — meta pro final da gestação: ${fmtKg(totMin)}–${fmtKg(totMax)}.`;
+      pct=Math.max(4,Math.min(100,(gain/totMax)*100));
+    }
     html+=`<div class="wg-summary">
       <div class="wg-summary-top"><span class="lbl" style="margin:0">Ganho de peso total</span><span class="wg-summary-val">${gain>=0?'+':''}${fmtKg(gain)}</span></div>
       <div class="wg-bar"><div class="wg-bar-fill tone-${tone}" style="width:${pct}%"></div></div>
-      <div class="wg-summary-txt">${statusTxt} Considerando o ${baseLbl} de ${fmtKg(baseKg)}. <span style="color:var(--ink3)">O que é ideal pra você é sempre definido com seu obstetra.</span></div>
+      <div class="wg-summary-txt">${statusTxt} Considerando o ${baseLbl} de ${fmtKg(baseKg)}. Meta pro final da gestação: ${fmtKg(totMin)}–${fmtKg(totMax)}. <span style="color:var(--ink3)">O que é ideal pra você é sempre definido com seu obstetra.</span></div>
     </div>`;
   }
   wrap.innerHTML=html;
