@@ -188,7 +188,10 @@ body::after{
   box-shadow:8px 12px 32px rgba(0,0,0,.4),0 0 0 1px rgba(255,200,150,.06) inset;
 }
 .lbl{font-size:10px;color:var(--ink3);letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin-bottom:6px;transition:color .3s}
-.card-title{font-family:'Fraunces',serif;font-size:24px;font-weight:500;letter-spacing:-.02em;line-height:1.1;margin-bottom:18px;transition:color .3s}
+/* Cor explícita (não só herdada): botões não herdam a cor do texto dos
+   ancestrais por padrão, então dentro do cabeçalho comprimido (um <button>)
+   o navegador aplicava sua cor nativa de botão em vez do tom da paleta. */
+.card-title{font-family:'Fraunces',serif;font-size:24px;font-weight:500;letter-spacing:-.02em;line-height:1.1;margin-bottom:18px;color:var(--ink);transition:color .3s}
 
 /* ── Cards de monitoramento comprimidos (peso, movimentos, contrações) ──
    Ficam fechados por padrão, mostrando só um resumo de uma linha; tocar no
@@ -196,7 +199,7 @@ body::after{
 .mon-head{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   width:100%;border:none;background:transparent;padding:0;margin:0;
-  font-family:inherit;text-align:left;cursor:pointer;
+  font-family:inherit;color:var(--ink);text-align:left;cursor:pointer;
 }
 .mon-head-txt{min-width:0}
 .mon-head-title{margin-bottom:0}
