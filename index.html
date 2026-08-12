@@ -190,6 +190,24 @@ body::after{
 .lbl{font-size:10px;color:var(--ink3);letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin-bottom:6px;transition:color .3s}
 .card-title{font-family:'Fraunces',serif;font-size:24px;font-weight:500;letter-spacing:-.02em;line-height:1.1;margin-bottom:18px;transition:color .3s}
 
+/* ── Cards de monitoramento comprimidos (peso, movimentos, contrações) ──
+   Ficam fechados por padrão, mostrando só um resumo de uma linha; tocar no
+   cabeçalho abre o card inteiro, igual ao acordeão da Checklist. */
+.mon-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  width:100%;border:none;background:transparent;padding:0;margin:0;
+  font-family:inherit;text-align:left;cursor:pointer;
+}
+.mon-head-txt{min-width:0}
+.mon-head-title{margin-bottom:0}
+.mon-head-sub{font-size:12.5px;color:var(--ink2);margin-top:5px;font-weight:600}
+.mon-chev{
+  font-style:normal;font-size:20px;color:var(--pd2);flex-shrink:0;
+  transition:transform .25s cubic-bezier(.22,.68,0,1.3);
+}
+.mon-body{display:none}
+.mon-body.open{display:block;margin-top:18px;animation:fadeUp .25s ease both}
+
 /* ── Calc tabs ── */
 .calc-tabs{
   display:grid;grid-template-columns:repeat(4,1fr);gap:5px;
@@ -1112,55 +1130,79 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       </div>
 
       <div class="card feat" id="weightCard">
-        <div class="lbl">⚖️ Saúde materna</div>
-        <div class="card-title">Peso na <span class="serif" style="color:var(--pd);font-style:italic">gestação</span></div>
-        <div class="helper">Registre seu peso ao longo do pré-natal e acompanhe a curva de ganho. Preencha sua altura pra calcular o IMC automaticamente. <span style="color:var(--ink3)">Isso é só um acompanhamento — o que é saudável pra você é sempre definido junto com o seu obstetra.</span></div>
-        <div class="wt-row2">
-          <div class="wt-field">
-            <label>Sua altura</label>
-            <div class="wt-field-row"><input class="inp" type="number" id="heightInp" placeholder="Ex: 165" step="0.1" min="0" inputmode="decimal"><span class="wt-field-unit">cm</span></div>
+        <button class="mon-head" id="weightHead" type="button" aria-expanded="false">
+          <div class="mon-head-txt">
+            <div class="lbl">⚖️ Saúde materna</div>
+            <div class="card-title mon-head-title">Peso na <span class="serif" style="color:var(--pd);font-style:italic">gestação</span></div>
+            <div class="mon-head-sub" id="weightHeadSub">Nenhum registro ainda</div>
           </div>
-          <div class="wt-field">
-            <label>Peso pré-gestacional</label>
-            <div class="wt-field-row"><input class="inp" type="number" id="prePregInp" placeholder="Opcional" step="0.1" min="0" inputmode="decimal"><span class="wt-field-unit">kg</span></div>
+          <i class="mon-chev" id="weightChev">▾</i>
+        </button>
+        <div class="mon-body" id="weightBody">
+          <div class="helper">Registre seu peso ao longo do pré-natal e acompanhe a curva de ganho. Preencha sua altura pra calcular o IMC automaticamente. <span style="color:var(--ink3)">Isso é só um acompanhamento — o que é saudável pra você é sempre definido junto com o seu obstetra.</span></div>
+          <div class="wt-row2">
+            <div class="wt-field">
+              <label>Sua altura</label>
+              <div class="wt-field-row"><input class="inp" type="number" id="heightInp" placeholder="Ex: 165" step="0.1" min="0" inputmode="decimal"><span class="wt-field-unit">cm</span></div>
+            </div>
+            <div class="wt-field">
+              <label>Peso pré-gestacional</label>
+              <div class="wt-field-row"><input class="inp" type="number" id="prePregInp" placeholder="Opcional" step="0.1" min="0" inputmode="decimal"><span class="wt-field-unit">kg</span></div>
+            </div>
           </div>
+          <div id="weightSummaryWrap"></div>
+          <div id="weightChartWrap"></div>
+          <div class="exm-cta" id="weightAddBtn">
+            <div>
+              <div class="exm-cta-txt">⚖️ Registrar peso</div>
+              <div class="exm-cta-sub" id="weightLastSub">Nenhum registro ainda</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
+          <div id="weightHistoryWrap"></div>
         </div>
-        <div id="weightSummaryWrap"></div>
-        <div id="weightChartWrap"></div>
-        <div class="exm-cta" id="weightAddBtn">
-          <div>
-            <div class="exm-cta-txt">⚖️ Registrar peso</div>
-            <div class="exm-cta-sub" id="weightLastSub">Nenhum registro ainda</div>
-          </div>
-          <div class="exm-cta-arrow">→</div>
-        </div>
-        <div id="weightHistoryWrap"></div>
       </div>
 
       <div class="card feat" id="kickCard">
-        <div class="lbl">🤰 Bem-estar fetal</div>
-        <div class="card-title">Movimentos do <span class="serif" style="color:var(--pd);font-style:italic">bebê</span></div>
-        <div class="helper">Escolha um momento tranquilo — de preferência sempre no mesmo horário — e conte até sentir <strong>10 movimentos</strong>. Não existe um número "certo" de minutos: o que importa é você conhecer o seu próprio padrão, não comparar com números fixos. <span style="color:var(--ink3)">Sentiu diferente do seu costume, ou está preocupada? Fale com seu obstetra a qualquer momento — não precisa esperar a contagem terminar.</span></div>
-        <div class="exm-cta" id="kickStartBtn" style="margin-top:12px">
-          <div>
-            <div class="exm-cta-txt">👣 Começar contagem</div>
-            <div class="exm-cta-sub" id="kickLastSub">Nenhum registro ainda</div>
+        <button class="mon-head" id="kickHead" type="button" aria-expanded="false">
+          <div class="mon-head-txt">
+            <div class="lbl">🤰 Bem-estar fetal</div>
+            <div class="card-title mon-head-title">Movimentos do <span class="serif" style="color:var(--pd);font-style:italic">bebê</span></div>
+            <div class="mon-head-sub" id="kickHeadSub">Nenhum registro ainda</div>
           </div>
-          <div class="exm-cta-arrow">→</div>
+          <i class="mon-chev" id="kickChev">▾</i>
+        </button>
+        <div class="mon-body" id="kickBody">
+          <div class="helper">Escolha um momento tranquilo — de preferência sempre no mesmo horário — e conte até sentir <strong>10 movimentos</strong>. Não existe um número "certo" de minutos: o que importa é você conhecer o seu próprio padrão, não comparar com números fixos. <span style="color:var(--ink3)">Sentiu diferente do seu costume, ou está preocupada? Fale com seu obstetra a qualquer momento — não precisa esperar a contagem terminar.</span></div>
+          <div class="exm-cta" id="kickStartBtn" style="margin-top:12px">
+            <div>
+              <div class="exm-cta-txt">👣 Começar contagem</div>
+              <div class="exm-cta-sub" id="kickLastSub">Nenhum registro ainda</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
+          <div id="kickHistoryWrap"></div>
         </div>
-        <div id="kickHistoryWrap"></div>
       </div>
 
       <div class="card feat" id="contrCard">
-        <div class="lbl">🌀 Trabalho de parto</div>
-        <div class="card-title">Monitor de <span class="serif" style="color:var(--pd);font-style:italic">contrações</span></div>
-        <div class="helper">Toque para marcar o início e o fim de cada contração — o app só registra os horários, sem dar veredito sobre estar ou não em trabalho de parto. <span style="color:var(--ink3)">Essa decisão é sempre sua, junto com o seu obstetra.</span></div>
-        <div class="exm-cta" id="contrStartBtn" style="margin-top:12px">
-          <div>
-            <div class="exm-cta-txt">🌀 Abrir monitor de contrações</div>
-            <div class="exm-cta-sub" id="contrLastSub">Nenhum registro ainda</div>
+        <button class="mon-head" id="contrHead" type="button" aria-expanded="false">
+          <div class="mon-head-txt">
+            <div class="lbl">🌀 Trabalho de parto</div>
+            <div class="card-title mon-head-title">Monitor de <span class="serif" style="color:var(--pd);font-style:italic">contrações</span></div>
+            <div class="mon-head-sub" id="contrHeadSub">Nenhum registro ainda</div>
           </div>
-          <div class="exm-cta-arrow">→</div>
+          <i class="mon-chev" id="contrChev">▾</i>
+        </button>
+        <div class="mon-body" id="contrBody">
+          <div class="helper">Toque para marcar o início e o fim de cada contração — o app só registra os horários, sem dar veredito sobre estar ou não em trabalho de parto. <span style="color:var(--ink3)">Essa decisão é sempre sua, junto com o seu obstetra.</span></div>
+          <div class="exm-cta" id="contrStartBtn" style="margin-top:12px">
+            <div>
+              <div class="exm-cta-txt">🌀 Abrir monitor de contrações</div>
+              <div class="exm-cta-sub" id="contrLastSub">Nenhum registro ainda</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
         </div>
       </div>
 
@@ -2162,9 +2204,11 @@ function fmtKickDuration(ms){
 }
 function renderKickCard(){
   const last=kickSessions[kickSessions.length-1];
-  document.getElementById('kickLastSub').textContent=last
+  const subTxt=last
     ?`Último registro: ${fmt(new Date(last.date))} · ${fmtKickDuration(last.ms)}`
     :'Nenhum registro ainda';
+  document.getElementById('kickLastSub').textContent=subTxt;
+  document.getElementById('kickHeadSub').textContent=subTxt;
   const wrap=document.getElementById('kickHistoryWrap');
   if(!kickSessions.length){wrap.innerHTML='';return;}
   const recent=kickSessions.slice(-7);
@@ -2305,9 +2349,11 @@ function fmtGap(ms){
 }
 function renderContrCard(){
   const last=contractions[contractions.length-1];
-  document.getElementById('contrLastSub').textContent=last
+  const subTxt=last
     ?`Última: ${fmtClock(new Date(last.start))} · duração ${fmtKickDuration(last.ms)}`
     :'Nenhum registro ainda';
+  document.getElementById('contrLastSub').textContent=subTxt;
+  document.getElementById('contrHeadSub').textContent=subTxt;
 }
 function contrHelperText(){
   const weeks=currentIG?currentIG.weeks:null;
@@ -2629,9 +2675,11 @@ function renderWeightHistory(){
 }
 function renderWeightCard(){
   const last=weightEntries[weightEntries.length-1];
-  document.getElementById('weightLastSub').textContent=last
+  const subTxt=last
     ?`Último registro: ${fmt(new Date(last.date))} · ${fmtKg(last.kg)}`
     :'Nenhum registro ainda';
+  document.getElementById('weightLastSub').textContent=subTxt;
+  document.getElementById('weightHeadSub').textContent=subTxt;
   renderWeightSummary();
   renderWeightChart();
   renderWeightHistory();
@@ -2693,6 +2741,20 @@ document.getElementById('prePregInp').addEventListener('input',e=>{
   renderWeightCard();
 });
 renderWeightCard();
+
+/* Cabeçalhos comprimidos dos cards de monitoramento (peso, movimentos,
+   contrações) — clique abre/fecha o card inteiro, fechado por padrão. */
+function initMonToggle(headId,bodyId,chevId){
+  document.getElementById(headId).addEventListener('click',()=>{
+    const body=document.getElementById(bodyId);
+    const open=body.classList.toggle('open');
+    document.getElementById(chevId).textContent=open?'▴':'▾';
+    document.getElementById(headId).setAttribute('aria-expanded',open?'true':'false');
+  });
+}
+initMonToggle('weightHead','weightBody','weightChev');
+initMonToggle('kickHead','kickBody','kickChev');
+initMonToggle('contrHead','contrBody','contrChev');
 
 /* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
 const ONB_KEY='mkcalc_onboarded';
