@@ -2528,6 +2528,14 @@ function weeksForDate(d){
   const days=diffDaysUTC(lmp,d);
   return days>=0?daysToWeeksInfo(days).weeks:null;
 }
+/* Semana de um registro de peso salvo, recalculada com a DUM atual — nunca
+   confiar no campo `weeks` gravado no registro, porque ele foi calculado com
+   a DUM de quando o registro foi salvo. Se a DUM for corrigida depois (ex:
+   por um ultrassom), registros antigos ficariam com a semana desatualizada
+   e as comparações de ganho de peso passariam a comparar semanas erradas. */
+function liveWeeksFor(entry){
+  return weeksForDate(new Date(entry.date));
+}
 
 function calcBMI(kg,cm){
   if(!kg||!cm)return null;
@@ -2624,12 +2632,12 @@ function renderWeightSummary(){
      de comparação começa na semana real desse registro — não na semana 0. */
   const baseWeek=basePrePreg!=null
     ?(basePrePregDate?(weeksForDate(new Date(basePrePregDate+'T12:00:00'))??0):0)
-    :(first.weeks??0);
+    :(liveWeeksFor(first)??0);
   const baseBmi=heightCm?calcBMI(baseKg,heightCm):null;
   if(baseBmi){
     const gain=last.kg-baseKg;
     const[totMin,totMax]=gestGainRange(baseBmi);
-    const week=last.weeks;
+    const week=liveWeeksFor(last);
     const expected=(week!=null)?expectedGainRange(baseBmi,baseWeek,week):null;
     const rangeLbl=baseWeek>0?`entre a semana ${baseWeek} e a semana ${week}`:`pra semana ${week}`;
     let tone,statusTxt,pct;
@@ -2681,8 +2689,8 @@ function renderWeightChart(){
         ${dots}
       </svg>
       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-top:2px">
-        <span>${fmt(new Date(pts[0].date))}${pts[0].weeks!=null?` · ${pts[0].weeks}s`:''}</span>
-        <span>${fmt(new Date(pts[pts.length-1].date))}${pts[pts.length-1].weeks!=null?` · ${pts[pts.length-1].weeks}s`:''}</span>
+        <span>${fmt(new Date(pts[0].date))}${liveWeeksFor(pts[0])!=null?` · ${liveWeeksFor(pts[0])}s`:''}</span>
+        <span>${fmt(new Date(pts[pts.length-1].date))}${liveWeeksFor(pts[pts.length-1])!=null?` · ${liveWeeksFor(pts[pts.length-1])}s`:''}</span>
       </div>
     </div>`;
 }
@@ -2693,7 +2701,8 @@ function renderWeightHistory(){
   wrap.innerHTML=`<div class="lbl" style="margin-top:18px">Seus últimos registros</div>`+
     items.map((w)=>{
       const realIdx=weightEntries.indexOf(w);
-      return `<div class="weight-history-item"><span>${fmt(new Date(w.date))}${w.weeks!=null?` <span class="weight-history-w">· ${w.weeks}s</span>`:''}</span><span style="display:flex;align-items:center;gap:4px"><strong style="color:var(--ink)">${fmtKg(w.kg)}</strong><button class="weight-history-del" data-idx="${realIdx}" type="button" aria-label="Excluir registro">✕</button></span></div>`;
+      const wWeeks=liveWeeksFor(w);
+      return `<div class="weight-history-item"><span>${fmt(new Date(w.date))}${wWeeks!=null?` <span class="weight-history-w">· ${wWeeks}s</span>`:''}</span><span style="display:flex;align-items:center;gap:4px"><strong style="color:var(--ink)">${fmtKg(w.kg)}</strong><button class="weight-history-del" data-idx="${realIdx}" type="button" aria-label="Excluir registro">✕</button></span></div>`;
     }).join('');
   wrap.querySelectorAll('.weight-history-del').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -2737,7 +2746,7 @@ function renderWeightSheetBody(){
     if(!dateStr){showToast('Informe a data',1500);return;}
     const entryDate=new Date(dateStr+'T12:00:00');
     if(diffDaysUTC(TODAY,entryDate)>0){showToast('A data não pode ser no futuro',1500);return;}
-    weightEntries.push({date:entryDate.toISOString(),kg:v,weeks:weeksForDate(entryDate)});
+    weightEntries.push({date:entryDate.toISOString(),kg:v});
     weightEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
     saveWeights();
     renderWeightCard();
