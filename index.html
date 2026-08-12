@@ -2657,7 +2657,7 @@ function renderWeightSheetBody(){
     const dateStr=document.getElementById('weightDateInp').value;
     if(!dateStr){showToast('Informe a data',1500);return;}
     const entryDate=new Date(dateStr+'T12:00:00');
-    if(entryDate>TODAY){showToast('A data não pode ser no futuro',1500);return;}
+    if(diffDaysUTC(TODAY,entryDate)>0){showToast('A data não pode ser no futuro',1500);return;}
     weightEntries.push({date:entryDate.toISOString(),kg:v,weeks:weeksForDate(entryDate)});
     weightEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
     saveWeights();
