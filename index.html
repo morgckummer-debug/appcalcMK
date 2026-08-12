@@ -1126,7 +1126,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         <div id="weightChartWrap"></div>
         <div class="exm-cta" id="weightAddBtn">
           <div>
-            <div class="exm-cta-txt">⚖️ Registrar peso de hoje</div>
+            <div class="exm-cta-txt">⚖️ Registrar peso</div>
             <div class="exm-cta-sub" id="weightLastSub">Nenhum registro ainda</div>
           </div>
           <div class="exm-cta-arrow">→</div>
@@ -2461,6 +2461,16 @@ function saveWeights(){
   try{localStorage.setItem(WEIGHT_KEY,JSON.stringify(weightEntries));}catch{}
 }
 const weightEntries=loadWeights();
+weightEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+/* Semana gestacional referente à data escolhida no registro (não à data de hoje) —
+   necessário porque um registro pode ser de um dia anterior. */
+function weeksForDate(d){
+  const saved=loadPregnancy();
+  if(!saved)return null;
+  const lmp=new Date(saved.lmp+'T12:00:00');
+  const days=diffDaysUTC(lmp,d);
+  return days>=0?daysToWeeksInfo(days).weeks:null;
+}
 
 function calcBMI(kg,cm){
   if(!kg||!cm)return null;
@@ -2588,9 +2598,13 @@ function renderWeightCard(){
 }
 function renderWeightSheetBody(){
   const body=document.getElementById('weightSheetBody');
+  const todayISO=toISO(TODAY);
   body.innerHTML=`
-    <div class="exm-sheet-name">Registrar peso de hoje</div>
-    <div class="exm-sheet-desc">${fmt(TODAY)}${currentIG?` · semana ${currentIG.weeks}`:''}</div>
+    <div class="exm-sheet-name">Registrar peso</div>
+    <div class="exm-sheet-desc">Pode registrar o peso de hoje ou de um dia anterior que você anotou.</div>
+    <div class="field"><label>Data</label>
+      <input class="inp" type="date" id="weightDateInp" value="${todayISO}" max="${todayISO}">
+    </div>
     <div class="field"><label>Peso</label>
       <div class="wt-field-row"><input class="inp" type="number" id="weightSheetInp" placeholder="Ex: 68.5" step="0.1" min="0" inputmode="decimal"><span class="wt-field-unit">kg</span></div>
     </div>
@@ -2600,7 +2614,12 @@ function renderWeightSheetBody(){
     const raw=document.getElementById('weightSheetInp').value.replace(',','.');
     const v=parseFloat(raw);
     if(!v||v<=0){showToast('Informe um peso válido',1500);return;}
-    weightEntries.push({date:new Date().toISOString(),kg:v,weeks:currentIG?currentIG.weeks:null});
+    const dateStr=document.getElementById('weightDateInp').value;
+    if(!dateStr){showToast('Informe a data',1500);return;}
+    const entryDate=new Date(dateStr+'T12:00:00');
+    if(entryDate>TODAY){showToast('A data não pode ser no futuro',1500);return;}
+    weightEntries.push({date:entryDate.toISOString(),kg:v,weeks:weeksForDate(entryDate)});
+    weightEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
     saveWeights();
     renderWeightCard();
     closeWeightSheet();
