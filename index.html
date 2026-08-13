@@ -2598,6 +2598,12 @@ function expectedGainRange(prePregBmi,weekFrom,weekTo){
   if(weekTo==null)return null;
   const from=weekFrom||0;
   if(from>=weekTo)return null;
+  /* Dentro do 1º trimestre o IOM só dá um total pra ~13 semanas, sem ritmo
+     semanal (ver FIRST_TRI_GAIN_KG acima) — fatiar esse total linearmente
+     numa janela curta gera uma faixa "esperada" artificialmente apertada,
+     que qualquer variação normal de balança já estoura. Só comparamos
+     semana a semana quando a janela alcança o 2º trimestre. */
+  if(weekTo<=13)return null;
   const to=cumExpectedGain(prePregBmi,weekTo);
   const fromGain=cumExpectedGain(prePregBmi,from);
   if(!to||!fromGain)return to;
