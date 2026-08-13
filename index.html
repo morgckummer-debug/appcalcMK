@@ -648,7 +648,6 @@ body::after{
 .contr-alert-body{font-size:11.5px;color:var(--ink2);line-height:1.5}
 
 /* ── Monitoramento de peso materno ── */
-.wt-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .wt-field label{display:block;font-size:10.5px;color:var(--ink2);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:7px}
 .wt-field-row{display:flex;align-items:center;gap:8px}
 .wt-field-row .inp{padding:12px 14px;font-size:15px}
@@ -1147,17 +1146,10 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             <label>Sua altura</label>
             <div class="wt-field-row"><input class="inp" type="number" id="heightInp" placeholder="Ex: 165" step="0.1" min="0" inputmode="decimal"><span class="wt-field-unit">cm</span></div>
           </div>
-          <div class="wt-row2">
-            <div class="wt-field">
-              <label>Peso pré-gestacional</label>
-              <div class="wt-field-row"><input class="inp" type="number" id="prePregInp" placeholder="Opcional" step="0.1" min="0" inputmode="decimal"><span class="wt-field-unit">kg</span></div>
-            </div>
-            <div class="wt-field">
-              <label>Data desse peso</label>
-              <input class="inp" type="date" id="prePregDateInp">
-            </div>
+          <div class="wt-field" style="margin-bottom:14px">
+            <label>Peso pré-gestacional</label>
+            <div class="wt-field-row"><input class="inp" type="number" id="prePregInp" placeholder="Opcional" step="0.1" min="0" inputmode="decimal"><span class="wt-field-unit">kg</span></div>
           </div>
-          <div class="helper" style="margin-top:-4px">Se esse não era exatamente seu peso de antes de engravidar (por exemplo, foi o peso que você tinha ao começar a usar o app), informe a data — assim o app compara o ganho com a semana certa, não com a semana 0.</div>
           <div id="weightSummaryWrap"></div>
           <div id="weightChartWrap"></div>
           <div class="exm-cta" id="weightAddBtn">
@@ -2554,60 +2546,14 @@ function bmiClass(bmi){
 }
 /* Faixa de ganho de peso total recomendado numa gestação única, por categoria
    de IMC pré-gestacional (Institute of Medicine, 2009 — adotado também pelo
-   Ministério da Saúde no pré-natal). Essa faixa é a meta pro FINAL da
-   gestação — comparar o ganho parcial (com poucas semanas) direto contra ela
-   sempre vai parecer "abaixo", então ela só serve como referência de meta,
-   nunca pra julgar o ganho até agora (ver expectedGainRange). */
+   Ministério da Saúde no pré-natal). É a meta pro FINAL da gestação, usada
+   só como referência — nunca pra julgar o ganho parcial contra um ritmo
+   semanal esperado. */
 function gestGainRange(prePregBmi){
   if(prePregBmi<18.5)return[12.5,18];
   if(prePregBmi<25)return[11.5,16];
   if(prePregBmi<30)return[7,11.5];
   return[5,9];
-}
-/* Ritmo de ganho recomendado por semana, no 2º/3º trimestre (IOM, 2009). */
-function gestGainRate(prePregBmi){
-  if(prePregBmi<18.5)return[0.44,0.58];
-  if(prePregBmi<25)return[0.35,0.50];
-  if(prePregBmi<30)return[0.23,0.33];
-  return[0.17,0.27];
-}
-/* No 1º trimestre (até ~13 semanas) o ganho esperado é pequeno e parecido
-   entre as categorias de IMC — por isso o IOM não dá um ritmo semanal pra
-   essa fase, só um total de até ~13 semanas. */
-const FIRST_TRI_GAIN_KG=[0.5,2];
-/* Ganho esperado ACUMULADO desde a concepção (semana 0) até a semana
-   informada. Serve de base pra janela abaixo — nunca deve ser comparado
-   direto contra um ganho que não começou de fato na semana 0. */
-function cumExpectedGain(prePregBmi,week){
-  if(week==null||week<0)return null;
-  if(week<=13){
-    const frac=week/13;
-    return[FIRST_TRI_GAIN_KG[0]*frac,FIRST_TRI_GAIN_KG[1]*frac];
-  }
-  const[rMin,rMax]=gestGainRate(prePregBmi);
-  const extraWeeks=week-13;
-  return[FIRST_TRI_GAIN_KG[0]+extraWeeks*rMin,FIRST_TRI_GAIN_KG[1]+extraWeeks*rMax];
-}
-/* Faixa de ganho esperada ENTRE a semana do peso de referência e a semana
-   atual. Quando o peso de referência é de fato pré-gestacional (semana 0),
-   isso equivale ao acumulado até a semana atual — mas se esse peso foi na
-   verdade registrado já na gestação (ex: peso do dia que começou a usar o
-   app, não o peso antes de engravidar), a janela fica menor e mais justa,
-   em vez de cobrar o ganho esperado desde a concepção. */
-function expectedGainRange(prePregBmi,weekFrom,weekTo){
-  if(weekTo==null)return null;
-  const from=weekFrom||0;
-  if(from>=weekTo)return null;
-  /* Dentro do 1º trimestre o IOM só dá um total pra ~13 semanas, sem ritmo
-     semanal (ver FIRST_TRI_GAIN_KG acima) — fatiar esse total linearmente
-     numa janela curta gera uma faixa "esperada" artificialmente apertada,
-     que qualquer variação normal de balança já estoura. Só comparamos
-     semana a semana quando a janela alcança o 2º trimestre. */
-  if(weekTo<=13)return null;
-  const to=cumExpectedGain(prePregBmi,weekTo);
-  const fromGain=cumExpectedGain(prePregBmi,from);
-  if(!to||!fromGain)return to;
-  return[to[0]-fromGain[0],to[1]-fromGain[1]];
 }
 function fmtKg(kg){
   return `${kg.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} kg`;
@@ -2630,38 +2576,17 @@ function renderWeightSummary(){
   </div>`;
   const first=weightEntries[0];
   const basePrePreg=profile.prePregWeightKg;
-  const basePrePregDate=profile.prePregWeightDate;
   const baseKg=basePrePreg!=null?basePrePreg:first.kg;
   const baseLbl=basePrePreg!=null?'peso pré-gestacional':'primeiro registro';
-  /* Se o peso pré-gestacional tiver uma data (ex: foi na verdade o peso do
-     dia em que começou a usar o app, não de antes de engravidar), a janela
-     de comparação começa na semana real desse registro — não na semana 0. */
-  const baseWeek=basePrePreg!=null
-    ?(basePrePregDate?(weeksForDate(new Date(basePrePregDate+'T12:00:00'))??0):0)
-    :(liveWeeksFor(first)??0);
   const baseBmi=heightCm?calcBMI(baseKg,heightCm):null;
   if(baseBmi){
     const gain=last.kg-baseKg;
     const[totMin,totMax]=gestGainRange(baseBmi);
-    const week=liveWeeksFor(last);
-    const expected=(week!=null)?expectedGainRange(baseBmi,baseWeek,week):null;
-    const rangeLbl=baseWeek>0?`entre a semana ${baseWeek} e a semana ${week}`:`pra semana ${week}`;
-    let tone,statusTxt,pct;
-    if(expected){
-      const[expMin,expMax]=expected;
-      if(gain<expMin){tone='low';statusTxt=`Abaixo do esperado ${rangeLbl} (${fmtKg(expMin)}–${fmtKg(expMax)}).`;}
-      else if(gain>expMax){tone='high';statusTxt=`Acima do esperado ${rangeLbl} (${fmtKg(expMin)}–${fmtKg(expMax)}).`;}
-      else{tone='ok';statusTxt=`Dentro do esperado ${rangeLbl} (${fmtKg(expMin)}–${fmtKg(expMax)}).`;}
-      pct=Math.max(4,Math.min(100,(gain/Math.max(expMax,0.1))*100));
-    }else{
-      tone='ok';
-      statusTxt=`Ainda não dá pra comparar por semana — meta pro final da gestação: ${fmtKg(totMin)}–${fmtKg(totMax)}.`;
-      pct=Math.max(4,Math.min(100,(gain/totMax)*100));
-    }
+    const pct=Math.max(4,Math.min(100,(gain/totMax)*100));
     html+=`<div class="wg-summary">
       <div class="wg-summary-top"><span class="lbl" style="margin:0">Ganho de peso total</span><span class="wg-summary-val">${gain>=0?'+':''}${fmtKg(gain)}</span></div>
-      <div class="wg-bar"><div class="wg-bar-fill tone-${tone}" style="width:${pct}%"></div></div>
-      <div class="wg-summary-txt">${statusTxt} Considerando o ${baseLbl} de ${fmtKg(baseKg)}${basePrePreg!=null&&basePrePregDate?` (registrado em ${fmt(new Date(basePrePregDate+'T12:00:00'))}, semana ${baseWeek})`:''}. Meta pro final da gestação: ${fmtKg(totMin)}–${fmtKg(totMax)}. <span style="color:var(--ink3)">O que é ideal pra você é sempre definido com seu obstetra.</span></div>
+      <div class="wg-bar"><div class="wg-bar-fill tone-ok" style="width:${pct}%"></div></div>
+      <div class="wg-summary-txt">Considerando o ${baseLbl} de ${fmtKg(baseKg)}. Meta pro final da gestação: ${fmtKg(totMin)}–${fmtKg(totMax)}. <span style="color:var(--ink3)">O que é ideal pra você é sempre definido com seu obstetra.</span></div>
     </div>`;
   }
   wrap.innerHTML=html;
@@ -2774,8 +2699,6 @@ document.getElementById('weightClose').addEventListener('click',closeWeightSheet
 document.getElementById('weightOverlay').addEventListener('click',e=>{if(e.target.id==='weightOverlay')closeWeightSheet();});
 document.getElementById('heightInp').value=profile.heightCm||'';
 document.getElementById('prePregInp').value=profile.prePregWeightKg||'';
-document.getElementById('prePregDateInp').value=profile.prePregWeightDate||'';
-document.getElementById('prePregDateInp').max=toISO(TODAY);
 document.getElementById('heightInp').addEventListener('input',e=>{
   const v=parseFloat(e.target.value.replace(',','.'));
   profile.heightCm=v>0?v:null;
@@ -2785,11 +2708,6 @@ document.getElementById('heightInp').addEventListener('input',e=>{
 document.getElementById('prePregInp').addEventListener('input',e=>{
   const v=parseFloat(e.target.value.replace(',','.'));
   profile.prePregWeightKg=v>0?v:null;
-  saveProfile();
-  renderWeightCard();
-});
-document.getElementById('prePregDateInp').addEventListener('input',e=>{
-  profile.prePregWeightDate=e.target.value||null;
   saveProfile();
   renderWeightCard();
 });
