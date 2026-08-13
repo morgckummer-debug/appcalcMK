@@ -1626,6 +1626,22 @@ const CHECKLIST=[
   {cat:'Mala do bebê',items:['Roupinhas para saída','Fraldas RN e P','Pomada para assaduras','4 bodies','2 macacões','2 casaquinhos','2 mantas','Sabonete neutro','Touca e luvinhas','Meias','Toalha de banho macia','Paninhos de boca (fraldas de pano)','Escova de cabelo macia','Bolinhas de algodão','Saco para roupa suja','Produtos para higiene do coto umbilical (conforme orientação do pediatra)','Cadeirinha instalada no carro','Pediatra escolhido']},
   {cat:'Mala da mamãe',items:['Documentos (RG, cartão do convênio/SUS, cartão da gestante, exames do pré-natal)','2 camisolas para amamentação','Sutiãs de amamentação','Absorventes para seios','Absorvente pós-parto','Calcinhas descartáveis','Calcinhas de sustentação','Roupão ou robe','Meias e roupa confortável para internação','Necessaire de higiene pessoal (escova, pasta, shampoo, desodorante)','Maquiagem básica','Presilhas ou elásticos para prender o cabelo','Chinelo','Carregador de celular','Roupa para saída da maternidade']}
 ];
+/* Itens do checklist que são o mesmo exame/vacina do Guia de Exames (aba
+   Exames) — sem esse vínculo, marcar "já fiz" lá não refletia aqui, porque
+   cada um tinha seu próprio estado salvo (examDone × checked). A chave é
+   "<categoria>-<item>" do CHECKLIST; o valor é a chave "<lista>-<índice>"
+   usada em examDone (ver renderExamGuide/examCard). */
+const CHECKLIST_EXAM_LINK={
+  '0-6':'usg-1', // Ultrassom Morfológico do 1º trimestre
+  '1-1':'usg-2', // USG Morfológico do 2º trimestre
+  '1-2':'vac-2', // Vacina dTpa
+  '1-3':'lab-1', // Curva glicêmica (TOTG)
+  '2-0':'lab-2', // Hemograma + Coombs (28 semanas)
+  '2-1':'vac-3', // Vacina da Bronquiolite (VSR)
+  '2-2':'usg-4', // USG de crescimento (Doppler)
+  '2-3':'lab-3', // Exame do Cotonete
+  '2-4':'usg-5'  // Perfil Biofísico Fetal (PBF)
+};
 
 /* ── Toast ── */
 function showToast(msg, duration=2000){
@@ -2036,6 +2052,7 @@ function toggleExamDone(ex,key){
   examDone[key]=!wasDone;
   saveExamDone();
   if(!wasDone)showToast('Exame marcado como realizado',1500);
+  if(typeof buildChecklist==='function')buildChecklist();
 }
 function statusTag(st){return st?`<div class="exm-status ${st}">${STATUS_LBL[st]}</div>`:'';}
 function examCard(ex,idx,catId){
@@ -2131,36 +2148,67 @@ function saveChecked(){
   try{localStorage.setItem(STORAGE_KEY,JSON.stringify(checked));}catch{}
 }
 const checked=loadChecked();
+/* Migração: itens ligados a um exame/vacina (ver CHECKLIST_EXAM_LINK) passam
+   a usar examDone como única fonte de verdade — preserva marcações antigas
+   feitas só pelo checklist, transferindo-as pra examDone. */
+(function migrateLinkedChecklistItems(){
+  let changed=false;
+  Object.entries(CHECKLIST_EXAM_LINK).forEach(([k,examKey])=>{
+    if(checked[k]&&!examDone[examKey]){examDone[examKey]=true;changed=true;}
+  });
+  if(changed)saveExamDone();
+})();
+/* Estado "marcado" de um item do checklist — itens ligados a um exame/vacina
+   do Guia de Exames (CHECKLIST_EXAM_LINK) usam examDone, pra marcar em um
+   lugar sempre refletir no outro. */
+function checklistItemOn(ci,ii){
+  const k=`${ci}-${ii}`;
+  const linkKey=CHECKLIST_EXAM_LINK[k];
+  return linkKey?!!examDone[linkKey]:!!checked[k];
+}
 function updateChecklistOverall(){
   const all=CHECKLIST.reduce((s,c)=>s+c.items.length,0);
-  const doneAll=Object.values(checked).filter(Boolean).length;
+  let doneAll=0;
+  CHECKLIST.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{if(checklistItemOn(ci,ii))doneAll++;}));
   const pct=all?Math.round(doneAll/all*100):0;
   document.getElementById('chkFill').style.width=pct+'%';
   document.getElementById('chkTxt').textContent=`${pct}% concluído · ${all-doneAll} itens pendentes`;
 }
 function updateChecklistGroup(grp,cat,ci){
-  const done=cat.items.filter((_,ii)=>checked[`${ci}-${ii}`]).length;
+  const done=cat.items.filter((_,ii)=>checklistItemOn(ci,ii)).length;
   const pct=cat.items.length?Math.round(done/cat.items.length*100):0;
   grp.querySelector('.mini-bar-fill').style.width=pct+'%';
   grp.querySelector('.chk-head-count').textContent=`${done}/${cat.items.length}`;
 }
 function buildChecklist(){
-  const el=document.getElementById('chkList');el.innerHTML='';
+  const el=document.getElementById('chkList');
+  const wasOpen=[...el.querySelectorAll('.chk-group')].map(g=>g.querySelector('.chk-items').classList.contains('open'));
+  el.innerHTML='';
   CHECKLIST.forEach((cat,ci)=>{
-    const done=cat.items.filter((_,ii)=>checked[`${ci}-${ii}`]).length;
+    const done=cat.items.filter((_,ii)=>checklistItemOn(ci,ii)).length;
     const pct=cat.items.length?Math.round(done/cat.items.length*100):0;
     const grp=document.createElement('div');grp.className='chk-group';
     grp.innerHTML=`<button class="chk-head"><span class="chk-head-title">${cat.cat}</span><span class="chk-head-r"><span class="mini-bar"><span class="mini-bar-fill" style="width:${pct}%"></span></span><span class="chk-head-count">${done}/${cat.items.length}</span> <i class="chev">▾</i></span></button><div class="chk-items"></div>`;
     const items=grp.querySelector('.chk-items');
     cat.items.forEach((txt,ii)=>{
-      const k=`${ci}-${ii}`;const on=!!checked[k];
+      const k=`${ci}-${ii}`;
+      const linkKey=CHECKLIST_EXAM_LINK[k];
+      const on=checklistItemOn(ci,ii);
       const item=document.createElement('div');
       item.className='chk-item'+(on?' done':'');
       item.innerHTML=`<div class="chk-box ${on?'on':'off'}">${on?'✓':''}</div><span class="chk-txt">${txt}</span>`;
       item.addEventListener('click',()=>{
-        checked[k]=!checked[k];
-        saveChecked();
-        const nowOn=checked[k];
+        let nowOn;
+        if(linkKey){
+          examDone[linkKey]=!examDone[linkKey];
+          saveExamDone();
+          nowOn=!!examDone[linkKey];
+          renderExamGuide();
+        }else{
+          checked[k]=!checked[k];
+          saveChecked();
+          nowOn=!!checked[k];
+        }
         item.classList.toggle('done',nowOn);
         const box=item.querySelector('.chk-box');
         box.className='chk-box'+(nowOn?' on':' off');
@@ -2175,6 +2223,7 @@ function buildChecklist(){
       items.classList.toggle('open');
       grp.querySelector('.chev').textContent=items.classList.contains('open')?'▴':'▾';
     });
+    if(wasOpen[ci]){items.classList.add('open');grp.querySelector('.chev').textContent='▴';}
     el.appendChild(grp);
   });
   updateChecklistOverall();
