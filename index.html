@@ -1163,6 +1163,36 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         </div>
       </div>
 
+      <div class="card feat" id="bpCard">
+        <button class="mon-head" id="bpHead" type="button" aria-expanded="false">
+          <div class="mon-head-txt">
+            <div class="lbl">🩺 Saúde materna</div>
+            <div class="card-title mon-head-title">Pressão <span class="serif" style="color:var(--pd);font-style:italic">arterial</span></div>
+            <div class="mon-head-sub" id="bpHeadSub">Nenhum registro ainda</div>
+          </div>
+          <i class="mon-chev" id="bpChev">▾</i>
+        </button>
+        <div class="mon-body" id="bpBody">
+          <div class="helper">Toda consulta de pré-natal inclui aferição da pressão — vale registrar aqui pra levar o histórico pro seu obstetra. <span style="color:var(--ink3)">O que é ideal pra você é sempre definido com seu obstetra.</span></div>
+          <div class="field" style="margin-bottom:14px">
+            <label>Você tem pressão alta crônica (já toma remédio pra pressão)?</label>
+            <div class="sex-tabs" id="htnTabs" style="margin-bottom:0">
+              <button class="stab" data-htn="nao">Não</button>
+              <button class="stab" data-htn="sim">Sim</button>
+            </div>
+          </div>
+          <div id="bpSummaryWrap"></div>
+          <div class="exm-cta" id="bpAddBtn">
+            <div>
+              <div class="exm-cta-txt">🩺 Registrar pressão</div>
+              <div class="exm-cta-sub" id="bpLastSub">Nenhum registro ainda</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
+          <div id="bpHistoryWrap"></div>
+        </div>
+      </div>
+
       <div class="card feat" id="kickCard">
         <button class="mon-head" id="kickHead" type="button" aria-expanded="false">
           <div class="mon-head-txt">
@@ -1328,7 +1358,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     <div class="card">
       <div class="lbl">Nova gestação</div>
       <div class="card-title" style="font-size:17px">Começando <span class="serif" style="color:var(--pd);font-style:italic">tudo de novo?</span></div>
-      <div class="helper">Isso apaga, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso — pra você recomeçar do zero em uma nova gestação.</div>
+      <div class="helper">Isso apaga, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso e pressão — pra você recomeçar do zero em uma nova gestação.</div>
       <button class="btn-danger" id="resetPregBtn">🔄 Começar nova gestação</button>
     </div>
   </div>
@@ -1415,6 +1445,15 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     <div class="exm-sheet-handle"></div>
     <button class="exm-sheet-close" id="weightClose">✕</button>
     <div id="weightSheetBody"></div>
+  </div>
+</div>
+
+<!-- Registro de pressão arterial -->
+<div class="exm-overlay" id="bpOverlay">
+  <div class="exm-sheet" id="bpSheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="bpClose">✕</button>
+    <div id="bpSheetBody"></div>
   </div>
 </div>
 
@@ -1751,9 +1790,9 @@ function loadStoredPregnancy(){
 }
 
 document.getElementById('resetPregBtn').addEventListener('click',()=>{
-  const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
+  const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso e pressão — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
   if(!ok)return;
-  [PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY].forEach(k=>{try{localStorage.removeItem(k);}catch{}});
+  [PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY].forEach(k=>{try{localStorage.removeItem(k);}catch{}});
   location.reload();
 });
 
@@ -2762,7 +2801,141 @@ document.getElementById('prePregInp').addEventListener('input',e=>{
 });
 renderWeightCard();
 
-/* Cabeçalhos comprimidos dos cards de monitoramento (peso, movimentos,
+/* ── Registro de pressão arterial ── */
+const BP_KEY='mkcalc_bp_v1';
+function loadBP(){
+  try{const raw=localStorage.getItem(BP_KEY);return raw?JSON.parse(raw):[];}
+  catch{return[];}
+}
+function saveBP(){
+  try{localStorage.setItem(BP_KEY,JSON.stringify(bpEntries));}catch{}
+}
+const bpEntries=loadBP();
+bpEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+function fmtBP(sys,dia){
+  return `${sys}/${dia} mmHg`;
+}
+/* Limiares clássicos de pré-natal: ≥140/90 é o ponto de atenção pra pré-eclâmpsia,
+   ≥160/110 é considerado urgência hipertensiva. Reaproveita as tonalidades já
+   usadas no pill de IMC (tone-low/normal/over/ob), só com outro significado aqui. */
+function classifyBP(sys,dia){
+  if(sys>=160||dia>=110)return{lbl:'Muito alta',tone:'ob',urgent:true};
+  if(sys>=140||dia>=90)return{lbl:'Alta',tone:'over',urgent:false};
+  if(sys<90||dia<60)return{lbl:'Baixa',tone:'low',urgent:false};
+  return{lbl:'Normal',tone:'normal',urgent:false};
+}
+function bpAdviceText(cls){
+  if(cls.urgent)return'≥160/110 mmHg é considerado urgência — procure atendimento médico o quanto antes, não espere a próxima consulta.';
+  if(cls.tone==='over')return profile.chronicHtn
+    ?'Acima do que costuma ser seu valor de referência — registre e informe ao seu obstetra.'
+    :'≥140/90 mmHg é o limiar de atenção pra pressão alta na gestação (pré-eclâmpsia) — informe ao seu obstetra.';
+  if(cls.tone==='low')return'Abaixo do habitual — geralmente não é preocupante na gestação, mas informe se sentir tontura ou mal-estar.';
+  return'Dentro da faixa considerada normal.';
+}
+function renderBPSummary(){
+  const wrap=document.getElementById('bpSummaryWrap');
+  const last=bpEntries[bpEntries.length-1];
+  if(!last){wrap.innerHTML='';return;}
+  const cls=classifyBP(last.sys,last.dia);
+  wrap.innerHTML=`<div class="wt-stat-grid">
+    <div class="wt-stat"><div class="lbl">Última aferição</div><div class="val">${fmtBP(last.sys,last.dia)}</div></div>
+    <div class="wt-stat"><div class="lbl">Classificação</div><div class="bmi-pill tone-${cls.tone}">${cls.lbl}</div></div>
+  </div>
+  <div class="wg-summary"><div class="wg-summary-txt">${bpAdviceText(cls)}</div></div>`;
+}
+function renderBPHistory(){
+  const wrap=document.getElementById('bpHistoryWrap');
+  if(!bpEntries.length){wrap.innerHTML='';return;}
+  const items=[...bpEntries].slice(-10).reverse();
+  wrap.innerHTML=`<div class="lbl" style="margin-top:18px">Seus últimos registros</div>`+
+    items.map((b)=>{
+      const realIdx=bpEntries.indexOf(b);
+      return `<div class="weight-history-item"><span>${fmt(new Date(b.date))} <span class="weight-history-w">· ${fmtClock(new Date(b.date))}</span></span><span style="display:flex;align-items:center;gap:4px"><strong style="color:var(--ink)">${fmtBP(b.sys,b.dia)}</strong><button class="weight-history-del" data-idx="${realIdx}" type="button" aria-label="Excluir registro">✕</button></span></div>`;
+    }).join('');
+  wrap.querySelectorAll('.weight-history-del').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(!confirm('Excluir esse registro de pressão?'))return;
+      bpEntries.splice(Number(btn.dataset.idx),1);
+      saveBP();
+      renderBPCard();
+    });
+  });
+}
+function renderBPCard(){
+  const last=bpEntries[bpEntries.length-1];
+  const subTxt=last
+    ?`Último registro: ${fmt(new Date(last.date))} · ${fmtBP(last.sys,last.dia)}`
+    :'Nenhum registro ainda';
+  document.getElementById('bpLastSub').textContent=subTxt;
+  document.getElementById('bpHeadSub').textContent=subTxt;
+  document.querySelectorAll('#htnTabs .stab').forEach(b=>b.classList.toggle('on',b.dataset.htn===(profile.chronicHtn?'sim':'nao')));
+  renderBPSummary();
+  renderBPHistory();
+}
+function renderBPSheetBody(){
+  const body=document.getElementById('bpSheetBody');
+  const now=new Date();
+  const todayISO=toISO(TODAY);
+  const nowTime=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  body.innerHTML=`
+    <div class="exm-sheet-name">Registrar pressão</div>
+    <div class="exm-sheet-desc">Pode registrar a aferição de agora ou de um momento anterior que você anotou.</div>
+    <div class="field"><label>Data e horário</label>
+      <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:8px">
+        <input class="inp" type="date" id="bpDateInp" value="${todayISO}" max="${todayISO}">
+        <input class="inp" type="time" id="bpTimeInp" value="${nowTime}">
+      </div>
+    </div>
+    <div class="field"><label>Pressão arterial</label>
+      <div class="wt-field-row">
+        <input class="inp" type="number" id="bpSysInp" placeholder="Sistólica" step="1" min="0" inputmode="numeric" style="text-align:center">
+        <span class="wt-field-unit">/</span>
+        <input class="inp" type="number" id="bpDiaInp" placeholder="Diastólica" step="1" min="0" inputmode="numeric" style="text-align:center">
+        <span class="wt-field-unit">mmHg</span>
+      </div>
+    </div>
+    <button class="kick-tap-btn" id="bpSaveBtn" type="button">Salvar registro</button>
+    <button class="kick-cancel-btn" id="bpCancelBtn" type="button">Cancelar</button>`;
+  document.getElementById('bpSaveBtn').addEventListener('click',()=>{
+    const sys=parseInt(document.getElementById('bpSysInp').value,10);
+    const dia=parseInt(document.getElementById('bpDiaInp').value,10);
+    if(!sys||!dia||sys<=0||dia<=0){showToast('Informe a pressão sistólica e diastólica',1500);return;}
+    if(sys<=dia){showToast('A sistólica deve ser maior que a diastólica',1500);return;}
+    const dateStr=document.getElementById('bpDateInp').value;
+    const timeStr=document.getElementById('bpTimeInp').value;
+    if(!dateStr||!timeStr){showToast('Informe a data e o horário',1500);return;}
+    const entryDate=new Date(`${dateStr}T${timeStr}:00`);
+    if(entryDate.getTime()>Date.now()){showToast('A data/horário não pode ser no futuro',1500);return;}
+    bpEntries.push({date:entryDate.toISOString(),sys,dia});
+    bpEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    saveBP();
+    renderBPCard();
+    closeBPSheet();
+    showToast('Pressão registrada',1500);
+  });
+  document.getElementById('bpCancelBtn').addEventListener('click',closeBPSheet);
+}
+function openBPSheet(){
+  renderBPSheetBody();
+  document.getElementById('bpOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('bpSysInp')?.focus(),80);
+}
+function closeBPSheet(){
+  document.getElementById('bpOverlay').classList.remove('show');
+}
+document.getElementById('bpAddBtn').addEventListener('click',openBPSheet);
+document.getElementById('bpClose').addEventListener('click',closeBPSheet);
+document.getElementById('bpOverlay').addEventListener('click',e=>{if(e.target.id==='bpOverlay')closeBPSheet();});
+document.querySelectorAll('#htnTabs .stab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    profile.chronicHtn=btn.dataset.htn==='sim';
+    saveProfile();
+    renderBPCard();
+  });
+});
+renderBPCard();
+
+/* Cabeçalhos comprimidos dos cards de monitoramento (peso, pressão, movimentos,
    contrações) — clique abre/fecha o card inteiro, fechado por padrão. */
 function initMonToggle(headId,bodyId,chevId){
   document.getElementById(headId).addEventListener('click',()=>{
@@ -2773,6 +2946,7 @@ function initMonToggle(headId,bodyId,chevId){
   });
 }
 initMonToggle('weightHead','weightBody','weightChev');
+initMonToggle('bpHead','bpBody','bpChev');
 initMonToggle('kickHead','kickBody','kickChev');
 initMonToggle('contrHead','contrBody','contrChev');
 
