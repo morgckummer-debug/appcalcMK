@@ -1,0 +1,3204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>MKCalc Gemelar</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,500;9..144,1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens ── */
+:root{
+  --bg:#f2e8dc;
+  --peach:#f4c8a8;--pd:#d99570;--pd2:#c07a52;
+  --blue:#b9c8d6;--bd:#6f8ba3;
+  --track:var(--blue);--track2:var(--bd);
+  --rose:#f0c9c0;
+  --alert:#c14f3c;--alert-bg:#f7ded6;
+  --good:#5f8f5a;--good-bg:#dfead9;
+  --cream:#f8edd9;--cream2:#f0e0c4;
+  --ink:#3a2e2a;--ink2:#6b574e;--ink3:#9a8678;
+  --surf:#f8edd9;--surf2:#efe0c4;--surfs:#fdf5ea;
+  --line:rgba(58,46,42,.10);--line2:rgba(58,46,42,.18);
+  --co:8px 12px 28px rgba(168,134,100,.22),-4px -4px 16px rgba(255,250,240,.6);
+  --cs:4px 6px 14px rgba(168,134,100,.18),-3px -3px 10px rgba(255,250,240,.5);
+  --ci:inset 3px 3px 8px rgba(168,134,100,.16),inset -3px -3px 8px rgba(255,250,240,.55);
+  --r:20px;--rl:28px;--pill:999px;
+  --nav-h:68px;
+  --trans:all .22s cubic-bezier(.22,.68,0,1.2);
+}
+
+/* ── Dark mode ── */
+[data-dark]{
+  --bg:#1e1812;
+  --peach:#c8845a;--pd:#b06a40;--pd2:#a05830;
+  --blue:#3d5568;--bd:#5a7a96;
+  --rose:#7a4a42;
+  --alert:#e2735c;--alert-bg:#3a231e;
+  --good:#7fae74;--good-bg:#233524;
+  --cream:#2a211a;--cream2:#322719;
+  --ink:#f0e4d4;--ink2:#c4aa94;--ink3:#8a7060;
+  --surf:#251e17;--surf2:#2e2418;--surfs:#332820;
+  --co:8px 12px 28px rgba(0,0,0,.45),-2px -2px 10px rgba(80,55,30,.15);
+  --cs:4px 6px 14px rgba(0,0,0,.4),-2px -2px 8px rgba(80,55,30,.1);
+  --ci:inset 3px 3px 8px rgba(0,0,0,.3),inset -3px -3px 8px rgba(80,55,30,.12);
+}
+
+/* ── Tema menina (rosa/lilás) ── */
+[data-girl]{
+  --peach:#f7c9e3;--pd:#d98fc4;--pd2:#b866a3;
+  --track:var(--peach);--track2:var(--pd);
+}
+[data-dark][data-girl]{
+  --peach:#a8577f;--pd:#9a4a8f;--pd2:#7f3d78;
+}
+
+/* ── Base ── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow-x:hidden;background:var(--bg)}
+body{
+  font-family:'DM Sans',sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(ellipse at 20% 5%,rgba(244,200,168,.4),transparent 55%),
+    radial-gradient(ellipse at 80% 85%,rgba(185,200,214,.35),transparent 55%),
+    var(--bg);
+  transition:background .4s ease,color .3s ease;
+}
+[data-dark] body,body[data-dark-body]{
+  background:
+    radial-gradient(ellipse at 20% 5%,rgba(80,50,20,.35),transparent 55%),
+    radial-gradient(ellipse at 80% 85%,rgba(30,50,70,.3),transparent 55%),
+    var(--bg);
+}
+.serif{font-family:'Fraunces',serif;font-weight:500}
+
+/* ── Grain overlay ── */
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  pointer-events:none;z-index:9999;
+  opacity:.028;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px 180px;
+}
+[data-dark] body::after{opacity:.045}
+
+/* ── Scroll container ── */
+#app{
+  height:100dvh;overflow-y:auto;overflow-x:hidden;
+  padding-bottom:calc(var(--nav-h) + 12px);
+  scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
+}
+
+/* ── Header ── */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px}
+.brand{font-family:'Fraunces',serif;font-size:24px;letter-spacing:-.01em;transition:color .3s}
+.brand span{color:var(--pd)}
+.hdr-actions{display:flex;gap:8px}
+.dark-btn{
+  width:40px;height:40px;border-radius:50%;border:none;
+  background:var(--surf);color:var(--ink2);cursor:pointer;
+  box-shadow:var(--cs);font-size:18px;
+  display:grid;place-items:center;
+  transition:var(--trans);
+}
+.dark-btn:hover{transform:scale(1.1) rotate(15deg)}
+.dark-btn:active{transform:scale(.94)}
+#onbHelpBtn{font-weight:800;font-size:17px;color:var(--ink)}
+
+/* ── Onboarding ── */
+.onb-overlay{
+  position:fixed;inset:0;z-index:3000;
+  background:rgba(58,46,42,.5);backdrop-filter:blur(2px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;padding:20px;
+}
+.onb-overlay.show{opacity:1;pointer-events:auto}
+.onb-sheet{
+  width:100%;max-width:360px;
+  background:var(--surfs);border-radius:28px;
+  padding:32px 26px 26px;text-align:center;
+  box-shadow:0 20px 48px rgba(0,0,0,.3);
+  transform:scale(.94) translateY(10px);transition:transform .3s cubic-bezier(.22,.68,0,1.2),background .3s;
+}
+.onb-overlay.show .onb-sheet{transform:scale(1) translateY(0)}
+.onb-ico{font-size:44px;margin-bottom:14px;animation:floatOrb 3.5s ease-in-out infinite}
+.onb-title{font-size:21px;font-weight:500;color:var(--ink);margin-bottom:10px;transition:color .3s}
+.onb-desc{font-size:14px;color:var(--ink2);line-height:1.6;margin-bottom:22px}
+.onb-desc strong{color:var(--ink)}
+.onb-help-mark{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--surf2);color:var(--ink);font-weight:800;font-size:11px;
+  vertical-align:-2px;
+}
+.onb-dots{display:flex;justify-content:center;gap:6px;margin-bottom:22px}
+.onb-dot{width:7px;height:7px;border-radius:50%;background:var(--surf2);transition:var(--trans)}
+.onb-dot.on{background:var(--pd);width:20px;border-radius:var(--pill)}
+.onb-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.onb-skip{border:none;background:transparent;color:var(--ink3);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:8px}
+.onb-next{
+  flex:1;padding:14px;border-radius:var(--pill);border:none;
+  font-family:inherit;font-size:14px;font-weight:700;
+  background:var(--ink);color:var(--cream);box-shadow:var(--cs);cursor:pointer;
+  transition:transform .18s cubic-bezier(.22,.68,0,1.4);
+}
+.onb-next:active{transform:scale(.96)}
+.onb-cta{
+  width:100%;padding:14px;border-radius:var(--pill);border:1.5px solid var(--pd);
+  background:transparent;color:var(--pd2);font-family:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;margin-bottom:14px;transition:transform .18s cubic-bezier(.22,.68,0,1.4),background .18s,color .18s;
+}
+.onb-cta:hover{background:var(--pd);color:var(--cream)}
+.onb-cta:active{transform:scale(.96)}
+
+/* ── Pages ── */
+.page{display:none;padding:0 16px;animation:fadeUp .28s cubic-bezier(.22,.68,0,1.2) both}
+.page.active{display:block}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ── Stagger children ── */
+.stagger > *{
+  opacity:0;transform:translateY(14px);
+  animation:fadeUp .32s cubic-bezier(.22,.68,0,1.2) both;
+}
+.stagger > *:nth-child(1){animation-delay:.04s}
+.stagger > *:nth-child(2){animation-delay:.10s}
+.stagger > *:nth-child(3){animation-delay:.16s}
+.stagger > *:nth-child(4){animation-delay:.22s}
+.stagger > *:nth-child(5){animation-delay:.28s}
+.stagger > *:nth-child(6){animation-delay:.34s}
+
+/* ── Cards ── */
+.card{
+  background:var(--surf);border-radius:var(--rl);
+  padding:22px 20px;box-shadow:var(--co);margin-bottom:16px;
+  transition:background .3s,box-shadow .3s;
+}
+.card.feat{
+  background:linear-gradient(160deg,var(--cream) 0%,var(--cream2) 60%,var(--peach) 150%);
+  box-shadow:8px 12px 32px rgba(168,134,100,.2),0 0 0 1px rgba(255,250,240,.4) inset;
+  transition:background .3s,box-shadow .3s;
+}
+[data-dark] .card.feat{
+  box-shadow:8px 12px 32px rgba(0,0,0,.4),0 0 0 1px rgba(255,200,150,.06) inset;
+}
+.lbl{font-size:10px;color:var(--ink3);letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin-bottom:6px;transition:color .3s}
+/* Cor explícita (não só herdada): botões não herdam a cor do texto dos
+   ancestrais por padrão, então dentro do cabeçalho comprimido (um <button>)
+   o navegador aplicava sua cor nativa de botão em vez do tom da paleta. */
+.card-title{font-family:'Fraunces',serif;font-size:24px;font-weight:500;letter-spacing:-.02em;line-height:1.1;margin-bottom:18px;color:var(--ink);transition:color .3s}
+
+/* ── Cards de monitoramento comprimidos (peso, movimentos, contrações) ──
+   Ficam fechados por padrão, mostrando só um resumo de uma linha; tocar no
+   cabeçalho abre o card inteiro, igual ao acordeão da Checklist. */
+.mon-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  width:100%;border:none;background:transparent;padding:0;margin:0;
+  font-family:inherit;color:var(--ink);text-align:left;cursor:pointer;
+}
+.mon-head-txt{min-width:0}
+.mon-head-title{margin-bottom:0}
+.mon-head-sub{font-size:12.5px;color:var(--ink2);margin-top:5px;font-weight:600}
+.mon-chev{
+  font-style:normal;font-size:20px;color:var(--pd2);flex-shrink:0;
+  transition:transform .25s cubic-bezier(.22,.68,0,1.3);
+}
+.mon-body{display:none}
+.mon-body.open{display:block;margin-top:18px;animation:fadeUp .25s ease both}
+
+/* ── Calc tabs ── */
+.calc-tabs{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:5px;
+  background:var(--surf2);border-radius:var(--pill);padding:5px;
+  box-shadow:var(--ci);margin-bottom:18px;transition:background .3s;
+}
+.ctab{
+  border:none;background:transparent;border-radius:var(--pill);
+  padding:10px 4px;font-family:inherit;font-size:11px;font-weight:700;
+  color:var(--ink2);cursor:pointer;
+  transition:var(--trans);
+  display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1;
+}
+.ctab .ico{font-size:17px;transition:transform .2s}
+.ctab:hover .ico{transform:scale(1.15)}
+.ctab.on{background:var(--ink);color:var(--cream);box-shadow:var(--cs)}
+.ctab:active{transform:scale(.95)}
+
+/* ── Sex tabs (Perfil) ── */
+.sex-tabs{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:5px;
+  background:var(--surf2);border-radius:var(--pill);padding:5px;
+  box-shadow:var(--ci);margin-bottom:18px;transition:background .3s;
+}
+.stab{
+  border:none;background:transparent;border-radius:var(--pill);
+  padding:10px 4px;font-family:inherit;font-size:12px;font-weight:700;
+  color:var(--ink2);cursor:pointer;
+  transition:var(--trans);
+  display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1;
+}
+.stab .ico{font-size:18px;transition:transform .2s}
+.stab:hover .ico{transform:scale(1.15)}
+.stab.on{background:var(--ink);color:var(--cream);box-shadow:var(--cs)}
+.stab:active{transform:scale(.95)}
+.card.feat .sex-tabs{background:rgba(224,208,180,.5)}
+[data-dark] .card.feat .sex-tabs{background:rgba(40,30,16,.5)}
+
+/* ── Fields ── */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;color:var(--ink2);letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-bottom:8px;transition:color .3s}
+.inp{
+  width:100%;background:var(--surf2);border:none;border-radius:16px;
+  padding:16px 18px;font-size:17px;color:var(--ink);font-family:inherit;
+  outline:none;box-shadow:var(--ci);
+  transition:background .2s,box-shadow .2s,transform .15s;
+  -webkit-appearance:none;
+}
+.inp:focus{
+  background:var(--surfs);
+  box-shadow:var(--ci),0 0 0 3px rgba(217,149,112,.3);
+  transform:scale(1.005);
+}
+.inp::placeholder{color:var(--ink3);font-size:15px}
+/* inputs inside feat card get slightly richer inset */
+.card.feat .inp{background:rgba(240,224,196,.55);box-shadow:inset 3px 3px 8px rgba(168,134,100,.18),inset -3px -3px 8px rgba(255,250,240,.65)}
+.card.feat .inp:focus{background:rgba(253,245,234,.8);box-shadow:inset 3px 3px 8px rgba(168,134,100,.18),inset -3px -3px 8px rgba(255,250,240,.65),0 0 0 3px rgba(217,149,112,.3)}
+.card.feat .helper{background:rgba(240,224,196,.5);box-shadow:inset 2px 2px 6px rgba(168,134,100,.14),inset -2px -2px 6px rgba(255,250,240,.5)}
+.card.feat .calc-tabs{background:rgba(224,208,180,.5)}
+.card.feat .di-row{background:rgba(240,224,196,.5)}
+.card.feat .di-gap{background:rgba(248,237,217,.7)}
+.card.feat .add-di{background:rgba(240,224,196,.5)}
+.card.feat .add-di:hover{background:rgba(253,245,234,.75)}
+[data-dark] .card.feat .inp{background:rgba(50,39,24,.6);box-shadow:inset 3px 3px 8px rgba(0,0,0,.25),inset -3px -3px 8px rgba(80,55,30,.1)}
+[data-dark] .card.feat .inp:focus{background:rgba(60,46,28,.75);box-shadow:inset 3px 3px 8px rgba(0,0,0,.25),inset -3px -3px 8px rgba(80,55,30,.1),0 0 0 3px rgba(176,106,64,.35)}
+[data-dark] .card.feat .helper{background:rgba(50,39,24,.5)}
+[data-dark] .card.feat .calc-tabs{background:rgba(40,30,16,.5)}
+[data-dark] .card.feat .di-row{background:rgba(50,39,24,.5)}
+[data-dark] .card.feat .add-di{background:rgba(50,39,24,.5)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.helper{
+  background:var(--surf2);border-radius:14px;padding:12px 14px;
+  margin-bottom:16px;font-size:13px;color:var(--ink2);line-height:1.55;
+  box-shadow:var(--ci);transition:background .3s;
+}
+.helper strong{color:var(--ink)}
+
+/* ── Calc button ── */
+.btn-calc{
+  width:100%;padding:18px;border-radius:var(--pill);border:none;
+  font-family:inherit;font-size:16px;font-weight:700;
+  background:var(--ink);color:var(--cream);
+  box-shadow:var(--cs);cursor:pointer;
+  transition:transform .18s cubic-bezier(.22,.68,0,1.4),opacity .18s,box-shadow .18s;
+  margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px;
+  letter-spacing:.01em;
+}
+.btn-calc:hover{transform:scale(1.02);box-shadow:6px 9px 20px rgba(168,134,100,.3)}
+.btn-calc:active{transform:scale(.96)}
+
+/* ── Nova gestação (reset) ── */
+.btn-danger{
+  width:100%;padding:16px;border-radius:var(--pill);
+  border:1.5px solid var(--pd2);background:transparent;color:var(--pd2);
+  font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+  transition:transform .18s cubic-bezier(.22,.68,0,1.4),background .18s,color .18s;
+}
+.btn-danger:hover{background:var(--pd2);color:var(--cream)}
+.btn-danger:active{transform:scale(.96)}
+
+/* ── IG Ring ── */
+.ring-wrap{display:flex;flex-direction:column;align-items:center;margin:6px 0 20px}
+.ring-box{position:relative;width:180px;height:180px}
+.ring-bg-el{position:absolute;inset:0;border-radius:50%;background:var(--surf2);box-shadow:var(--ci)}
+.ring-svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ring-center{
+  position:absolute;inset:16px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fffbf2,var(--cream) 60%,var(--cream2));
+  box-shadow:var(--cs),inset 2px 3px 5px rgba(255,250,240,.6);
+  display:grid;place-items:center;text-align:center;
+  transition:background .3s;
+}
+[data-dark] .ring-center{
+  background:radial-gradient(circle at 35% 30%,#302419,var(--cream) 70%);
+}
+.ig-big{font-family:'Fraunces',serif;font-size:48px;line-height:1;letter-spacing:-.03em}
+.ig-big em{color:var(--track2);font-style:italic}
+.ig-unit{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.18em;margin-top:4px;font-weight:700}
+
+.months-highlight{text-align:center;margin:2px 0 20px}
+.months-highlight .lbl{text-align:center}
+.months-big{font-size:28px;font-weight:500;letter-spacing:-.01em;line-height:1.2;color:var(--ink)}
+.months-big em{color:var(--pd);font-style:italic;font-size:34px}
+.months-sub{font-size:12px;color:var(--ink2);margin-top:3px}
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+.stat{
+  background:var(--surf);border-radius:16px;padding:14px 16px;
+  box-shadow:var(--cs);text-align:center;
+  transition:var(--trans);
+}
+.stat:hover{transform:translateY(-2px);box-shadow:6px 8px 18px rgba(168,134,100,.22)}
+.stat .lbl{margin-bottom:4px;text-align:center}
+.stat .val{font-family:'Fraunces',serif;font-size:20px;font-weight:500;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+
+/* Baby card */
+.baby-card{
+  background:linear-gradient(140deg,var(--blue) 0%,#cdd9e5 50%,var(--cream));
+  border-radius:var(--rl);padding:22px 20px;box-shadow:var(--co);margin-bottom:16px;
+  transition:background .3s,box-shadow .3s;
+}
+[data-dark] .baby-card{
+  background:linear-gradient(140deg,#2a3d4e 0%,#243040 50%,var(--cream));
+}
+[data-girl] .baby-card{
+  background:linear-gradient(140deg,var(--peach) 0%,#f3d4ea 50%,var(--cream));
+}
+[data-dark][data-girl] .baby-card{
+  background:linear-gradient(140deg,#5a2f4a 0%,#4a2640 50%,var(--cream));
+}
+.baby-orb-wrap{display:flex;justify-content:center;margin:14px 0}
+.baby-orb{
+  width:150px;height:150px;
+  display:flex;align-items:center;justify-content:center;
+  animation:floatOrb 3.5s ease-in-out infinite;
+}
+.baby-orb-img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(4px 10px 12px rgba(40,55,70,.3))}
+.femur-calc{margin-top:14px;background:rgba(255,250,240,.5);border-radius:12px;padding:12px 14px}
+[data-dark] .femur-calc{background:rgba(30,20,10,.35)}
+.femur-title{font-family:'Fraunces',serif;font-size:16px;font-weight:500;color:var(--ink)}
+.femur-sub{font-size:12.5px;color:var(--ink2);margin-top:2px}
+.femur-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.femur-row .inp{padding:10px 12px;font-size:15px}
+.femur-unit{font-size:13px;color:var(--ink2);font-weight:700;flex-shrink:0}
+.femur-result{margin-top:10px;font-size:13.5px;color:var(--ink);line-height:1.55;background:var(--surf);border-radius:12px;padding:10px 12px;box-shadow:var(--cs)}
+.femur-result strong{color:var(--pd2)}
+@keyframes floatOrb{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-5px)}
+}
+.baby-avg{background:rgba(255,250,240,.6);backdrop-filter:blur(8px);border-radius:14px;padding:14px;text-align:center;margin-top:14px}
+[data-dark] .baby-avg{background:rgba(30,20,10,.4)}
+.baby-avg .val{font-family:'Fraunces',serif;font-size:17px;font-weight:500;color:var(--ink)}
+.baby-dev{font-size:13px;color:var(--ink2);line-height:1.6;margin-top:12px;background:rgba(255,250,240,.5);border-radius:12px;padding:12px 14px}
+[data-dark] .baby-dev{background:rgba(30,20,10,.35)}
+.baby-name-em{color:var(--pd2);font-weight:800}
+
+/* Timeline */
+.tl-cap{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:2px}
+.tl-wrap{overflow-x:auto;padding:26px 6px 22px;-webkit-overflow-scrolling:touch}
+.tl-wrap::-webkit-scrollbar{display:none}
+.tl{position:relative;height:54px}
+.tl-line{position:absolute;left:0;right:0;top:23px;height:3px;background:var(--surf2);border-radius:3px}
+.tl-fill{position:absolute;left:0;top:0;width:0;height:100%;background:linear-gradient(90deg,var(--track),var(--track2));border-radius:3px;transition:width .9s cubic-bezier(.22,.68,0,1)}
+.tl-weeks,.tl-months{position:absolute;left:0;top:0;right:0;height:0}
+.wtick{position:absolute;top:18px;width:2px;height:11px;background:var(--surf2);transform:translateX(-1px);transition:var(--trans)}
+.wtick.past{background:var(--track2);opacity:.5}
+.wtick .wnum{position:absolute;bottom:15px;left:0;transform:translateX(-50%);font-family:'Fraunces',serif;font-size:10px;color:var(--ink3);font-weight:600;white-space:nowrap}
+.wtick.cur .wnum{color:var(--track2);font-weight:800;font-size:12px}
+.tl-months{top:33px}
+.mlabel{position:absolute;top:0;transform:translateX(-50%);font-size:10px;color:var(--ink3);font-weight:700;white-space:nowrap}
+.mlabel.cur{color:var(--track2);font-weight:800}
+.tl-dot{
+  position:absolute;top:24px;width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff7e6,var(--cream));
+  box-shadow:3px 5px 10px rgba(168,134,100,.35),inset 2px 3px 4px rgba(255,250,240,.5);
+  border:2px solid var(--track2);
+  transform:translate(-50%,-50%);
+  transition:left .9s cubic-bezier(.22,.68,0,1);
+  animation:pulseCur 2.2s ease-in-out infinite;
+  z-index:2;
+}
+@keyframes pulseCur{
+  0%,100%{box-shadow:3px 5px 10px rgba(168,134,100,.35),inset 2px 3px 4px rgba(255,250,240,.5)}
+  50%{box-shadow:3px 5px 18px rgba(217,149,112,.6),0 0 0 4px rgba(217,149,112,.15),inset 2px 3px 4px rgba(255,250,240,.5)}
+}
+
+/* Exames guide */
+.exm-cta{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--surf2);border-radius:16px;padding:14px 16px;box-shadow:var(--ci);
+  cursor:pointer;transition:var(--trans);
+}
+.exm-cta:hover{transform:translateX(3px);background:var(--surfs)}
+.exm-cta-txt{font-size:13px;font-weight:700;color:var(--ink)}
+.exm-cta-sub{font-size:11px;color:var(--ink2);margin-top:2px;font-weight:400}
+.exm-cta-arrow{font-size:18px;color:var(--pd2);flex-shrink:0}
+/* CTA de destaque dentro de cards "feat" (fundo em gradiente creme/pêssego) —
+   o fundo padrão do .exm-cta (--surf2) quase não contrasta com esse gradiente. */
+.card.feat .exm-cta{background:linear-gradient(135deg,var(--pd),var(--pd2));box-shadow:4px 8px 20px rgba(192,122,82,.35),inset 0 1px 0 rgba(255,255,255,.25)}
+.card.feat .exm-cta:hover{background:linear-gradient(135deg,var(--pd2),var(--pd))}
+.card.feat .exm-cta .exm-cta-txt,
+.card.feat .exm-cta .exm-cta-arrow{color:var(--cream)}
+.card.feat .exm-cta .exm-cta-sub{color:rgba(255,250,240,.85)}
+
+.exm-list{display:flex;flex-direction:column;gap:10px}
+.exm-card{
+  display:block;width:100%;text-align:left;border:none;background:var(--surf);
+  border-radius:18px;padding:14px 16px;box-shadow:var(--cs);cursor:pointer;
+  transition:var(--trans);
+}
+.exm-card:hover{transform:translateX(3px);box-shadow:6px 8px 18px rgba(168,134,100,.22)}
+.exm-card:active{transform:scale(.98)}
+.exm-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.exm-name{font-family:'Fraunces',serif;font-size:16px;font-weight:500;color:var(--ink);line-height:1.3}
+.exm-chevron{font-size:16px;color:var(--ink3);flex-shrink:0;margin-top:2px}
+.exm-card-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.exm-chk{cursor:pointer}
+.exm-periodo{
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#fde3d0,var(--peach) 90%);color:var(--pd2);
+  font-size:11px;font-weight:700;padding:4px 11px;border-radius:var(--pill);
+  margin-bottom:8px;box-shadow:1px 2px 5px rgba(217,149,112,.25);
+}
+.exm-desc{font-size:12.5px;color:var(--ink2);line-height:1.5}
+.exm-badge{
+  display:inline-block;margin-top:8px;font-size:10.5px;font-weight:700;color:var(--bd);
+  background:rgba(111,139,163,.14);padding:4px 10px;border-radius:var(--pill);
+}
+[data-dark] .exm-badge{color:#9fc0d8;background:rgba(111,139,163,.2)}
+
+.exm-card.status-now{box-shadow:var(--cs),0 0 0 2px rgba(217,149,112,.35)}
+.exm-card.status-late{box-shadow:var(--cs),0 0 0 2px rgba(229,180,168,.55)}
+.exm-card.status-done{opacity:.72}
+
+.exm-sheet-check{
+  display:flex;align-items:center;gap:10px;width:100%;
+  background:var(--surf2);border:none;border-radius:14px;padding:12px 14px;
+  margin-bottom:14px;cursor:pointer;box-shadow:var(--ci);
+  font-family:inherit;font-size:13px;font-weight:700;color:var(--ink);
+  transition:var(--trans);
+}
+.exm-sheet-check:hover{background:var(--surfs)}
+.exm-sheet-check:active{transform:scale(.98)}
+
+.exm-overlay{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(58,46,42,.45);backdrop-filter:blur(2px);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.exm-overlay.show{opacity:1;pointer-events:auto}
+.exm-sheet{
+  width:100%;max-width:480px;max-height:86vh;overflow-y:auto;
+  background:var(--surfs);border-radius:28px 28px 0 0;
+  padding:22px 22px calc(24px + env(safe-area-inset-bottom));
+  box-shadow:0 -12px 32px rgba(0,0,0,.25);
+  transform:translateY(24px);transition:transform .3s cubic-bezier(.22,.68,0,1.2);
+}
+.exm-overlay.show .exm-sheet{transform:translateY(0)}
+.exm-sheet-handle{width:40px;height:5px;background:var(--surf2);border-radius:var(--pill);margin:0 auto 16px}
+.exm-sheet-close{
+  position:absolute;top:16px;right:20px;width:32px;height:32px;border-radius:50%;
+  border:none;background:var(--surf2);color:var(--ink2);font-size:15px;cursor:pointer;
+  display:grid;place-items:center;box-shadow:var(--cs);
+}
+.exm-sheet-name{font-family:'Fraunces',serif;font-size:22px;font-weight:500;color:var(--ink);margin-bottom:10px;padding-right:36px}
+.exm-sheet-desc{font-size:14px;color:var(--ink2);line-height:1.65;margin-bottom:14px}
+.exm-sheet-note{
+  font-size:12.5px;color:var(--ink2);line-height:1.55;background:var(--surf2);
+  border-radius:14px;padding:12px 14px;margin-bottom:14px;box-shadow:var(--ci);
+}
+.exm-sheet-note strong{color:var(--ink)}
+.exm-sheet-sub{font-size:11px;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.exm-sheet-items{list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.exm-sheet-items li{
+  font-size:13px;color:var(--ink);background:var(--surf);border-radius:10px;
+  padding:8px 12px;box-shadow:var(--cs);
+}
+
+/* Contador de movimentos fetais / monitor de contrações */
+.kick-count-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;margin:14px 0 22px}
+.kick-count-num{font-family:'Fraunces',serif;font-size:52px;font-weight:500;color:var(--pd2);line-height:1}
+.kick-count-lbl{font-size:11px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-top:2px}
+.kick-timer{font-family:'Fraunces',serif;font-size:20px;color:var(--ink);margin-top:14px;font-variant-numeric:tabular-nums}
+.kick-tap-btn{
+  width:100%;border:none;border-radius:18px;padding:18px;cursor:pointer;font-family:inherit;
+  background:linear-gradient(135deg,var(--peach),var(--pd));color:#fff;
+  font-size:15px;font-weight:700;box-shadow:var(--cs);transition:var(--trans);
+}
+.kick-tap-btn:active{transform:scale(.96)}
+.kick-cancel-btn{
+  display:block;width:100%;border:none;background:transparent;color:var(--ink3);
+  font-family:inherit;font-size:12.5px;cursor:pointer;margin-top:14px;padding:6px;text-decoration:underline;
+}
+.kick-history-item{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:11px 2px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink2);
+}
+.kick-history-item:first-child{border-top:none}
+.kick-history-w{color:var(--ink3);font-size:11px}
+.kick-history-pill{
+  display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--pd2);
+  background:linear-gradient(135deg,#fde3d0,var(--peach) 90%);padding:3px 10px;border-radius:var(--pill);
+  box-shadow:1px 2px 5px rgba(217,149,112,.25);white-space:nowrap;
+}
+.kick-avg-tile{
+  background:var(--surf);border-radius:14px;padding:14px 16px;box-shadow:var(--cs);
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.kick-avg-tile .val{font-family:'Fraunces',serif;font-size:26px;font-weight:500;color:var(--pd2);
+  line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kick-avg-tile .txt{font-size:12px;color:var(--ink2);line-height:1.4}
+.kick-chart{display:flex;align-items:flex-end;gap:5px;height:56px;margin-top:12px;padding:0 2px}
+.kick-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.kick-bar{width:100%;max-width:22px;border-radius:5px 5px 2px 2px;
+  background:linear-gradient(180deg,var(--peach),var(--pd));min-height:6px;transition:var(--trans)}
+.kick-bar.is-last{background:linear-gradient(180deg,#fff2df,var(--pd2))}
+/* Menina já herda rosa/lilás de --peach/--pd via [data-girl]; menino fica azul, espelhando a cor usada no checkbox de exames. */
+.kick-bar.boy{background:linear-gradient(180deg,var(--blue),var(--bd))}
+.kick-bar.boy.is-last{background:linear-gradient(180deg,#dce6ee,var(--bd))}
+
+/* Botão circular "orb" — ação principal dos monitores */
+.mv-ring-btn{
+  width:148px;height:148px;border-radius:50%;border:none;cursor:pointer;
+  margin:4px auto 0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 32% 28%,#fff2df,var(--peach) 55%,var(--pd) 100%);
+  box-shadow:6px 12px 26px rgba(217,149,112,.4),inset 2px 3px 6px rgba(255,250,240,.55);
+  font-family:inherit;color:var(--ink);transition:var(--trans);animation:mvPulseGlow 2.6s ease-in-out infinite;
+}
+.mv-ring-btn:active{transform:scale(.94)}
+@keyframes mvPulseGlow{
+  0%,100%{box-shadow:6px 12px 26px rgba(217,149,112,.4),inset 2px 3px 6px rgba(255,250,240,.55)}
+  50%{box-shadow:6px 16px 38px rgba(217,149,112,.6),inset 2px 3px 6px rgba(255,250,240,.55)}
+}
+.mv-ring-btn .mv-ico{font-size:34px;display:block;filter:drop-shadow(1px 3px 4px rgba(90,50,20,.25))}
+.mv-ring-btn .mv-txt{display:block;font-size:12.5px;font-weight:700;margin-top:5px;letter-spacing:.02em}
+.mv-ring-btn.sm{width:96px;height:96px;animation:none}
+.mv-ring-btn.sm .mv-ico{font-size:22px}
+.mv-ring-btn.sm .mv-txt{font-size:10.5px;margin-top:2px}
+.mv-ring-btn.stop{background:radial-gradient(circle at 32% 28%,#fbe7e1,var(--rose) 55%,#e5b4a8 100%)}
+.mv-cancel-btn{
+  display:block;margin:14px auto 0;border:none;background:transparent;
+  color:var(--ink3);font-family:inherit;font-size:12.5px;font-weight:600;
+  text-decoration:underline;cursor:pointer;padding:6px;
+}
+.mv-cancel-btn:active{opacity:.6}
+
+/* 10 pontinhos de progresso da contagem de movimentos */
+.mv-dots{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:18px auto 0;max-width:210px}
+.mv-dot{width:15px;height:15px;border-radius:50%;background:var(--surf2);box-shadow:var(--ci);transition:var(--trans)}
+.mv-dot.on{
+  background:radial-gradient(circle at 35% 30%,#fff7e6,var(--peach) 60%,var(--pd) 100%);
+  box-shadow:2px 3px 7px rgba(217,149,112,.45);animation:dotPop .35s cubic-bezier(.22,.68,0,1.4);
+}
+@keyframes dotPop{0%{transform:scale(.3)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+
+/* Círculo de respiração — contração em andamento */
+.mv-breathe-wrap{position:relative;display:flex;align-items:center;justify-content:center;height:172px;margin:6px 0 6px}
+.mv-breathe{
+  position:absolute;width:118px;height:118px;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,rgba(255,242,223,.95),rgba(217,149,112,.5) 75%);
+  box-shadow:0 0 0 1px rgba(255,250,240,.4) inset;
+  animation:mvBreathe 4s ease-in-out infinite;
+}
+.mv-breathe::before{
+  content:'';position:absolute;inset:-16px;border-radius:50%;
+  border:1.5px solid rgba(217,149,112,.35);animation:mvBreatheRing 4s ease-in-out infinite;
+}
+@keyframes mvBreathe{0%,100%{transform:scale(.8);opacity:.7}50%{transform:scale(1.15);opacity:1}}
+@keyframes mvBreatheRing{0%,100%{transform:scale(.85);opacity:.15}50%{transform:scale(1.3);opacity:.5}}
+.mv-breathe-timer{position:relative;z-index:1;font-family:'Fraunces',serif;font-size:28px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+.mv-breathe-lbl{text-align:center;font-size:11px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:2px}
+
+/* Padrão calculado + checklist de sinais — monitor de contrações */
+.contr-pattern{
+  border-radius:14px;padding:12px 14px;margin-bottom:14px;
+  background:linear-gradient(135deg,#fbe3d0,var(--peach) 120%);box-shadow:var(--cs);
+}
+.contr-pattern-lbl{
+  font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--pd2);margin-bottom:6px;display:flex;align-items:center;gap:6px;
+}
+.contr-pattern-lbl .dot{width:6px;height:6px;border-radius:50%;background:var(--pd2);animation:contrPulse 1.6s ease-in-out infinite}
+@keyframes contrPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.contr-pattern-stats{display:flex;gap:18px;margin-bottom:4px}
+.contr-pattern-stat .v{font-family:'Fraunces',serif;font-size:19px;color:var(--ink);font-variant-numeric:tabular-nums}
+.contr-pattern-stat .k{font-size:9.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
+.contr-pattern-foot{font-size:11px;color:var(--ink2);line-height:1.4;margin-top:4px}
+.contr-check-lbl{font-size:10px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.contr-check-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.contr-check-item{
+  display:flex;align-items:center;gap:10px;background:var(--surf);border-radius:11px;
+  padding:9px 12px;font-size:12.5px;color:var(--ink);cursor:pointer;user-select:none;
+  border:1px solid transparent;transition:var(--trans);
+}
+.contr-check-item input{accent-color:var(--pd2);width:15px;height:15px;flex-shrink:0}
+.contr-check-item.on{border-color:var(--alert);background:var(--alert-bg)}
+.contr-alert{
+  display:none;border-radius:14px;padding:13px 14px;margin-bottom:14px;
+  background:var(--alert-bg);border:1px solid rgba(193,79,58,.28);
+}
+.contr-alert.show{display:block}
+.contr-alert-title{font-size:13px;font-weight:700;color:var(--alert);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.contr-alert-body{font-size:11.5px;color:var(--ink2);line-height:1.5}
+
+/* ── Monitoramento de peso materno ── */
+.wt-field label{display:block;font-size:10.5px;color:var(--ink2);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:7px}
+.wt-field-row{display:flex;align-items:center;gap:8px}
+.wt-field-row .inp{padding:12px 14px;font-size:15px}
+.wt-field-unit{font-size:12.5px;color:var(--ink2);font-weight:700;flex-shrink:0}
+.wt-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.wt-stat{background:var(--surf);border-radius:16px;padding:14px 16px;box-shadow:var(--cs);text-align:center}
+.wt-stat .lbl{margin-bottom:4px}
+.wt-stat .val{font-family:'Fraunces',serif;font-size:22px;font-weight:500;letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.bmi-pill{
+  display:inline-flex;align-items:center;font-size:11.5px;font-weight:700;
+  padding:5px 13px;border-radius:var(--pill);margin-top:2px;white-space:nowrap;
+}
+.bmi-pill.tone-low{background:rgba(111,139,163,.14);color:var(--bd)}
+[data-dark] .bmi-pill.tone-low{background:rgba(111,139,163,.2);color:#9fc0d8}
+.bmi-pill.tone-normal{background:var(--good-bg);color:var(--good)}
+.bmi-pill.tone-over{background:linear-gradient(135deg,#fde3d0,var(--peach) 90%);color:var(--pd2)}
+.bmi-pill.tone-ob{background:var(--alert-bg);color:var(--alert)}
+.wg-summary{background:var(--surf);border-radius:16px;padding:14px 16px;box-shadow:var(--cs);margin-bottom:14px}
+.wg-summary-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:8px}
+.wg-summary-val{font-family:'Fraunces',serif;font-size:19px;color:var(--ink)}
+.wg-bar{height:10px;background:var(--surf2);border-radius:var(--pill);box-shadow:var(--ci);overflow:hidden;position:relative;margin-bottom:8px}
+.wg-bar-fill{height:100%;border-radius:var(--pill);transition:width .5s cubic-bezier(.22,.68,0,1)}
+/* Estado normal segue a cor do bebê (azul no menino, rosa na menina), igual ao
+   anel de IG, timeline e gráfico de evolução do peso — só os estados de
+   atenção (abaixo/acima do esperado) ficam com cor fixa de alerta. */
+.wg-bar-fill.tone-ok{background:linear-gradient(90deg,var(--track),var(--track2))}
+.wg-bar-fill.tone-low{background:linear-gradient(90deg,var(--bd),#8fa8bc)}
+.wg-bar-fill.tone-high{background:linear-gradient(90deg,var(--alert),#d97a63)}
+.wg-summary-txt{font-size:12px;color:var(--ink2);line-height:1.5}
+.weight-chart-wrap{margin:4px 0 16px}
+.weight-chart-svg{width:100%;height:132px;display:block;overflow:visible}
+.weight-history-item{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:11px 2px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink2);
+}
+.weight-history-item:first-child{border-top:none}
+.weight-history-w{color:var(--ink3);font-size:11px}
+.weight-history-del{
+  border:none;background:transparent;color:var(--ink3);font-size:15px;cursor:pointer;
+  padding:4px 6px;line-height:1;flex-shrink:0;
+}
+.weight-history-del:active{opacity:.5}
+
+/* Fertil */
+.f-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.fc{padding:16px;border-radius:16px;background:var(--surf);box-shadow:var(--cs);transition:var(--trans)}
+.fc:hover{transform:translateY(-2px)}
+.fc.peak{background:linear-gradient(135deg,#fde3d0,var(--peach) 80%);box-shadow:5px 7px 16px rgba(217,149,112,.3)}
+.fc .lbl{margin-bottom:5px}
+.fc.peak .lbl{color:var(--ink2)}
+.fc .val{font-family:'Fraunces',serif;font-size:16px;line-height:1.3}
+.fc .sub{font-size:11px;color:var(--ink2);margin-top:4px}
+
+/* ── Namorar card ── */
+.namorar-wrap{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+.nam-hero{
+  background:linear-gradient(135deg,var(--rose) 0%,var(--peach) 60%,#fde3d0 100%);
+  border-radius:20px;padding:20px 18px;
+  box-shadow:5px 7px 16px rgba(217,149,112,.28);
+  display:flex;align-items:center;gap:16px;
+}
+.nam-orb{
+  width:56px;height:56px;border-radius:50%;flex-shrink:0;
+  background:radial-gradient(circle at 32% 28%,#fff0e8,var(--peach) 55%,var(--pd));
+  box-shadow:4px 6px 12px rgba(217,149,112,.4),inset 2px 3px 5px rgba(255,250,240,.5);
+  display:grid;place-items:center;font-size:26px;
+  animation:floatOrb 3.2s ease-in-out infinite;
+}
+.nam-info{flex:1}
+.nam-dates{font-family:'Fraunces',serif;font-size:20px;font-weight:500;letter-spacing:-.01em;color:var(--ink);line-height:1.2;margin-bottom:4px}
+.nam-sub{font-size:12px;color:var(--ink2);line-height:1.5}
+.nam-tips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.nam-tip{
+  background:var(--surf);border-radius:14px;padding:12px 13px;
+  box-shadow:var(--cs);display:flex;align-items:flex-start;gap:8px;
+  transition:var(--trans);
+}
+.nam-tip:hover{transform:translateY(-2px)}
+.nam-tip-ico{font-size:18px;flex-shrink:0;margin-top:1px}
+.nam-tip-txt{font-size:12px;color:var(--ink2);line-height:1.45}
+.nam-tip-txt strong{color:var(--ink);display:block;font-size:13px;margin-bottom:2px}
+.nam-ov-badge{
+  display:flex;align-items:center;gap:10px;
+  background:linear-gradient(95deg,rgba(244,200,168,.4),rgba(253,227,208,.6));
+  border-radius:14px;padding:12px 14px;
+  border:1px solid rgba(217,149,112,.2);
+}
+.nam-ov-dot{width:10px;height:10px;border-radius:50%;background:var(--pd);box-shadow:0 0 0 3px rgba(217,149,112,.25);flex-shrink:0;animation:ovPulse 2.4s ease-in-out infinite}
+.nam-ov-txt{font-size:12.5px;color:var(--ink2);line-height:1.4}
+.nam-ov-txt strong{color:var(--pd2)}
+.day1{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  background:linear-gradient(95deg,var(--rose),var(--peach));
+  border-radius:16px;margin:12px 0;font-size:13px;color:var(--ink);line-height:1.5;
+}
+.d1b{
+  width:40px;height:40px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff7e6,var(--cream));
+  color:var(--pd);display:grid;place-items:center;
+  font-family:'Fraunces',serif;font-weight:600;font-size:20px;
+  box-shadow:3px 4px 8px rgba(168,134,100,.3);flex-shrink:0;
+}
+.phases{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.phase{
+  border-radius:16px;padding:16px;background:var(--surf);box-shadow:var(--cs);
+  display:flex;align-items:flex-start;gap:12px;
+  transition:var(--trans);
+}
+.phase:hover{transform:translateX(4px)}
+.ph-orb{width:42px;height:42px;border-radius:50%;flex-shrink:0;margin-top:2px}
+.phase.men .ph-orb{background:radial-gradient(circle at 30% 25%,#fad9d0,var(--rose) 50%,#e5b4a8);box-shadow:3px 4px 8px rgba(229,180,168,.35)}
+.phase.fol .ph-orb{background:radial-gradient(circle at 30% 25%,#fff0d8,var(--cream2) 60%,#d4b88a);box-shadow:3px 4px 8px rgba(168,134,100,.25)}
+.phase.ovu .ph-orb{background:radial-gradient(circle at 30% 25%,#fde3d0,var(--peach) 60%,var(--pd));box-shadow:3px 4px 8px rgba(217,149,112,.35)}
+.phase.lut .ph-orb{background:radial-gradient(circle at 30% 25%,#dce6ee,var(--blue) 60%,var(--bd));box-shadow:3px 4px 8px rgba(111,139,163,.3)}
+.ph-info .ph-day{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:2px}
+.ph-info .ph-name{font-family:'Fraunces',serif;font-size:18px;margin-bottom:4px}
+.ph-info .ph-desc{font-size:12.5px;color:var(--ink2);line-height:1.55}
+
+/* ── Fertile Calendar ── */
+.fcal-wrap{margin-top:18px}
+.fcal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.fcal-nav-btn{
+  width:36px;height:36px;border-radius:50%;border:none;
+  background:var(--surf2);color:var(--ink2);cursor:pointer;
+  box-shadow:var(--cs);font-size:18px;display:grid;place-items:center;
+  transition:var(--trans);
+}
+.fcal-nav-btn:hover{transform:scale(1.1);background:var(--surfs)}
+.fcal-nav-btn:active{transform:scale(.92)}
+.fcal-month{font-family:'Fraunces',serif;font-size:18px;font-weight:500;letter-spacing:-.01em}
+.fcal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.fcal-dow{
+  text-align:center;font-size:9px;font-weight:700;
+  color:var(--ink3);letter-spacing:.1em;text-transform:uppercase;
+  padding-bottom:6px;
+}
+.fcal-day{
+  aspect-ratio:1;border-radius:10px;
+  display:grid;place-items:center;
+  font-size:13px;font-weight:600;color:var(--ink2);
+  position:relative;cursor:default;
+  transition:transform .15s cubic-bezier(.22,.68,0,1.2);
+}
+.fcal-day.empty{background:transparent;box-shadow:none}
+.fcal-day.normal{background:var(--surf2);box-shadow:var(--ci)}
+.fcal-day.past-men{
+  background:radial-gradient(circle at 35% 30%,#fde8e4,var(--rose) 70%);
+  color:var(--ink);box-shadow:2px 3px 7px rgba(229,180,168,.3);
+}
+.fcal-day.fertile{
+  background:linear-gradient(135deg,#fff3e0,var(--peach) 80%);
+  color:var(--ink);box-shadow:2px 3px 8px rgba(217,149,112,.25);
+}
+.fcal-day.ovulation{
+  background:radial-gradient(circle at 35% 30%,#ffe8d0,var(--pd) 80%);
+  color:white;
+  box-shadow:3px 5px 12px rgba(217,149,112,.5);
+  transform:scale(1.08);
+  animation:ovPulse 2.4s ease-in-out infinite;
+}
+@keyframes ovPulse{
+  0%,100%{box-shadow:3px 5px 12px rgba(217,149,112,.5)}
+  50%{box-shadow:3px 5px 18px rgba(217,149,112,.75),0 0 0 3px rgba(217,149,112,.18)}
+}
+.fcal-day.next-men{
+  background:radial-gradient(circle at 35% 30%,#fce4e0,var(--rose) 60%,#e0a098);
+  color:var(--ink);box-shadow:2px 3px 7px rgba(229,180,168,.3);
+}
+.fcal-day.today-mark{
+  outline:2px solid var(--pd2);outline-offset:1px;
+}
+.fcal-day.today-mark.normal{color:var(--pd2);font-weight:700}
+.fcal-day:not(.empty):hover{transform:scale(1.12)}
+.fcal-day.ovulation:hover{transform:scale(1.14)}
+
+.fcal-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.fcal-leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink2);font-weight:600}
+.fcal-leg-dot{width:12px;height:12px;border-radius:4px;flex-shrink:0}
+.fcal-leg-dot.men{background:var(--rose)}
+.fcal-leg-dot.fert{background:var(--peach)}
+.fcal-leg-dot.ov{background:var(--pd)}
+.fcal-leg-dot.nmen{background:#e0a098}
+
+/* Checklist */
+.chk-prog{height:6px;background:var(--surf2);border-radius:var(--pill);box-shadow:var(--ci);overflow:hidden;margin-bottom:6px}
+.chk-prog-fill{height:100%;background:linear-gradient(90deg,var(--peach),var(--pd));border-radius:var(--pill);transition:width .5s cubic-bezier(.22,.68,0,1)}
+.chk-prog-txt{font-size:11px;color:var(--ink3);margin-bottom:16px}
+.chk-group{background:var(--surf);border-radius:20px;box-shadow:var(--cs);overflow:hidden;margin-bottom:10px;transition:background .3s,box-shadow .3s}
+.chk-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;border:none;background:transparent;cursor:pointer;
+  width:100%;gap:10px;min-height:56px;
+  transition:background .2s;
+}
+.chk-head:hover{background:rgba(168,134,100,.05)}
+.chk-head-title{font-family:'Fraunces',serif;font-size:17px;font-weight:500;color:var(--ink);text-align:left;line-height:1.2}
+.chk-head-r{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink3);flex-shrink:0;font-weight:600}
+.mini-bar{height:4px;width:44px;background:var(--surf2);border-radius:var(--pill);overflow:hidden}
+.mini-bar-fill{height:100%;background:linear-gradient(90deg,var(--peach),var(--pd));border-radius:var(--pill);transition:width .4s cubic-bezier(.22,.68,0,1)}
+.chev{font-style:normal;transition:transform .25s cubic-bezier(.22,.68,0,1.3);display:inline-block}
+.chk-items{display:none;padding:0 12px 12px;flex-direction:column;gap:8px}
+.chk-items.open{display:flex;animation:fadeUp .2s ease both}
+.chk-item{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  background:var(--surf);border-radius:16px;box-shadow:var(--cs);
+  cursor:pointer;min-height:52px;
+  transition:var(--trans);
+}
+.chk-item:hover{transform:translateX(3px)}
+.chk-item:active{transform:scale(.97)}
+.chk-item.done{opacity:.5}
+.chk-box{
+  width:24px;height:24px;border-radius:8px;flex-shrink:0;
+  display:grid;place-items:center;font-size:13px;
+  transition:all .25s cubic-bezier(.22,.68,0,1.4);
+}
+.chk-box.on{
+  background:radial-gradient(circle at 30% 25%,#fde3d0,var(--peach) 60%,var(--pd));
+  box-shadow:2px 3px 5px rgba(217,149,112,.35);color:var(--ink);
+  transform:scale(1.1);
+}
+/* Checkbox dos exames usa a cor azul da paleta, pra não repetir o
+   pêssego já usado no selo de período recomendado. Na menina, segue
+   o rosa/lilás do tema como o restante do app. */
+.exm-chk.on{
+  background:radial-gradient(circle at 30% 25%,#dce6ee,var(--blue) 60%,var(--bd));
+  box-shadow:2px 3px 5px rgba(111,139,163,.35);color:var(--ink);
+}
+[data-girl] .exm-chk.on{
+  background:radial-gradient(circle at 30% 25%,#fde3d0,var(--peach) 60%,var(--pd));
+  box-shadow:2px 3px 5px rgba(217,149,112,.35);
+}
+.chk-box.off{background:var(--surf2);box-shadow:var(--ci);border:1.5px solid var(--ink3)}
+.chk-txt{font-size:14px;font-weight:500;flex:1;line-height:1.35;color:var(--ink);transition:color .2s}
+.chk-item.done .chk-txt{text-decoration:line-through;color:var(--ink3)}
+
+/* Fertil date inputs */
+.di-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.di-row{
+  display:grid;grid-template-columns:28px 1fr auto auto;gap:8px;align-items:center;
+  padding:10px 14px;background:var(--surf2);border-radius:16px;box-shadow:var(--ci);
+  transition:background .3s;
+}
+.di-idx{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fad9d0,var(--rose) 60%,#e5b4a8);color:white;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0}
+.di-inp{background:transparent;border:none;font-family:inherit;font-size:16px;color:var(--ink);outline:none;min-width:0;width:100%;transition:color .3s}
+.di-inp::placeholder{color:var(--ink3);font-size:14px}
+.di-gap{font-size:11px;color:var(--ink2);background:var(--surf);border-radius:var(--pill);padding:4px 10px;white-space:nowrap;box-shadow:var(--cs)}
+.di-rm{background:none;border:none;color:var(--ink3);cursor:pointer;font-size:20px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;transition:var(--trans)}
+.di-rm:hover{color:var(--pd);transform:scale(1.15)}
+.add-di{
+  width:100%;background:var(--surf2);border:none;border-radius:14px;padding:14px;
+  color:var(--pd2);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+  box-shadow:var(--ci);display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:var(--trans);
+}
+.add-di:hover{transform:scale(1.02);background:var(--surfs)}
+.add-di:active{transform:scale(.97)}
+.cycle-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.cs{background:var(--surf);border-radius:14px;padding:12px;text-align:center;box-shadow:var(--cs);transition:var(--trans)}
+.cs:hover{transform:translateY(-2px)}
+.cs .lbl{margin-bottom:4px}
+.cs .val{font-family:'Fraunces',serif;font-size:22px;font-variant-numeric:tabular-nums}
+.hidden{display:none!important}
+
+/* ── Bottom Nav ── */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
+  background:var(--surf);
+  box-shadow:0 -8px 24px rgba(58,46,42,.12),0 -1px 0 rgba(58,46,42,.06);
+  display:grid;grid-template-columns:repeat(6,1fr);z-index:100;
+  padding:0 6px;padding-bottom:env(safe-area-inset-bottom);
+  transition:background .3s,box-shadow .3s;
+}
+.nav-btn{
+  border:none;background:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  cursor:pointer;font-family:inherit;padding:8px 2px;
+  transition:var(--trans);border-radius:14px;margin:6px 1px;
+}
+.nav-btn .nav-ico{font-size:20px;line-height:1;transition:transform .22s cubic-bezier(.22,.68,0,1.4)}
+.nav-btn .nav-lbl{font-size:9px;font-weight:700;color:var(--ink3);letter-spacing:.02em;transition:color .2s}
+.nav-btn:hover .nav-ico{transform:translateY(-2px) scale(1.1)}
+.nav-btn.on .nav-lbl{color:var(--pd2)}
+.nav-btn.on .nav-ico{transform:scale(1.12)}
+.nav-btn:active{transform:scale(.92)}
+
+/* ── About ── */
+footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);letter-spacing:.06em}
+.about-hero{text-align:center;padding:40px 22px 30px;position:relative;overflow:hidden}
+.about-hero::before{
+  content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(217,149,112,.28),transparent 70%);
+  pointer-events:none;
+}
+.about-avatar-ring{
+  width:112px;height:112px;border-radius:50%;margin:0 auto 18px;padding:4px;
+  background:linear-gradient(135deg,var(--peach),var(--pd));
+  box-shadow:var(--co);position:relative;
+  animation:floatOrb 4s ease-in-out infinite;
+}
+.about-avatar{
+  width:100%;height:100%;border-radius:50%;overflow:hidden;position:relative;
+  background:radial-gradient(circle at 35% 30%,#fde3d0,var(--peach) 60%,var(--pd));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 2px 3px 6px rgba(0,0,0,.08);
+}
+.about-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.about-avatar .mono{font-family:'Fraunces',serif;font-size:36px;font-weight:500;color:#fff8ef;letter-spacing:-.02em}
+.about-name{font-family:'Fraunces',serif;font-size:25px;font-weight:500;letter-spacing:-.02em;color:var(--ink);position:relative}
+.about-role{font-size:12.5px;color:var(--ink2);margin-top:5px;font-weight:600;letter-spacing:.01em}
+.about-loc{font-size:11.5px;color:var(--ink3);margin-top:4px;letter-spacing:.01em}
+.about-loc a{color:var(--pd2);text-decoration:none;font-weight:700}
+.about-badges{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:18px 0 2px}
+.about-badge{
+  font-size:10.5px;font-weight:700;color:var(--pd2);
+  background:linear-gradient(135deg,#fde3d0,var(--peach) 90%);
+  padding:5px 12px;border-radius:var(--pill);
+  box-shadow:1px 2px 5px rgba(217,149,112,.25);
+}
+[data-dark] .about-badge{color:#2a180f}
+.about-links{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;justify-content:center}
+.about-link{
+  display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+  color:var(--ink);background:var(--surf2);padding:10px 17px;border-radius:var(--pill);
+  box-shadow:var(--cs);text-decoration:none;transition:var(--trans);
+}
+.about-link:hover{transform:translateY(-2px);box-shadow:6px 8px 18px rgba(168,134,100,.22)}
+.about-link:active{transform:scale(.96)}
+.about-link .ico{font-size:13px}
+.about-bio{font-size:13.5px;color:var(--ink2);line-height:1.7;text-align:left;background:var(--surf2);border-radius:16px;padding:16px 18px;box-shadow:var(--ci)}
+.about-bio p+p{margin-top:10px}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:calc(var(--nav-h) + 18px);left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--ink);color:var(--cream);
+  padding:10px 20px;border-radius:var(--pill);
+  font-size:13px;font-weight:600;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+  opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .3s cubic-bezier(.22,.68,0,1.2);
+  z-index:10000;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <div class="brand serif">MK<span>Calc</span> Gemelar</div>
+    <div class="hdr-actions">
+      <button class="dark-btn" id="onbHelpBtn" title="Ver tutorial">?</button>
+      <button class="dark-btn" id="darkBtn" title="Alternar tema"><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--peach)" stroke="var(--pd2)" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" style="display:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    </div>
+  </div>
+
+  <!-- ── Calcular ── -->
+  <div class="page active" id="pg-calc">
+    <div class="card feat">
+      <div class="lbl">Calcular</div>
+      <div class="card-title">Como você quer <span class="serif" style="color:var(--pd);font-style:italic">começar?</span></div>
+
+      <div class="calc-tabs">
+        <button class="ctab on" data-tab="dum"><span class="ico">📅</span>DUM</button>
+        <button class="ctab" data-tab="usg"><span class="ico">🔊</span>Ultrassom</button>
+        <button class="ctab" data-tab="dpp"><span class="ico">👶</span>DPP</button>
+        <button class="ctab" data-tab="fertil"><span class="ico">✨</span>Fértil</button>
+      </div>
+
+      <div id="pane-dum">
+        <div class="helper"><strong>DUM:</strong> Informe o primeiro dia da sua última menstruação.</div>
+        <div class="field"><label>Data da última menstruação</label>
+          <input class="inp" type="text" id="lmpInp" placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric">
+        </div>
+      </div>
+      <div id="pane-usg" class="hidden">
+        <div class="helper"><strong>Ultrassom:</strong> Informe a data do exame e a IG informada.</div>
+        <div class="field"><label>Data do ultrassom</label>
+          <input class="inp" type="text" id="usgDate" placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric">
+        </div>
+        <div class="row2">
+          <div class="field"><label>Semanas</label>
+            <input class="inp" type="number" id="usgW" placeholder="ex: 12" min="4" max="42" inputmode="numeric">
+          </div>
+          <div class="field"><label>Dias</label>
+            <input class="inp" type="number" id="usgD" placeholder="0–6" min="0" max="6" inputmode="numeric">
+          </div>
+        </div>
+      </div>
+      <div id="pane-dpp" class="hidden">
+        <div class="helper"><strong>DPP:</strong> Informe a data provável do parto já calculada.</div>
+        <div class="field"><label>Data provável do parto</label>
+          <input class="inp" type="text" id="dppInp" placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric">
+        </div>
+      </div>
+      <div id="pane-fertil" class="hidden">
+        <div class="helper"><strong>Período fértil:</strong> Informe as datas de início das suas menstruações (mín. 2).</div>
+        <div class="di-list" id="diList"></div>
+        <button class="add-di" id="addDiBtn">＋ Adicionar menstruação</button>
+        <div class="cycle-stats hidden" id="cycleStats">
+          <div class="cs"><div class="lbl">Ciclo médio</div><div class="val serif" id="csAvg">—</div></div>
+          <div class="cs"><div class="lbl">Próx. ovulação</div><div class="val serif" id="csOv">—</div></div>
+          <div class="cs"><div class="lbl">Próx. período</div><div class="val serif" id="csNp">—</div></div>
+        </div>
+      </div>
+
+      <button class="btn-calc" id="calcBtn">Calcular →</button>
+    </div>
+  </div>
+
+  <!-- ── Resultado ── -->
+  <div class="page" id="pg-result">
+    <div id="pregResult" class="hidden stagger">
+      <div class="card feat">
+        <div class="lbl" id="resMethod">Resultado</div>
+        <div class="card-title" id="resTitle">—</div>
+        <div class="ring-wrap">
+          <div class="ring-box">
+            <div class="ring-bg-el"></div>
+            <svg class="ring-svg" width="180" height="180" viewBox="0 0 180 180">
+              <defs>
+                <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:var(--track)"/>
+                  <stop offset="100%" style="stop-color:var(--track2)"/>
+                </linearGradient>
+              </defs>
+              <circle cx="90" cy="90" r="80" fill="none" stroke="var(--surf2)" stroke-width="12"/>
+              <circle id="ringFg" cx="90" cy="90" r="80" fill="none" stroke="url(#pg)" stroke-width="12" stroke-linecap="round" stroke-dasharray="502.7" stroke-dashoffset="502.7"/>
+            </svg>
+            <div class="ring-center">
+              <div>
+                <div class="ig-big serif" id="igBig"><em>—</em></div>
+                <div class="ig-unit">Semanas · Dias</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="months-highlight" id="monthsHighlight">
+          <div class="lbl">Meses de gestação</div>
+          <div class="months-big serif" id="monthsBig">—</div>
+          <div class="months-sub" id="monthsSub"></div>
+        </div>
+        <div class="stat-grid" id="statGrid"></div>
+      </div>
+
+      <div class="baby-card" id="babyCard">
+        <div class="lbl" id="babyWeekLbl">Bebê</div>
+        <div class="card-title serif" id="babyFruit">—</div>
+        <div class="baby-orb-wrap">
+          <div class="baby-orb">
+            <img class="baby-orb-img" id="babyFruitImg" src="" alt="" onerror="this.src='frutas/semente.png'">
+          </div>
+        </div>
+        <div class="baby-avg">
+          <div class="val serif" id="babyPhrase">—</div>
+        </div>
+        <div class="baby-dev" id="babyDev"></div>
+        <div class="femur-calc">
+          <div class="femur-title">Quer saber a altura de cada bebê?</div>
+          <div class="femur-sub">Coloque aqui a medida do fêmur de cada gêmeo, em centímetros.</div>
+          <div class="femur-row">
+            <span class="femur-unit" style="width:26px">A</span>
+            <input class="inp" type="number" id="femurInpA" placeholder="Fêmur · Gêmeo A" step="0.1" min="0" max="8" inputmode="decimal">
+            <span class="femur-unit">cm</span>
+          </div>
+          <div class="femur-result hidden" id="femurResultA"></div>
+          <div class="femur-row" style="margin-top:10px">
+            <span class="femur-unit" style="width:26px">B</span>
+            <input class="inp" type="number" id="femurInpB" placeholder="Fêmur · Gêmeo B" step="0.1" min="0" max="8" inputmode="decimal">
+            <span class="femur-unit">cm</span>
+          </div>
+          <div class="femur-result hidden" id="femurResultB"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="lbl">Crescimento gemelar</div>
+        <div class="card-title">Discordância de peso</div>
+        <div class="helper"><strong>Como usar:</strong> informe o peso fetal estimado (PFE) de cada gêmeo, em gramas, conforme o ultrassom de crescimento. A discordância é calculada como (maior − menor) ÷ maior peso, × 100.</div>
+        <div class="row2">
+          <div class="field"><label>Peso · Gêmeo A (g)</label>
+            <input class="inp" type="number" id="pesoA" placeholder="ex: 1500" min="0" inputmode="numeric">
+          </div>
+          <div class="field"><label>Peso · Gêmeo B (g)</label>
+            <input class="inp" type="number" id="pesoB" placeholder="ex: 1350" min="0" inputmode="numeric">
+          </div>
+        </div>
+        <div class="femur-result hidden" id="discordResult"></div>
+      </div>
+
+      <div class="card">
+        <div class="lbl">Timeline</div>
+        <div class="card-title">Semana a semana</div>
+        <div class="tl-cap"><span>Semanas</span><span>Meses</span></div>
+        <div class="tl-wrap">
+          <div class="tl" id="tlEl">
+            <div class="tl-line"><div class="tl-fill" id="tlFill"></div></div>
+            <div class="tl-weeks" id="tlWeeks"></div>
+            <div class="tl-dot" id="tlDot"></div>
+            <div class="tl-months" id="tlMonths"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card feat" id="weightCard">
+        <button class="mon-head" id="weightHead" type="button" aria-expanded="false">
+          <div class="mon-head-txt">
+            <div class="lbl">⚖️ Saúde materna</div>
+            <div class="card-title mon-head-title">Peso na <span class="serif" style="color:var(--pd);font-style:italic">gestação</span></div>
+            <div class="mon-head-sub" id="weightHeadSub">Nenhum registro ainda</div>
+          </div>
+          <i class="mon-chev" id="weightChev">▾</i>
+        </button>
+        <div class="mon-body" id="weightBody">
+          <div class="helper">Registre seu peso ao longo do pré-natal e acompanhe a curva de ganho. Preencha sua altura pra calcular o IMC automaticamente. <span style="color:var(--ink3)">Isso é só um acompanhamento — o que é saudável pra você é sempre definido junto com o seu obstetra.</span></div>
+          <div class="wt-field" style="margin-bottom:14px">
+            <label>Sua altura</label>
+            <div class="wt-field-row"><input class="inp" type="number" id="heightInp" placeholder="Ex: 165" step="0.1" min="0" inputmode="decimal"><span class="wt-field-unit">cm</span></div>
+          </div>
+          <div class="wt-field" style="margin-bottom:14px">
+            <label>Peso pré-gestacional</label>
+            <div class="wt-field-row"><input class="inp" type="number" id="prePregInp" placeholder="Opcional" step="0.1" min="0" inputmode="decimal"><span class="wt-field-unit">kg</span></div>
+          </div>
+          <div id="weightSummaryWrap"></div>
+          <div id="weightChartWrap"></div>
+          <div class="exm-cta" id="weightAddBtn">
+            <div>
+              <div class="exm-cta-txt">⚖️ Registrar peso</div>
+              <div class="exm-cta-sub" id="weightLastSub">Nenhum registro ainda</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
+          <div id="weightHistoryWrap"></div>
+        </div>
+      </div>
+
+      <div class="card feat" id="bpCard">
+        <button class="mon-head" id="bpHead" type="button" aria-expanded="false">
+          <div class="mon-head-txt">
+            <div class="lbl">🩺 Saúde materna</div>
+            <div class="card-title mon-head-title">Pressão <span class="serif" style="color:var(--pd);font-style:italic">arterial</span></div>
+            <div class="mon-head-sub" id="bpHeadSub">Nenhum registro ainda</div>
+          </div>
+          <i class="mon-chev" id="bpChev">▾</i>
+        </button>
+        <div class="mon-body" id="bpBody">
+          <div class="helper">Toda consulta de pré-natal inclui aferição da pressão — vale registrar aqui pra levar o histórico pro seu obstetra. <span style="color:var(--ink3)">O que é ideal pra você é sempre definido com seu obstetra.</span></div>
+          <div class="field" style="margin-bottom:14px">
+            <label>Você tem pressão alta crônica (já toma remédio pra pressão)?</label>
+            <div class="sex-tabs" id="htnTabs" style="margin-bottom:0">
+              <button class="stab" data-htn="nao">Não</button>
+              <button class="stab" data-htn="sim">Sim</button>
+            </div>
+          </div>
+          <div id="bpSummaryWrap"></div>
+          <div class="exm-cta" id="bpAddBtn">
+            <div>
+              <div class="exm-cta-txt">🩺 Registrar pressão</div>
+              <div class="exm-cta-sub" id="bpLastSub">Nenhum registro ainda</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
+          <div id="bpHistoryWrap"></div>
+        </div>
+      </div>
+
+      <div class="card feat" id="gttCard">
+        <button class="mon-head" id="gttHead" type="button" aria-expanded="false">
+          <div class="mon-head-txt">
+            <div class="lbl">🩸 Saúde materna</div>
+            <div class="card-title mon-head-title">Curva <span class="serif" style="color:var(--pd);font-style:italic">glicêmica</span></div>
+            <div class="mon-head-sub" id="gttHeadSub">Ainda não registrada</div>
+          </div>
+          <i class="mon-chev" id="gttChev">▾</i>
+        </button>
+        <div class="mon-body" id="gttBody">
+          <div class="helper">O TOTG (teste oral de tolerância à glicose) costuma ser pedido uma única vez, entre 24 e 28 semanas — diferente do peso e da pressão, não é algo que se repete. Registre aqui os 3 valores da sua curva pra levar o resultado organizado pro seu obstetra. <span style="color:var(--ink3)">O diagnóstico de diabetes gestacional é sempre confirmado pelo seu obstetra.</span></div>
+          <div id="gttWrap"></div>
+        </div>
+      </div>
+
+      <div class="card feat" id="kickCard">
+        <button class="mon-head" id="kickHead" type="button" aria-expanded="false">
+          <div class="mon-head-txt">
+            <div class="lbl">🤰 Bem-estar fetal</div>
+            <div class="card-title mon-head-title">Movimentos do <span class="serif" style="color:var(--pd);font-style:italic">bebê</span></div>
+            <div class="mon-head-sub" id="kickHeadSub">Nenhum registro ainda</div>
+          </div>
+          <i class="mon-chev" id="kickChev">▾</i>
+        </button>
+        <div class="mon-body" id="kickBody">
+          <div class="helper">Escolha um momento tranquilo — de preferência sempre no mesmo horário — e conte até sentir <strong>10 movimentos</strong>. Não existe um número "certo" de minutos: o que importa é você conhecer o seu próprio padrão, não comparar com números fixos. <span style="color:var(--ink3)">Sentiu diferente do seu costume, ou está preocupada? Fale com seu obstetra a qualquer momento — não precisa esperar a contagem terminar.</span></div>
+          <div class="exm-cta" id="kickStartBtn" style="margin-top:12px">
+            <div>
+              <div class="exm-cta-txt">👣 Começar contagem</div>
+              <div class="exm-cta-sub" id="kickLastSub">Nenhum registro ainda</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
+          <div id="kickHistoryWrap"></div>
+        </div>
+      </div>
+
+      <div class="card feat" id="contrCard">
+        <button class="mon-head" id="contrHead" type="button" aria-expanded="false">
+          <div class="mon-head-txt">
+            <div class="lbl">💫 Trabalho de parto</div>
+            <div class="card-title mon-head-title">Monitor de <span class="serif" style="color:var(--pd);font-style:italic">contrações</span></div>
+            <div class="mon-head-sub" id="contrHeadSub">Nenhum registro ainda</div>
+          </div>
+          <i class="mon-chev" id="contrChev">▾</i>
+        </button>
+        <div class="mon-body" id="contrBody">
+          <div class="helper">Toque para marcar o início e o fim de cada contração — o app só registra os horários, sem dar veredito sobre estar ou não em trabalho de parto. <span style="color:var(--ink3)">Essa decisão é sempre sua, junto com o seu obstetra.</span></div>
+          <div class="exm-cta" id="contrStartBtn" style="margin-top:12px">
+            <div>
+              <div class="exm-cta-txt">💫 Abrir monitor de contrações</div>
+              <div class="exm-cta-sub" id="contrLastSub">Nenhum registro ainda</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="lbl">Próximos passos</div>
+        <div class="card-title">Exames da gestação</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="exm-cta" data-page="exames" data-filter="usg">
+            <div>
+              <div class="exm-cta-txt">🔊 Ultrassons na gravidez</div>
+              <div class="exm-cta-sub">Acompanhe o bebê, período a período</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
+          <div class="exm-cta" data-page="exames" data-filter="lab">
+            <div>
+              <div class="exm-cta-txt">🧪 Exames laboratoriais</div>
+              <div class="exm-cta-sub">Exames de sangue e urina do pré-natal</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
+          <div class="exm-cta" data-page="exames" data-filter="vac">
+            <div>
+              <div class="exm-cta-txt">💉 Vacinas na gestação</div>
+              <div class="exm-cta-sub">Calendário de vacinação da gestante (PNI)</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="fertResult" class="hidden stagger">
+      <div class="card feat">
+        <div class="lbl">Período fértil</div>
+        <div class="card-title">Sua janela de <span class="serif" style="color:var(--pd);font-style:italic">maior fertilidade</span></div>
+        <div class="day1">
+          <div class="d1b">1</div>
+          <div><strong>O dia 1 é o primeiro dia da menstruação.</strong><br><span style="color:var(--ink2)">Toda contagem começa daí — não do fim.</span></div>
+        </div>
+        <div class="f-cards">
+          <div class="fc peak"><div class="lbl">Próxima ovulação</div><div class="val serif" id="fOv">—</div><div class="sub" id="fOvSub">—</div></div>
+          <div class="fc"><div class="lbl">Janela fértil</div><div class="val serif" id="fJan">—</div><div class="sub">~6 dias com maior chance</div></div>
+        </div>
+      </div>
+      <div class="card" id="namorarCard">
+        <div class="lbl">✨ Dica especial</div>
+        <div class="card-title">A melhor semana para <span class="serif" style="color:var(--pd);font-style:italic">namorar</span> 💕</div>
+        <div class="namorar-wrap" id="namorarWrap"></div>
+      </div>
+    </div>
+
+    <div id="noResult" class="card" style="text-align:center;padding:48px 24px">
+      <div style="font-size:48px;margin-bottom:16px">🌸</div>
+      <div class="serif" style="font-size:22px;color:var(--ink2);margin-bottom:8px">Nenhum cálculo ainda</div>
+      <div style="font-size:14px;color:var(--ink3);line-height:1.6">Vá até a aba <strong>Calcular</strong> e informe a data para ver seu resultado aqui.</div>
+    </div>
+  </div>
+
+  <!-- ── Exames ── -->
+  <div class="page" id="pg-exames">
+    <div class="card feat">
+      <div class="lbl">Guia do pré-natal</div>
+      <div class="card-title">Exames da <span class="serif" style="color:var(--pd);font-style:italic">gestação</span></div>
+      <div class="helper">Aqui você encontra os principais exames do pré-natal e o período em que costumam ser feitos. Toque em qualquer exame para entender melhor pra que ele serve. <strong>Alguns exames só são pedidos quando o seu obstetra considerar necessário</strong> — o calendário pode variar de gestação para gestação.</div>
+      <div class="exm-cta hidden" id="exmShowAllBtn" style="margin-top:12px">
+        <div>
+          <div class="exm-cta-txt">Ver guia completo</div>
+          <div class="exm-cta-sub">Mostrar ultrassons, exames laboratoriais e vacinas juntos</div>
+        </div>
+        <div class="exm-cta-arrow">↺</div>
+      </div>
+    </div>
+
+    <div class="card" id="exmUsgCard">
+      <div class="lbl">🔊 Ultrassons</div>
+      <div class="card-title" id="exmUsgTitle">Acompanhando o bebê</div>
+      <div class="exm-list" id="exmUsgList"></div>
+    </div>
+
+    <div class="card" id="exmLabCard">
+      <div class="lbl">🧪 Exames laboratoriais</div>
+      <div class="card-title">Cuidando da sua saúde</div>
+      <div class="exm-list" id="exmLabList"></div>
+    </div>
+
+    <div class="card" id="exmVacCard">
+      <div class="lbl">💉 Vacinas</div>
+      <div class="card-title">Vacinação na gestação</div>
+      <div class="helper">O esquema de vacinação deve ser individualizado conforme o seu histórico vacinal, a idade gestacional, condições clínicas e a situação epidemiológica — sempre converse com o seu obstetra. <span style="color:var(--ink3)">Fonte: Ministério da Saúde, Programa Nacional de Imunizações (PNI) — Calendário Técnico Nacional de Vacinação da Gestante, 2026.</span></div>
+      <div class="exm-list" id="exmVacList"></div>
+    </div>
+  </div>
+
+  <!-- ── Checklist ── -->
+  <div class="page" id="pg-check">
+    <div class="card">
+      <div class="lbl">Checklist</div>
+      <div class="card-title">Sua jornada, item por item</div>
+      <div class="chk-prog"><div class="chk-prog-fill" id="chkFill" style="width:0%"></div></div>
+      <div class="chk-prog-txt" id="chkTxt">0% concluído</div>
+      <div id="chkList"></div>
+    </div>
+  </div>
+
+  <!-- ── Perfil ── -->
+  <div class="page" id="pg-profile">
+    <div class="card feat">
+      <div class="lbl">Perfil</div>
+      <div class="card-title">Deixe o app com a <span class="serif" style="color:var(--pd);font-style:italic">cara do bebê</span></div>
+      <div class="field"><label>Nome do bebê</label>
+        <input class="inp" type="text" id="babyNameInp" placeholder="Ex: Alice, Miguel...">
+      </div>
+      <div class="field"><label>Sexo do bebê</label>
+        <div class="sex-tabs" id="sexTabs">
+          <button class="stab" data-sex="menino"><span class="ico">💙</span>Menino</button>
+          <button class="stab" data-sex="menina"><span class="ico">🩷</span>Menina</button>
+        </div>
+      </div>
+      <div class="helper">Ao escolher <strong>menina</strong>, as cores do app mudam para tons de rosa e lilás — ao escolher <strong>menino</strong>, muda-se para tons de azul.</div>
+    </div>
+
+    <div class="card">
+      <div class="lbl">Nova gestação</div>
+      <div class="card-title" style="font-size:17px">Começando <span class="serif" style="color:var(--pd);font-style:italic">tudo de novo?</span></div>
+      <div class="helper">Isso apaga, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso, pressão e curva glicêmica — pra você recomeçar do zero em uma nova gestação.</div>
+      <button class="btn-danger" id="resetPregBtn">🔄 Começar nova gestação</button>
+    </div>
+  </div>
+
+  <!-- ── Sobre ── -->
+  <div class="page" id="pg-about">
+    <div class="card feat about-hero">
+      <div class="about-avatar-ring">
+        <div class="about-avatar">
+          <img src="foto-morgana.jpg" alt="Dra. Morgana Kummer" onerror="this.remove()">
+          <span class="mono">MK</span>
+        </div>
+      </div>
+      <div class="about-name">Dra. Morgana Kummer</div>
+      <div class="about-role">Ultrassonografia &amp; Medicina Fetal</div>
+      <div class="about-loc">📍 Sete Lagoas, MG · <a href="https://instagram.com/dramorganak" target="_blank" rel="noopener">@dramorganak</a></div>
+      <div class="about-badges">
+        <span class="about-badge">Ultrassom Geral</span>
+        <span class="about-badge">Ultrassom Obstétrico</span>
+        <span class="about-badge">Medicina Fetal</span>
+      </div>
+      <div class="about-links">
+        <a class="about-link" href="https://dramorgana.com.br" target="_blank" rel="noopener"><span class="ico">🌐</span>dramorgana.com.br</a>
+        <a class="about-link" href="https://instagram.com/dramorganak" target="_blank" rel="noopener"><span class="ico">📷</span>@dramorganak</a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="lbl">Sobre o app</div>
+      <div class="card-title" style="font-size:21px;margin-bottom:14px">MK<span style="color:var(--pd)">Calc</span> <span style="font-size:11px;color:var(--ink3);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-family:inherit">· Calculadora Gestacional</span></div>
+      <div class="about-bio">
+        <p>App desenvolvido para apoiar gestantes e mulheres em planejamento familiar com cálculos de idade gestacional, período fértil e acompanhamento pré-natal.</p>
+        <p style="color:var(--ink3);font-size:12px">⚠️ Os resultados são informativos. Confirme sempre com seu obstetra.</p>
+      </div>
+    </div>
+    <footer style="padding-bottom:8px">mkcalc v3 · desenvolvido com carinho por Dra. Morgana Kummer</footer>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Onboarding -->
+<div class="onb-overlay" id="onbOverlay">
+  <div class="onb-sheet" id="onbSheet">
+    <div id="onbBody"></div>
+    <div class="onb-dots" id="onbDots"></div>
+    <div class="onb-actions">
+      <button class="onb-skip" id="onbSkip">Pular</button>
+      <button class="onb-next" id="onbNext">Próximo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Exame detail sheet -->
+<div class="exm-overlay" id="exmOverlay">
+  <div class="exm-sheet" id="exmSheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="exmClose">✕</button>
+    <div id="exmSheetBody"></div>
+  </div>
+</div>
+
+<!-- Contador de movimentos fetais -->
+<div class="exm-overlay" id="kickOverlay">
+  <div class="exm-sheet" id="kickSheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="kickClose">✕</button>
+    <div id="kickSheetBody"></div>
+  </div>
+</div>
+
+<!-- Monitor de contrações -->
+<div class="exm-overlay" id="contrOverlay">
+  <div class="exm-sheet" id="contrSheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="contrClose">✕</button>
+    <div id="contrSheetBody"></div>
+  </div>
+</div>
+
+<!-- Registro de peso -->
+<div class="exm-overlay" id="weightOverlay">
+  <div class="exm-sheet" id="weightSheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="weightClose">✕</button>
+    <div id="weightSheetBody"></div>
+  </div>
+</div>
+
+<!-- Registro de pressão arterial -->
+<div class="exm-overlay" id="bpOverlay">
+  <div class="exm-sheet" id="bpSheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="bpClose">✕</button>
+    <div id="bpSheetBody"></div>
+  </div>
+</div>
+
+<!-- Registro de curva glicêmica (TOTG) -->
+<div class="exm-overlay" id="gttOverlay">
+  <div class="exm-sheet" id="gttSheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="gttClose">✕</button>
+    <div id="gttSheetBody"></div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn on" data-page="calc"><span class="nav-ico">🧮</span><span class="nav-lbl">Calcular</span></button>
+  <button class="nav-btn" data-page="result"><span class="nav-ico">📊</span><span class="nav-lbl">Resultado</span></button>
+  <button class="nav-btn" data-page="exames"><span class="nav-ico">🔬</span><span class="nav-lbl">Exames</span></button>
+  <button class="nav-btn" data-page="check"><span class="nav-ico">✅</span><span class="nav-lbl">Checklist</span></button>
+  <button class="nav-btn" data-page="profile"><span class="nav-ico">🧸</span><span class="nav-lbl">Perfil</span></button>
+  <button class="nav-btn" data-page="about"><span class="nav-ico">ℹ️</span><span class="nav-lbl">Sobre</span></button>
+</nav>
+
+<script>
+const TODAY = new Date();
+const fmt = d => {
+  const m=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return `${String(d.getDate()).padStart(2,'0')} ${m[d.getMonth()]} ${d.getFullYear()}`;
+};
+const fmtS = d => `${d.getDate()}/${d.getMonth()+1}`;
+const toISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+/* ── Fórmulas de cálculo gestacional (funções puras) ── */
+const GESTATION_DAYS = 280; // 40 semanas
+const MAX_WEEKS = 42;
+const MONTH_BREAKPOINTS = [0, 30, 59, 91, 121, 151, 182, 212, 243, 273];
+
+function normalizeUTCDate(d){
+  return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function diffDaysUTC(from, to){
+  return Math.round((normalizeUTCDate(to) - normalizeUTCDate(from)) / 86400000);
+}
+function daysToWeeksInfo(totalDaysRaw){
+  const totalDays = Math.max(0, totalDaysRaw);
+  return { totalDays, weeks: Math.floor(totalDays / 7), days: totalDays % 7 };
+}
+function daysToGestationalMonths(totalDays){
+  let meses = 0;
+  while (meses < 9 && MONTH_BREAKPOINTS[meses + 1] <= totalDays) meses++;
+  const diasNoMes = totalDays - MONTH_BREAKPOINTS[meses];
+  return { mesesCompletos: meses, diasNoMes };
+}
+function currentGestationalMonth(mesesCompletos, diasNoMes){
+  return diasNoMes === 0 ? Math.max(1, mesesCompletos) : Math.min(9, mesesCompletos + 1);
+}
+function trimesterFromWeeks(weeks){
+  if (weeks < 14) return 1;
+  if (weeks < 28) return 2;
+  return 3;
+}
+function timelinePct(weeks, daysInWeek){
+  const totalWeeks = weeks + daysInWeek / 7;
+  return Math.max(0, Math.min(100, (totalWeeks / MAX_WEEKS) * 100));
+}
+function pluralize(n, singular, plural){
+  return `${n} ${n === 1 ? singular : plural}`;
+}
+function formatWeeksText(weeks, daysInWeek){
+  const w = pluralize(weeks, 'semana', 'semanas');
+  return daysInWeek === 0 ? w : `${w} e ${pluralize(daysInWeek, 'dia', 'dias')}`;
+}
+function formatMonthsText(mesesCompletos, diasNoMes){
+  const m = pluralize(mesesCompletos, 'mês', 'meses');
+  return diasNoMes === 0 ? m : `${m} e ${pluralize(diasNoMes, 'dia', 'dias')}`;
+}
+function formatMonthsHTML(mesesCompletos, diasNoMes){
+  const mesesPart = `<em>${mesesCompletos}</em> ${mesesCompletos === 1 ? 'mês' : 'meses'}`;
+  return diasNoMes === 0 ? mesesPart : `${mesesPart} e ${pluralize(diasNoMes, 'dia', 'dias')}`;
+}
+
+function parseBR(s){
+  const p=s.split('/');
+  if(p.length!==3||p[2].length!==4)return null;
+  const day=+p[0],month=+p[1],year=+p[2];
+  const minYear=TODAY.getFullYear()-100,maxYear=TODAY.getFullYear()+1;
+  if(year<minYear||year>maxYear)return null;
+  const iso=`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+  const d=new Date(iso+'T12:00:00');
+  if(isNaN(d))return null;
+  if(d.getFullYear()!==year||d.getMonth()+1!==month||d.getDate()!==day)return null;
+  return iso;
+}
+function igFromLMP(s){
+  const lmp=new Date(s+'T12:00:00');
+  const days=diffDaysUTC(lmp,TODAY);
+  const info=daysToWeeksInfo(days);
+  return{weeks:info.weeks,days:info.days,totalDays:info.totalDays,lmp};
+}
+function dppFromLMP(s){const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+GESTATION_DAYS);return d;}
+function igFromUSG(s,w,d){const e=new Date(s+'T12:00:00');const l=new Date(e);l.setDate(l.getDate()-(w*7+d));return igFromLMP(toISO(l));}
+function dppFromUSG(s,w,d){const e=new Date(s+'T12:00:00');const l=new Date(e);l.setDate(l.getDate()-(w*7+d));return dppFromLMP(toISO(l));}
+function igFromDPP(s){const dpp=new Date(s+'T12:00:00');const l=new Date(dpp);l.setDate(l.getDate()-GESTATION_DAYS);return igFromLMP(toISO(l));}
+function fertileFromDates(arr){
+  const dates=arr.filter(Boolean).map(d=>new Date(d+'T12:00:00')).sort((a,b)=>a-b);
+  if(dates.length<2)return null;
+  const gaps=[];
+  for(let i=1;i<dates.length;i++)gaps.push(Math.round((dates[i]-dates[i-1])/86400000));
+  const vg=gaps.filter(g=>g>=18&&g<=50);
+  if(!vg.length)return null;
+  const cd=Math.round(vg.reduce((a,b)=>a+b,0)/vg.length);
+  const lp=dates[dates.length-1];
+  const np=new Date(lp);np.setDate(np.getDate()+cd);
+  const ov=new Date(np);ov.setDate(ov.getDate()-14);
+  const st=new Date(ov);st.setDate(st.getDate()-5);
+  const en=new Date(ov);en.setDate(en.getDate()+1);
+  return{ov,st,en,cd,np};
+}
+
+const MS={4:{f:'semente de papoula',l:'0.4 cm',w:'< 1 g',d:'Implantação. Coração começa a se formar.'},6:{f:'lentilha',l:'0.6 cm',w:'< 1 g',d:'Batimentos cardíacos detectáveis na maioria das vezes. Tubo neural se fecha.'},8:{f:'framboesa',l:'1.6 cm',w:'1 g',d:'Bracinhos e perninhas surgem. Olhinhos se formam. Primeiros reflexos (movimentos involuntários) já aparecem.'},10:{f:'morango',l:'3.1 cm',w:'5 g',d:'Já é chamado de feto. Órgãos vitais funcionando. Rins começam a produzir urina.'},12:{f:'limão',l:'5.4 cm',w:'50 g',d:'Fim do 1º tri. Risco de perda cai.'},14:{f:'pêssego',l:'8.7 cm',w:'92 g',d:'Genitália externa já é distinguível.'},16:{f:'abacate',l:'11.6 cm',w:'155 g',d:'Esqueleto já está praticamente todo calcificado. Lanugo começa a aparecer.'},18:{f:'pimentão',l:'14.2 cm',w:'244 g',d:'Começa a ouvir sons abafados.'},20:{f:'banana',l:'16.4 cm',w:'362 g',d:'Metade da jornada! Mamãe começa a sentir os primeiros movimentos do bebê.'},22:{f:'espiga de milho',l:'27.8 cm',w:'514 g',d:'Sobrancelhas e cílios visíveis. Lanugo mais evidente, cobrindo o corpo. USG Morfológico do 2º trimestre nesta fase.'},24:{f:'milho doce',l:'30 cm',w:'702 g',d:'Pulmões em formação, crescendo rápido. Já escuta bem.'},26:{f:'alface americana',l:'35.6 cm',w:'927 g',d:'Abre os olhinhos. Responde a luzes.'},28:{f:'berinjela',l:'37.6 cm',w:'1.190 g',d:'3º tri. Entra em ciclos de sono REM. Cérebro em aceleração.'},30:{f:'repolho',l:'39.9 cm',w:'1.488 g',d:'Reconhece a voz da mamãe. Ganha ~200 g/sem.'},32:{f:'jicama',l:'42.4 cm',w:'1.815 g',d:'Unhas formadas. Pele mais suave.'},34:{f:'melão cantalupe',l:'45 cm',w:'2.165 g',d:'Sistema nervoso amadurecendo. Gordura aumenta.'},36:{f:'mamão papaia',l:'47.4 cm',w:'2.526 g',d:'Quase a termo. Pode encaixar na pelve.'},38:{f:'alho-poró',l:'49.8 cm',w:'2.886 g',d:'Pulmões prontos. Posição de cabeça para baixo.'},40:{f:'abóbora pequena',l:'51.2 cm',w:'3.230 g',d:'A termo. Todos os sistemas prontos.'}};
+
+function getMilestone(w){
+  for(let i=Math.min(40,w-(w%2));i>=4;i-=2)if(MS[i])return{week:i,...MS[i]};
+  return{week:4,...MS[4]};
+}
+
+/* Frutas usadas no balão do card do bebê, por faixa de semanas.
+   Ordem e faixas definidas pela Dra. Morgana (tamanho real aproximado). */
+const FRUIT_RANGES=[
+  {min:0,max:6,file:'semente',name:'Sementes de maçã',article:''},
+  {min:7,max:7,file:'ervilha',name:'Ervilha',article:'uma'},
+  {min:8,max:9,file:'framboesa',name:'Framboesa',article:'uma'},
+  {min:10,max:10,file:'Uva',name:'Uva',article:'uma'},
+  {min:11,max:11,file:'morango',name:'Morango',article:'um'},
+  {min:12,max:13,file:'pessego',name:'Pêssego',article:'um'},
+  {min:14,max:15,file:'Limao',name:'Limão siciliano',article:'um'},
+  {min:16,max:18,file:'Manga',name:'Manga',article:'uma'},
+  {min:19,max:21,file:'abacate',name:'Abacate',article:'um'},
+  {min:22,max:24,file:'cocoverde',name:'Coco verde',article:'um'},
+  {min:25,max:27,file:'repolho',name:'Repolho',article:'um'},
+  {min:28,max:30,file:'Berinjela',name:'Berinjela',article:'uma'},
+  {min:31,max:32,file:'Melao',name:'Melão',article:'um'},
+  {min:33,max:35,file:'Mamao',name:'Mamão papaia',article:'um'},
+  {min:36,max:37,file:'Abacaxi',name:'Abacaxi',article:'um'},
+  {min:38,max:42,file:'Melancia',name:'Melancia',article:'uma'},
+];
+function getFruitForWeek(weeks){
+  for(const r of FRUIT_RANGES)if(weeks>=r.min&&weeks<=r.max)return r;
+  return FRUIT_RANGES[weeks<FRUIT_RANGES[0].min?0:FRUIT_RANGES.length-1];
+}
+function fruitPhrase(fruit){
+  return fruit.article?`${fruit.article} ${fruit.name.toLowerCase()}`:fruit.name.toLowerCase();
+}
+/* Fórmula da clínica: estatura fetal (cm) = comprimento do fêmur (cm) × 6,9 */
+function fetalHeightFromFemur(femurCm){
+  return femurCm*6.9;
+}
+
+const ULTRASSONS=[
+  {weekStart:8,weekEnd:10,name:'Ultrassom inicial',periodo:'8 a 10 semanas',
+    desc:'Confirma a idade gestacional, os batimentos cardíacos do bebê, a localização da gestação e o número de bebês.'},
+  {weekStart:12,weekEnd:13+6/7,name:'Ultrassom Morfológico do 1º trimestre',periodo:'12 semanas a 13 semanas e 6 dias',
+    desc:'Avalia detalhadamente o desenvolvimento do bebê e ajuda no rastreamento de algumas alterações cromossômicas e malformações. Durante esse exame também é feita a medida da translucência nucal (TN) e o rastreamento do risco de pré-eclâmpsia.',
+    nota:'Esse exame não é a mesma coisa que "Translucência Nucal" isoladamente — a TN faz parte dele, mas o Morfológico do 1º trimestre é bem mais completo.'},
+  {weekStart:22,weekEnd:24,name:'Ultrassom Morfológico do 2º trimestre',periodo:'22 a 24 semanas',
+    desc:'Avalia detalhadamente a anatomia do bebê, o crescimento, a placenta, o líquido amniótico e faz o rastreamento do parto prematuro através da medida do colo do útero por via vaginal.'},
+  {weekStart:24,weekEnd:30,name:'Ecocardiograma Fetal',periodo:'24 a 30 semanas',
+    desc:'Avalia detalhadamente a estrutura e o funcionamento do coração do bebê, incluindo se as válvulas e o fluxo de sangue estão normais — uma avaliação que não é feita no ultrassom morfológico.',
+    indicacao:'Pode ser indicado em situações específicas da gestação, ou quando o obstetra quer uma avaliação mais detalhada do coração do bebê — só é feito quando há indicação médica.'},
+  {weekStart:28,weekEnd:42,name:'Ultrassom Obstétrico com Doppler',periodo:'A partir de 28 semanas (mais comum entre 28 e 32)',
+    desc:'Avalia o crescimento do bebê, a quantidade de líquido amniótico e a circulação de sangue entre a placenta e o bebê.',
+    indicacao:'Pode fazer parte da rotina ou ser pedido quando há necessidade de um acompanhamento mais de perto, sempre conforme orientação do obstetra.'},
+  {weekStart:28,weekEnd:42,name:'Ultrassom com Perfil Biofísico Fetal (PBF)',periodo:'A partir de 28 semanas, quando indicado',
+    desc:'Avalia o bem-estar do bebê observando os movimentos, a respiração, o tônus muscular e a quantidade de líquido amniótico.',
+    indicacao:'É realizado quando o obstetra considerar necessário.'}
+];
+
+const LABORATORIAIS=[
+  {weekStart:8,weekEnd:10,name:'Exames laboratoriais iniciais',periodo:'8 a 10 semanas',
+    desc:'Avaliam a sua saúde e ajudam a identificar anemia, infecções, diabetes e outras condições que podem interferir na gestação.',
+    lista:['Hemograma','Tipagem sanguínea (ABO e Rh)','Coombs indireto (quando Rh negativo)','Glicemia de jejum','Urina tipo I','Urocultura','HIV','Sífilis','Hepatite B','Hepatite C','Rubéola (IgG)','Toxoplasmose (IgG e IgM)','TSH','Vitamina D (opcional)','Citomegalovírus (quando indicado)'],
+    nota:'A relação de exames pode variar conforme o seu histórico de saúde e a orientação do seu obstetra.'},
+  {weekStart:24,weekEnd:28,name:'Curva glicêmica (TOTG)',periodo:'24 a 28 semanas',
+    desc:'Avalia se houve desenvolvimento de diabetes durante a gestação.',
+    valores:[{lbl:'Jejum',val:'≤ 92'},{lbl:'Após 1h',val:'< 180'},{lbl:'Após 2h',val:'< 153'}]},
+  {weekStart:28,weekEnd:28,name:'Exames laboratoriais de acompanhamento',periodo:'28 semanas',
+    desc:'Repetição de alguns exames para acompanhar a sua saúde e identificar alterações que podem surgir durante a gravidez.',
+    lista:['Hemograma','Glicemia (quando indicada)','HIV','Sífilis','Hepatite B (conforme protocolo)','Coombs indireto (gestantes Rh negativo)','Toxoplasmose (quando suscetível)'],
+    nota:'A relação de exames pode variar conforme o seu histórico de saúde e a orientação do seu obstetra.'},
+  {weekStart:35,weekEnd:37,name:'Exame do Cotonete (Pesquisa de Streptococcus Beta-Hemolíticos)',periodo:'35 a 37 semanas',
+    desc:'Detecta se há a bactéria Streptococcus do Grupo B (GBS) na vagina e no ânus da mãe, permitindo que medidas sejam tomadas durante o parto para reduzir o risco de infecção no bebê.'}
+];
+
+const VACINAS=[
+  {weekStart:0,weekEnd:42,name:'Influenza',periodo:'Durante a gestação',
+    desc:'Protege contra a gripe, reduzindo o risco de complicações respiratórias graves na gestante e no bebê.'},
+  {weekStart:0,weekEnd:42,name:'COVID-19',periodo:'Durante a gestação',
+    desc:'Protege contra formas graves da COVID-19, reduzindo riscos para a gestante e para o bebê.'},
+  {weekStart:20,weekEnd:42,name:'dTpa (difteria, tétano e coqueluche)',periodo:'A partir de 20 semanas',
+    desc:'Protege a gestante contra difteria e tétano e transfere anticorpos para o bebê, protegendo-o contra a coqueluche nos primeiros meses de vida.'},
+  {weekStart:28,weekEnd:42,name:'Vacina da Bronquiolite (VSR)',periodo:'A partir de 28 semanas',
+    desc:'Protege o bebê contra o vírus sincicial respiratório (VSR) nos primeiros meses de vida, reduzindo o risco de bronquiolite e pneumonia.'},
+  {weekStart:0,weekEnd:42,name:'Hepatite B',periodo:'Conforme histórico vacinal',
+    desc:'Protege contra a hepatite B.',
+    indicacao:'Indicada para gestantes não vacinadas ou com esquema vacinal incompleto, conforme avaliação da caderneta de vacinação.'},
+  {weekStart:0,weekEnd:42,name:'dT (dupla adulto)',periodo:'Conforme histórico vacinal',
+    desc:'Protege contra difteria e tétano.',
+    indicacao:'Indicada para gestantes com esquema vacinal incompleto ou desatualizado, conforme avaliação da caderneta de vacinação.'},
+  {weekStart:0,weekEnd:42,name:'Febre amarela',periodo:'Apenas quando indicada',
+    desc:'Vacina de vírus vivo atenuado.',
+    indicacao:'Só é indicada na gestação após avaliação de risco-benefício pelo obstetra, em situação de risco epidemiológico.',
+    nota:'Por ser uma vacina de vírus vivo, não faz parte da rotina da gestação — a decisão deve ser sempre individualizada com o seu médico.'}
+];
+
+const CHECKLIST=[
+  {cat:'1º Trimestre · até 13s',items:['Confirmação de gravidez (beta-hCG)','Primeira consulta obstétrica','Hemograma + tipo sanguíneo + Fator Rh','Toxoplasmose, rubéola, CMV','HIV + sífilis (VDRL)','Hepatite B e C','Ultrassom Morfológico do 1º trimestre (12–13 semanas e 6 dias)','Ácido fólico e vitaminas','Vacinas Influenza e COVID-19 (a qualquer momento)','Verificar caderneta de vacinação (Hepatite B, dT)']},
+  {cat:'2º Trimestre · 13–28s',items:['Triagem 2º tri (16 semanas)','USG Morfológico (22–24 semanas)','Vacina dTpa (a partir de 20s)','Curva glicêmica (TOTG) (24–28 semanas)','Escolher maternidade e obstetra','Curso pré-natal']},
+  {cat:'3º Trimestre · 28s ao parto',items:['Hemograma + Coombs (28 semanas)','Vacina da Bronquiolite (VSR) (a partir de 28s)','USG de crescimento (32 semanas)','Exame do Cotonete (36 semanas)','Ultrassom com Perfil Biofísico Fetal (PBF) (40 semanas)','Mala da maternidade pronta (36 semanas)','Plano de parto definido']},
+  {cat:'Mala do bebê',items:['Roupinhas para saída','Fraldas RN e P','Pomada para assaduras','4 bodies','2 macacões','2 casaquinhos','2 mantas','Sabonete neutro','Touca e luvinhas','Meias','Toalha de banho macia','Paninhos de boca (fraldas de pano)','Escova de cabelo macia','Bolinhas de algodão','Saco para roupa suja','Produtos para higiene do coto umbilical (conforme orientação do pediatra)','Cadeirinha instalada no carro','Pediatra escolhido']},
+  {cat:'Mala da mamãe',items:['Documentos (RG, cartão do convênio/SUS, cartão da gestante, exames do pré-natal)','2 camisolas para amamentação','Sutiãs de amamentação','Absorventes para seios','Absorvente pós-parto','Calcinhas descartáveis','Calcinhas de sustentação','Roupão ou robe','Meias e roupa confortável para internação','Necessaire de higiene pessoal (escova, pasta, shampoo, desodorante)','Maquiagem básica','Presilhas ou elásticos para prender o cabelo','Chinelo','Carregador de celular','Roupa para saída da maternidade']}
+];
+/* Itens do checklist que são o mesmo exame/vacina do Guia de Exames (aba
+   Exames) — sem esse vínculo, marcar "já fiz" lá não refletia aqui, porque
+   cada um tinha seu próprio estado salvo (examDone × checked). A chave é
+   "<categoria>-<item>" do CHECKLIST; o valor é a chave "<lista>-<índice>"
+   usada em examDone (ver renderExamGuide/examCard). */
+const CHECKLIST_EXAM_LINK={
+  '0-6':'usg-1', // Ultrassom Morfológico do 1º trimestre
+  '1-1':'usg-2', // USG Morfológico do 2º trimestre
+  '1-2':'vac-2', // Vacina dTpa
+  '1-3':'lab-1', // Curva glicêmica (TOTG)
+  '2-0':'lab-2', // Hemograma + Coombs (28 semanas)
+  '2-1':'vac-3', // Vacina da Bronquiolite (VSR)
+  '2-2':'usg-4', // USG de crescimento (Doppler)
+  '2-3':'lab-3', // Exame do Cotonete
+  '2-4':'usg-5'  // Perfil Biofísico Fetal (PBF)
+};
+
+/* ── Toast ── */
+function showToast(msg, duration=2000){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),duration);
+}
+
+/* ── Dark mode ── */
+const MOON_ICON='<svg viewBox="0 0 24 24" width="20" height="20" fill="var(--peach)" stroke="var(--pd2)" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" style="display:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+let isDark=false;
+document.getElementById('darkBtn').addEventListener('click',()=>{
+  isDark=!isDark;
+  document.documentElement.toggleAttribute('data-dark',isDark);
+  document.getElementById('darkBtn').innerHTML=isDark?'☀️':MOON_ICON;
+  showToast(isDark?'Tema escuro ativado':'Tema claro ativado',1500);
+});
+
+/* ── Perfil (nome + sexo do bebê, persistido no localStorage) ── */
+const PROFILE_KEY='mkcalc_gem_profile';
+function loadProfile(){
+  try{const raw=localStorage.getItem(PROFILE_KEY);return raw?JSON.parse(raw):{name:'',sex:''};}
+  catch{return {name:'',sex:''};}
+}
+function saveProfile(){
+  try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));}catch{}
+}
+let profile=loadProfile();
+let currentIG=null;
+function applyProfileTheme(){
+  document.documentElement.toggleAttribute('data-girl',profile.sex==='menina');
+}
+function renderProfileUI(){
+  document.getElementById('babyNameInp').value=profile.name||'';
+  document.querySelectorAll('.stab').forEach(b=>b.classList.toggle('on',b.dataset.sex===profile.sex));
+}
+function babyNameHTML(){
+  return `<strong class="baby-name-em">${profile.name.toUpperCase()}</strong>`;
+}
+function updateBabyLabels(ig){
+  if(!ig)return;
+  const milestone=getMilestone(ig.weeks);
+  const fruit=getFruitForWeek(ig.weeks);
+  document.getElementById('babyWeekLbl').textContent=`${profile.name||'Bebê'} · semana ${ig.weeks}`;
+  document.getElementById('babyFruit').textContent=fruit.name;
+  document.getElementById('babyFruitImg').src=`frutas/${fruit.file}.png`;
+  document.getElementById('babyFruitImg').alt=fruit.name;
+  document.getElementById('babyDev').textContent=milestone.d;
+  document.getElementById('babyPhrase').innerHTML=profile.name
+    ?`Olha, mamãe! ${profile.sex==='menina'?'A':'O'} ${babyNameHTML()} já tem o tamanho de ${fruitPhrase(fruit)} 🥰`
+    :`Olha, eu já tenho o tamanho de ${fruitPhrase(fruit)} 🥰`;
+}
+function updateBabyNameUI(){
+  document.getElementById('exmUsgTitle').innerHTML=profile.name?`Acompanhando ${profile.sex==='menina'?'a':'o'} ${babyNameHTML()}`:'Acompanhando o bebê';
+  updateBabyLabels(currentIG);
+}
+document.getElementById('babyNameInp').addEventListener('input',e=>{
+  profile.name=e.target.value;
+  saveProfile();
+  updateBabyNameUI();
+});
+document.querySelectorAll('.stab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    profile.sex=btn.dataset.sex;
+    saveProfile();
+    renderProfileUI();
+    applyProfileTheme();
+    updateBabyNameUI();
+    renderKickCard();
+    showToast(profile.sex==='menina'?'Tema rosa/lilás ativado 🩷':'Tema padrão ativado 💙',1500);
+  });
+});
+applyProfileTheme();
+renderProfileUI();
+updateBabyNameUI();
+
+/* ── Nav ── */
+function goToPage(pg){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.page===pg));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pg-'+pg).classList.add('active');
+  document.getElementById('app').scrollTop=0;
+}
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    goToPage(btn.dataset.page);
+    if(btn.dataset.page==='exames')filterExamGuide(null);
+  });
+});
+
+/* ── Gestação atual (referência persistida p/ IG sempre atualizada) ── */
+const PREG_KEY='mkcalc_gem_pregnancy';
+function loadPregnancy(){
+  try{const raw=localStorage.getItem(PREG_KEY);return raw?JSON.parse(raw):null;}catch{return null;}
+}
+function savePregnancy(lmpDate,method){
+  try{localStorage.setItem(PREG_KEY,JSON.stringify({lmp:toISO(lmpDate),method}));}catch{}
+}
+function loadStoredPregnancy(){
+  const saved=loadPregnancy();
+  if(!saved)return;
+  const ig=igFromLMP(saved.lmp);
+  if(ig.totalDays>MAX_WEEKS*7)return;
+  const dpp=dppFromLMP(saved.lmp);
+  renderPregResult(ig,dpp,saved.method,true);
+  goToPage('result');
+}
+
+document.getElementById('resetPregBtn').addEventListener('click',()=>{
+  const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso, pressão e curva glicêmica — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
+  if(!ok)return;
+  [PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY,GTT_KEY].forEach(k=>{try{localStorage.removeItem(k);}catch{}});
+  location.reload();
+});
+
+/* Filtra o guia de exames para mostrar só ultrassons, só laboratoriais, ou os dois */
+function filterExamGuide(category){
+  document.getElementById('exmUsgCard').classList.toggle('hidden',!!category&&category!=='usg');
+  document.getElementById('exmLabCard').classList.toggle('hidden',!!category&&category!=='lab');
+  document.getElementById('exmVacCard').classList.toggle('hidden',!!category&&category!=='vac');
+  document.getElementById('exmShowAllBtn').classList.toggle('hidden',!category);
+}
+document.querySelectorAll('.exm-cta[data-page]').forEach(cta=>{
+  cta.addEventListener('click',()=>{
+    goToPage(cta.dataset.page);
+    filterExamGuide(cta.dataset.filter||null);
+  });
+});
+document.getElementById('exmShowAllBtn').addEventListener('click',()=>filterExamGuide(null));
+
+/* ── Calc tabs ── */
+let curTab='dum';
+document.querySelectorAll('.ctab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    curTab=btn.dataset.tab;
+    ['dum','usg','dpp','fertil'].forEach(t=>document.getElementById('pane-'+t).classList.toggle('hidden',t!==curTab));
+  });
+});
+
+/* ── Date mask ── */
+function applyMask(el){
+  el.addEventListener('input',()=>{
+    let v=el.value.replace(/\D/g,'');
+    if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);
+    if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5);
+    el.value=v.slice(0,10);
+  });
+  el.addEventListener('keydown',e=>{if(e.key==='Backspace'&&el.value.slice(-1)==='/')el.value=el.value.slice(0,-1);});
+}
+['lmpInp','usgDate','dppInp'].forEach(id=>applyMask(document.getElementById(id)));
+
+document.getElementById('usgW').addEventListener('input',e=>{
+  if(String(e.target.value).length>=2){document.getElementById('usgD').focus();document.getElementById('usgD').select();}
+});
+
+/* ── Calculadora de fêmur — Gêmeo A e Gêmeo B ── */
+function bindFemurInput(inputId,resultId){
+  document.getElementById(inputId).addEventListener('input',e=>{
+    const resEl=document.getElementById(resultId);
+    let femur=parseFloat(e.target.value.replace(',','.'));
+    if(femur>8){femur=8;e.target.value='8';}
+    if(!femur||femur<=0){resEl.classList.add('hidden');return;}
+    const altura=fetalHeightFromFemur(femur);
+    resEl.innerHTML=`Estatura estimada: <strong>${altura.toFixed(1)} cm</strong>`;
+    resEl.classList.remove('hidden');
+  });
+}
+bindFemurInput('femurInpA','femurResultA');
+bindFemurInput('femurInpB','femurResultB');
+
+/* ── Discordância de peso entre os gêmeos ──
+   Fórmula clínica padrão: (maior − menor) / maior × 100.
+   Valores ≥ 20–25% costumam ser considerados relevantes e merecem
+   atenção adicional, sempre em conjunto com a avaliação médica. */
+function computeDiscordance(){
+  const resEl=document.getElementById('discordResult');
+  const a=parseFloat(document.getElementById('pesoA').value);
+  const b=parseFloat(document.getElementById('pesoB').value);
+  if(!a||!b||a<=0||b<=0){resEl.classList.add('hidden');return;}
+  const maior=Math.max(a,b),menor=Math.min(a,b);
+  const disc=((maior-menor)/maior)*100;
+  let nota='';
+  if(disc>=20){
+    nota=`<br><span style="color:var(--alert)">Discordância ≥ 20% — costuma ser considerada relevante para avaliação médica mais próxima.</span>`;
+  }
+  resEl.innerHTML=`Discordância estimada: <strong>${disc.toFixed(1)}%</strong>${nota}`;
+  resEl.classList.remove('hidden');
+}
+document.getElementById('pesoA').addEventListener('input',computeDiscordance);
+document.getElementById('pesoB').addEventListener('input',computeDiscordance);
+
+/* ── Fertil dates ── */
+let diDates=['',''];
+function renderDi(){
+  const el=document.getElementById('diList');el.innerHTML='';
+  diDates.forEach((d,i)=>{
+    const prev=i>0&&diDates[i-1]?new Date(diDates[i-1]):null;
+    const cur=d?new Date(d):null;
+    const gap=cur&&prev?Math.round((cur-prev)/86400000):null;
+    const row=document.createElement('div');row.className='di-row';
+    const dispVal=d?d.split('-').reverse().join('/'):'' ;
+    row.innerHTML=`<span class="di-idx">${i+1}</span><input class="di-inp" type="text" placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric" value="${dispVal}"><span class="di-gap">${gap===null?'—':gap+' d'}</span><button class="di-rm" ${diDates.length<=2?'disabled':''}>×</button>`;
+    const inp=row.querySelector('.di-inp');
+    applyMaskDi(inp,i);
+    row.querySelector('.di-rm').addEventListener('click',()=>{if(diDates.length>2){diDates.splice(i,1);renderDi();runCalc();}});
+    el.appendChild(row);
+  });
+}
+function applyMaskDi(el,i){
+  el.addEventListener('input',()=>{
+    let v=el.value.replace(/\D/g,'');
+    if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);
+    if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5);
+    el.value=v.slice(0,10);
+    if(el.value.length===10){const p=parseBR(el.value);if(p){diDates[i]=p;renderDi();}}
+    else if(el.value.length<10){diDates[i]='';} // clear if incomplete
+  });
+  el.addEventListener('keydown',e=>{if(e.key==='Backspace'&&el.value.slice(-1)==='/')el.value=el.value.slice(0,-1);});
+}
+document.getElementById('addDiBtn').addEventListener('click',()=>{diDates.push('');renderDi();});
+renderDi();
+
+/* ── Calc ── */
+document.getElementById('calcBtn').addEventListener('click',runCalc);
+
+function runCalc(){
+  let ig=null,dpp=null,method='',fertRes=null;
+  if(curTab==='dum'){
+    const v=parseBR(document.getElementById('lmpInp').value);
+    if(!v){showToast('Data inválida. Confira o dia, mês e ano informados.',2500);return;}
+    ig=igFromLMP(v);dpp=dppFromLMP(v);method='DUM';
+  } else if(curTab==='usg'){
+    const v=parseBR(document.getElementById('usgDate').value);
+    const w=+document.getElementById('usgW').value;
+    const d=+document.getElementById('usgD').value;
+    if(!v){showToast('Data inválida. Confira o dia, mês e ano informados.',2500);return;}
+    if(!w){showToast('Informe as semanas do ultrassom',2000);return;}
+    ig=igFromUSG(v,w,d||0);dpp=dppFromUSG(v,w,d||0);method='Ultrassom';
+  } else if(curTab==='dpp'){
+    const v=parseBR(document.getElementById('dppInp').value);
+    if(!v){showToast('Data inválida. Confira o dia, mês e ano informados.',2500);return;}
+    ig=igFromDPP(v);if(ig)dpp=new Date(v+'T12:00:00');method='DPP';
+  } else if(curTab==='fertil'){
+    const validDates=diDates.filter(Boolean);
+    if(validDates.length<2){showToast('Informe pelo menos 2 datas',2000);return;}
+    fertRes=fertileFromDates(diDates);
+    if(!fertRes){showToast('Datas inválidas ou muito próximas',2000);return;}
+    renderFertilResult(fertRes);
+    goResult();return;
+  }
+  if(ig&&ig.totalDays>MAX_WEEKS*7){
+    showToast('Essa data resulta em mais de 42 semanas de gestação. Confira a data informada.',3000);
+    return;
+  }
+  if(ig&&dpp){savePregnancy(ig.lmp,method);renderPregResult(ig,dpp,method);goResult();resumeOnboardingAfterCalc();}
+}
+
+function goResult(){goToPage('result');}
+
+/* ── Animated ring draw ── */
+function animateRing(pct){
+  const C=2*Math.PI*80; // 502.65
+  const target=C-(C*pct/100);
+  const ring=document.getElementById('ringFg');
+  ring.style.transition='none';
+  ring.style.strokeDashoffset=C+'';
+  // Force reflow
+  ring.getBoundingClientRect();
+  // Animate
+  ring.style.transition='stroke-dashoffset 1.1s cubic-bezier(.22,.68,0,1)';
+  ring.style.strokeDashoffset=target+'';
+}
+
+/* ── Weeks/months line timeline ── */
+const TL_STEP=34; // px per week (mantém a densidade visual atual)
+// Marcadores de mês posicionados exatamente no marco de conclusão de cada mês
+// (MONTH_BREAKPOINTS, convertido de dias para semanas) — ex.: "6" fica em 26
+// semanas (182 dias ÷ 7), o ponto exato em que o 6º mês se completa.
+const TL_MONTH_MARKERS=MONTH_BREAKPOINTS.slice(1).map((days,i)=>({m:i+1,week:days/7}));
+function renderTimeline(ig){
+  const pct=timelinePct(ig.weeks,ig.days);
+
+  const tl=document.getElementById('tlEl');
+  tl.style.width=(MAX_WEEKS*TL_STEP+24)+'px';
+
+  const weeksWrap=document.getElementById('tlWeeks');
+  weeksWrap.innerHTML='';
+  for(let w=0;w<=MAX_WEEKS;w++){
+    const t=document.createElement('div');
+    t.className='wtick'+(w<ig.weeks?' past':'')+(w===ig.weeks?' cur':'');
+    t.style.left=((w/MAX_WEEKS)*100)+'%';
+    t.innerHTML=`<div class="wnum">${w}</div>`;
+    weeksWrap.appendChild(t);
+  }
+
+  document.getElementById('tlFill').style.width=pct+'%';
+  document.getElementById('tlDot').style.left=pct+'%';
+
+  const monthInfo=daysToGestationalMonths(ig.totalDays);
+  const curMonth=currentGestationalMonth(monthInfo.mesesCompletos,monthInfo.diasNoMes);
+  const monthsWrap=document.getElementById('tlMonths');
+  monthsWrap.innerHTML='';
+  TL_MONTH_MARKERS.forEach(r=>{
+    const l=document.createElement('div');
+    l.className='mlabel'+(r.m===curMonth?' cur':'');
+    l.style.left=((r.week/MAX_WEEKS)*100)+'%';
+    l.textContent=r.m;
+    monthsWrap.appendChild(l);
+  });
+
+  setTimeout(()=>{
+    tl.parentElement.scrollLeft=(pct/100)*(MAX_WEEKS*TL_STEP)-tl.parentElement.clientWidth/2+23;
+  },160);
+}
+
+function renderPregResult(ig,dpp,method,silent){
+  currentIG=ig;
+  document.getElementById('noResult').classList.add('hidden');
+  document.getElementById('fertResult').classList.add('hidden');
+  const pr=document.getElementById('pregResult');
+  pr.classList.remove('hidden');
+  // Re-trigger stagger by clone trick
+  pr.classList.remove('stagger');
+  void pr.offsetWidth;
+  pr.classList.add('stagger');
+
+  const tri=trimesterFromWeeks(ig.weeks);
+  const pct=Math.min(100,(ig.totalDays/GESTATION_DAYS)*100);
+
+  document.getElementById('resMethod').textContent='Resultado · '+method;
+  document.getElementById('resTitle').innerHTML=`Você está com <span class="serif" style="color:var(--pd);font-style:italic">${formatWeeksText(ig.weeks,ig.days)}</span>`;
+  document.getElementById('igBig').innerHTML=`<em>${ig.weeks}</em><span style="font-size:28px;color:var(--ink2)">+${ig.days}</span>`;
+
+  // Animate ring after a small delay (let stagger start)
+  setTimeout(()=>animateRing(pct), 180);
+
+  const monthInfo=daysToGestationalMonths(ig.totalDays);
+  const curMonth=currentGestationalMonth(monthInfo.mesesCompletos,monthInfo.diasNoMes);
+  document.getElementById('monthsBig').innerHTML=formatMonthsHTML(monthInfo.mesesCompletos,monthInfo.diasNoMes);
+  document.getElementById('monthsSub').textContent=`Você está no ${curMonth}º mês`;
+
+  document.getElementById('statGrid').innerHTML=`
+    <div class="stat"><div class="lbl">Trimestre</div><div class="val serif">${tri}º</div></div>
+    <div class="stat"><div class="lbl">DPP</div><div class="val serif">${fmt(dpp)}</div></div>
+    <div class="stat"><div class="lbl">Faltam</div><div class="val serif">${Math.max(0,GESTATION_DAYS-ig.totalDays)} dias</div></div>`;
+
+  updateBabyLabels(ig);
+  document.getElementById('femurInpA').value='';
+  document.getElementById('femurResultA').classList.add('hidden');
+  document.getElementById('femurInpB').value='';
+  document.getElementById('femurResultB').classList.add('hidden');
+  document.getElementById('pesoA').value='';
+  document.getElementById('pesoB').value='';
+  document.getElementById('discordResult').classList.add('hidden');
+
+  renderTimeline(ig);
+
+  renderExamGuide();
+  if(!silent)showToast(`${ig.weeks}s ${ig.days}d calculado com sucesso`);
+}
+
+function renderFertilResult(r){
+  document.getElementById('noResult').classList.add('hidden');
+  document.getElementById('pregResult').classList.add('hidden');
+  if(!r){
+    document.getElementById('fertResult').classList.add('hidden');
+    document.getElementById('noResult').classList.remove('hidden');
+    return;
+  }
+  const fr=document.getElementById('fertResult');
+  fr.classList.remove('hidden');
+  fr.classList.remove('stagger');
+  void fr.offsetWidth;
+  fr.classList.add('stagger');
+
+  document.getElementById('fOv').textContent=fmt(r.ov);
+  document.getElementById('fOvSub').textContent=`Dia ${r.cd-14} · pico de fertilidade`;
+  document.getElementById('fJan').textContent=`${fmt(r.st)} → ${fmt(r.en)}`;
+  document.getElementById('cycleStats').classList.remove('hidden');
+  document.getElementById('csAvg').textContent=r.cd+' d';
+  document.getElementById('csOv').textContent=fmtS(r.ov);
+  document.getElementById('csNp').textContent=fmtS(r.np);
+
+  // Melhor semana para namorar
+  const namorarWrap=document.getElementById('namorarWrap');
+  const ovFmt=fmt(r.ov);
+  const janFmt=`${fmt(r.st)} até ${fmt(r.en)}`;
+  namorarWrap.innerHTML=`
+    <div class="nam-hero">
+      <div class="nam-orb">💕</div>
+      <div class="nam-info">
+        <div class="nam-dates">${fmt(r.st)} → ${fmt(r.en)}</div>
+        <div class="nam-sub">Esta é a sua janela de ouro — ~6 dias de maior chance de gravidez 🌟</div>
+      </div>
+    </div>
+    <div class="nam-ov-badge">
+      <div class="nam-ov-dot"></div>
+      <div class="nam-ov-txt">Pico máximo de fertilidade: <strong>${ovFmt}</strong> — o dia da ovulação, quando a chance é maior de todas</div>
+    </div>
+    <div class="nam-tips">
+      <div class="nam-tip"><div class="nam-tip-ico">📅</div><div class="nam-tip-txt"><strong>Com mais frequência</strong>A cada 1–2 dias dentro da janela aumenta muito as chances</div></div>
+      <div class="nam-tip"><div class="nam-tip-ico">😌</div><div class="nam-tip-txt"><strong>Relaxe!</strong>O estresse reduz a fertilidade — aproveite o momento com leveza</div></div>
+      <div class="nam-tip"><div class="nam-tip-ico">🌙</div><div class="nam-tip-txt"><strong>Noite anterior</strong>Namorar no dia antes da ovulação é especialmente eficaz</div></div>
+      <div class="nam-tip"><div class="nam-tip-ico">💧</div><div class="nam-tip-txt"><strong>Hidratação</strong>Beba bastante água nos dias férteis — faz diferença!</div></div>
+    </div>`;
+
+  showToast('Período fértil calculado');
+}
+
+/* ── Guia de exames ── */
+const EXAM_DONE_KEY='mkcalc_gem_exam_done_v1';
+function loadExamDone(){
+  try{const raw=localStorage.getItem(EXAM_DONE_KEY);return raw?JSON.parse(raw):{};}
+  catch{return{};}
+}
+function saveExamDone(){
+  try{localStorage.setItem(EXAM_DONE_KEY,JSON.stringify(examDone));}catch{}
+}
+const examDone=loadExamDone();
+// Status do exame: uma marcação manual (checkbox) sempre vence o palpite
+// automático baseado na data; sem marcação, assume-se pela IG atual.
+function examStatus(ex,key){
+  const manual=examDone[key];
+  const cur=currentIG?currentIG.weeks+currentIG.days/7:null;
+  const autoDone=cur!=null&&cur>ex.weekEnd;
+  const checked=manual!==undefined?manual:autoDone;
+  if(checked)return'done';
+  if(cur==null)return null;
+  if(cur<ex.weekStart)return'soon';
+  if(cur<=ex.weekEnd)return'now';
+  return'late';
+}
+function toggleExamDone(ex,key){
+  const wasDone=examStatus(ex,key)==='done';
+  examDone[key]=!wasDone;
+  saveExamDone();
+  if(!wasDone)showToast('Exame marcado como realizado',1500);
+  if(typeof buildChecklist==='function')buildChecklist();
+}
+function examCard(ex,idx,catId){
+  const badge=ex.indicacao?`<div class="exm-badge">🔎 Conforme indicação médica</div>`:'';
+  const key=`${catId}-${idx}`;
+  const st=examStatus(ex,key);
+  const checked=st==='done';
+  return `<button class="exm-card${st?' status-'+st:''}" type="button" data-cat="${catId}" data-idx="${idx}">
+    <div class="exm-card-top">
+      <div class="exm-name">${ex.name}</div>
+      <div class="exm-card-actions">
+        <div class="chk-box exm-chk ${checked?'on':'off'}" data-key="${key}" title="Marcar como já realizado">${checked?'✓':''}</div>
+        <div class="exm-chevron">›</div>
+      </div>
+    </div>
+    <div class="lbl">Período recomendado</div>
+    <div class="exm-periodo">🗓️ ${ex.periodo}</div>
+    <div class="exm-desc">${ex.desc}</div>
+    ${badge}
+  </button>`;
+}
+function openExamDetail(ex,key){
+  const st=examStatus(ex,key);
+  const checked=st==='done';
+  let html=`<div class="exm-sheet-name">${ex.name}</div>
+    <div class="lbl">Período recomendado</div>
+    <div class="exm-periodo" style="margin-bottom:14px">🗓️ ${ex.periodo}</div>
+    <button class="exm-sheet-check" id="exmSheetCheck" type="button">
+      <span class="chk-box exm-chk ${checked?'on':'off'}">${checked?'✓':''}</span>
+      <span>${checked?'Marcado como realizado':'Marcar como já realizado'}</span>
+    </button>
+    <div class="exm-sheet-desc">${ex.desc}</div>`;
+  if(ex.valores){
+    html+=`<div class="exm-sheet-sub">Valores normais</div>
+      <div class="stat-grid" style="margin-bottom:4px">${ex.valores.map(v=>`<div class="stat"><div class="lbl">${v.lbl}</div><div class="val serif">${v.val}</div></div>`).join('')}</div>
+      <div style="text-align:center;font-size:10px;color:var(--ink3);margin-bottom:14px">Valores em mg/dL</div>`;
+  }
+  if(ex.lista){
+    html+=`<div class="exm-sheet-sub">Ver detalhes</div>
+      <ul class="exm-sheet-items">${ex.lista.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+  }
+  if(ex.nota)html+=`<div class="exm-sheet-note"><strong>Importante:</strong> ${ex.nota}</div>`;
+  if(ex.indicacao)html+=`<div class="exm-sheet-note">🔎 <strong>Sobre a indicação:</strong> ${ex.indicacao}</div>`;
+  document.getElementById('exmSheetBody').innerHTML=html;
+  document.getElementById('exmSheetCheck').addEventListener('click',()=>{
+    toggleExamDone(ex,key);
+    renderExamGuide();
+    openExamDetail(ex,key);
+  });
+  document.getElementById('exmOverlay').classList.add('show');
+}
+function closeExamDetail(){document.getElementById('exmOverlay').classList.remove('show');}
+document.getElementById('exmClose').addEventListener('click',closeExamDetail);
+document.getElementById('exmOverlay').addEventListener('click',e=>{if(e.target.id==='exmOverlay')closeExamDetail();});
+
+function renderExamGuide(){
+  const usg=[...ULTRASSONS].sort((a,b)=>a.weekStart-b.weekStart);
+  const lab=[...LABORATORIAIS].sort((a,b)=>a.weekStart-b.weekStart);
+  const vac=[...VACINAS];
+  const lists={usg,lab,vac};
+  document.getElementById('exmUsgList').innerHTML=usg.map((ex,i)=>examCard(ex,i,'usg')).join('');
+  document.getElementById('exmLabList').innerHTML=lab.map((ex,i)=>examCard(ex,i,'lab')).join('');
+  document.getElementById('exmVacList').innerHTML=vac.map((ex,i)=>examCard(ex,i,'vac')).join('');
+  document.querySelectorAll('.exm-chk').forEach(box=>{
+    box.addEventListener('click',e=>{
+      e.stopPropagation();
+      const card=box.closest('.exm-card');
+      const list=lists[card.dataset.cat];
+      const ex=list[+card.dataset.idx];
+      toggleExamDone(ex,box.dataset.key);
+      renderExamGuide();
+    });
+  });
+  document.querySelectorAll('.exm-card').forEach(card=>{
+    card.addEventListener('click',()=>{
+      const list=lists[card.dataset.cat];
+      const idx=+card.dataset.idx;
+      openExamDetail(list[idx],`${card.dataset.cat}-${idx}`);
+    });
+  });
+}
+renderExamGuide();
+
+/* ── Checklist (persiste via localStorage) ── */
+const STORAGE_KEY='mkcalc_gem_checked_v1';
+function loadChecked(){
+  try{const raw=localStorage.getItem(STORAGE_KEY);return raw?JSON.parse(raw):{};}
+  catch{return{};}
+}
+function saveChecked(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(checked));}catch{}
+}
+const checked=loadChecked();
+/* Migração: itens ligados a um exame/vacina (ver CHECKLIST_EXAM_LINK) passam
+   a usar examDone como única fonte de verdade — preserva marcações antigas
+   feitas só pelo checklist, transferindo-as pra examDone. */
+(function migrateLinkedChecklistItems(){
+  let changed=false;
+  Object.entries(CHECKLIST_EXAM_LINK).forEach(([k,examKey])=>{
+    if(checked[k]&&!examDone[examKey]){examDone[examKey]=true;changed=true;}
+  });
+  if(changed)saveExamDone();
+})();
+/* Estado "marcado" de um item do checklist — itens ligados a um exame/vacina
+   do Guia de Exames (CHECKLIST_EXAM_LINK) usam examDone, pra marcar em um
+   lugar sempre refletir no outro. */
+function checklistItemOn(ci,ii){
+  const k=`${ci}-${ii}`;
+  const linkKey=CHECKLIST_EXAM_LINK[k];
+  return linkKey?!!examDone[linkKey]:!!checked[k];
+}
+function updateChecklistOverall(){
+  const all=CHECKLIST.reduce((s,c)=>s+c.items.length,0);
+  let doneAll=0;
+  CHECKLIST.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{if(checklistItemOn(ci,ii))doneAll++;}));
+  const pct=all?Math.round(doneAll/all*100):0;
+  document.getElementById('chkFill').style.width=pct+'%';
+  document.getElementById('chkTxt').textContent=`${pct}% concluído · ${all-doneAll} itens pendentes`;
+}
+function updateChecklistGroup(grp,cat,ci){
+  const done=cat.items.filter((_,ii)=>checklistItemOn(ci,ii)).length;
+  const pct=cat.items.length?Math.round(done/cat.items.length*100):0;
+  grp.querySelector('.mini-bar-fill').style.width=pct+'%';
+  grp.querySelector('.chk-head-count').textContent=`${done}/${cat.items.length}`;
+}
+function buildChecklist(){
+  const el=document.getElementById('chkList');
+  const wasOpen=[...el.querySelectorAll('.chk-group')].map(g=>g.querySelector('.chk-items').classList.contains('open'));
+  el.innerHTML='';
+  CHECKLIST.forEach((cat,ci)=>{
+    const done=cat.items.filter((_,ii)=>checklistItemOn(ci,ii)).length;
+    const pct=cat.items.length?Math.round(done/cat.items.length*100):0;
+    const grp=document.createElement('div');grp.className='chk-group';
+    grp.innerHTML=`<button class="chk-head"><span class="chk-head-title">${cat.cat}</span><span class="chk-head-r"><span class="mini-bar"><span class="mini-bar-fill" style="width:${pct}%"></span></span><span class="chk-head-count">${done}/${cat.items.length}</span> <i class="chev">▾</i></span></button><div class="chk-items"></div>`;
+    const items=grp.querySelector('.chk-items');
+    cat.items.forEach((txt,ii)=>{
+      const k=`${ci}-${ii}`;
+      const linkKey=CHECKLIST_EXAM_LINK[k];
+      const on=checklistItemOn(ci,ii);
+      const item=document.createElement('div');
+      item.className='chk-item'+(on?' done':'');
+      item.innerHTML=`<div class="chk-box ${on?'on':'off'}">${on?'✓':''}</div><span class="chk-txt">${txt}</span>`;
+      item.addEventListener('click',()=>{
+        let nowOn;
+        if(linkKey){
+          examDone[linkKey]=!examDone[linkKey];
+          saveExamDone();
+          nowOn=!!examDone[linkKey];
+          renderExamGuide();
+        }else{
+          checked[k]=!checked[k];
+          saveChecked();
+          nowOn=!!checked[k];
+        }
+        item.classList.toggle('done',nowOn);
+        const box=item.querySelector('.chk-box');
+        box.className='chk-box'+(nowOn?' on':' off');
+        box.textContent=nowOn?'✓':'';
+        updateChecklistGroup(grp,cat,ci);
+        updateChecklistOverall();
+        if(nowOn)showToast('Item marcado',1200);
+      });
+      items.appendChild(item);
+    });
+    grp.querySelector('.chk-head').addEventListener('click',()=>{
+      items.classList.toggle('open');
+      grp.querySelector('.chev').textContent=items.classList.contains('open')?'▴':'▾';
+    });
+    if(wasOpen[ci]){items.classList.add('open');grp.querySelector('.chev').textContent='▴';}
+    el.appendChild(grp);
+  });
+  updateChecklistOverall();
+}
+
+buildChecklist();
+
+/* ── Contador de movimentos fetais ── */
+/* Método "conta até dez": sem julgamento por número de minutos — só registro
+   do padrão da própria gestante. Nunca mostrar veredito/alerta por tempo. */
+const KICK_KEY='mkcalc_gem_kicks_v1';
+function loadKicks(){
+  try{const raw=localStorage.getItem(KICK_KEY);return raw?JSON.parse(raw):[];}
+  catch{return[];}
+}
+function saveKicks(){
+  try{localStorage.setItem(KICK_KEY,JSON.stringify(kickSessions));}catch{}
+}
+const kickSessions=loadKicks();
+let kickActive=null;
+let kickTimerInt=null;
+
+function fmtKickDuration(ms){
+  const totalSec=Math.round(ms/1000);
+  const m=Math.floor(totalSec/60),s=totalSec%60;
+  return m?`${m} min${s?` ${s}s`:''}`:`${s}s`;
+}
+function renderKickCard(){
+  const last=kickSessions[kickSessions.length-1];
+  const subTxt=last
+    ?`Último registro: ${fmt(new Date(last.date))} · ${fmtKickDuration(last.ms)}`
+    :'Nenhum registro ainda';
+  document.getElementById('kickLastSub').textContent=subTxt;
+  document.getElementById('kickHeadSub').textContent=subTxt;
+  const wrap=document.getElementById('kickHistoryWrap');
+  if(!kickSessions.length){wrap.innerHTML='';return;}
+  const recent=kickSessions.slice(-7);
+  let statsHtml='';
+  if(recent.length>=2){
+    const avgMs=recent.reduce((sum,k)=>sum+k.ms,0)/recent.length;
+    const maxMs=Math.max(...recent.map(k=>k.ms));
+    statsHtml=`
+      <div class="lbl" style="margin-top:18px">Sua média recente</div>
+      <div class="kick-avg-tile">
+        <div class="val">${fmtKickDuration(avgMs)}</div>
+        <div class="txt">Tempo médio para sentir 10 movimentos, nas últimas ${recent.length} contagens — esse é o <strong>seu</strong> padrão, não uma meta.</div>
+      </div>
+      <div class="kick-chart">${recent.map((k,i)=>{
+        const h=Math.max(8,Math.round((k.ms/maxMs)*100));
+        const cls=['kick-bar',profile.sex==='menino'?'boy':'',i===recent.length-1?'is-last':''].filter(Boolean).join(' ');
+        return `<div class="kick-bar-col"><div class="${cls}" style="height:${h}%" title="${fmt(new Date(k.date))} · ${fmtKickDuration(k.ms)}"></div></div>`;
+      }).join('')}</div>`;
+  }
+  const items=[...recent].reverse();
+  wrap.innerHTML=statsHtml+
+    `<div class="lbl" style="margin-top:18px">Seus últimos registros</div>`+
+    items.map(k=>`<div class="kick-history-item"><span>${fmt(new Date(k.date))}</span><span>${fmtKickDuration(k.ms)}${k.weeks!=null?` <span class="kick-history-w">· ${k.weeks}s</span>`:''}</span></div>`).join('');
+}
+function startKickTimerLoop(){
+  if(kickTimerInt)return;
+  kickTimerInt=setInterval(()=>{
+    const el=document.getElementById('kickTimerTxt');
+    if(!el||!kickActive){clearInterval(kickTimerInt);kickTimerInt=null;return;}
+    const s=Math.floor((Date.now()-kickActive.start)/1000);
+    el.textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  },1000);
+}
+function stopKickTimerLoop(){
+  if(kickTimerInt){clearInterval(kickTimerInt);kickTimerInt=null;}
+}
+function mvDotsHtml(count,total){
+  return `<div class="mv-dots">${Array.from({length:total},(_,i)=>`<div class="mv-dot${i<count?' on':''}"></div>`).join('')}</div>`;
+}
+function renderKickSheetBody(){
+  const body=document.getElementById('kickSheetBody');
+  if(kickActive.count>=10){
+    stopKickTimerLoop();
+    const ms=Date.now()-kickActive.start;
+    body.innerHTML=`
+      <div class="exm-sheet-name">Contagem concluída 🎉</div>
+      ${mvDotsHtml(10,10)}
+      <div class="kick-count-wrap">
+        <div class="kick-count-num">${fmtKickDuration(ms)}</div>
+        <div class="kick-count-lbl">para sentir 10 movimentos</div>
+      </div>
+      <div class="exm-sheet-note">Isso é só um retrato de hoje — o importante é conhecer o <strong>seu</strong> padrão ao longo do tempo, não comparar com um número fixo de minutos. Sentiu algo diferente do seu costume, ou está preocupada? <strong>Fale com seu obstetra a qualquer momento</strong> — não é preciso esperar a contagem terminar.</div>
+      <button class="kick-tap-btn" id="kickSaveBtn" type="button">Salvar registro</button>
+      <button class="kick-cancel-btn" id="kickDiscardBtn" type="button">Descartar</button>`;
+    document.getElementById('kickSaveBtn').addEventListener('click',()=>{
+      kickSessions.push({date:new Date().toISOString(),ms,weeks:currentIG?currentIG.weeks:null});
+      saveKicks();
+      renderKickCard();
+      closeKickSheet();
+      showToast('Registro salvo',1500);
+    });
+    document.getElementById('kickDiscardBtn').addEventListener('click',closeKickSheet);
+    return;
+  }
+  body.innerHTML=`
+    <div class="exm-sheet-name">Contagem de movimentos</div>
+    <div class="exm-sheet-desc">Toque o botão a cada movimento que sentir, até completar 10.</div>
+    <div class="kick-count-wrap">
+      <button class="mv-ring-btn" id="kickTapBtn" type="button">
+        <span><span class="mv-ico">👣</span><span class="mv-txt">Toquei</span></span>
+      </button>
+      <div class="kick-timer" id="kickTimerTxt">00:00</div>
+    </div>
+    <div id="kickDotsWrap">${mvDotsHtml(kickActive.count,10)}</div>
+    <button class="kick-cancel-btn" id="kickCancelBtn" type="button">Cancelar contagem</button>`;
+  document.getElementById('kickTapBtn').addEventListener('click',()=>{
+    kickActive.count++;
+    if(kickActive.count>=10){
+      renderKickSheetBody();
+    }else{
+      document.getElementById('kickDotsWrap').innerHTML=mvDotsHtml(kickActive.count,10);
+    }
+  });
+  document.getElementById('kickCancelBtn').addEventListener('click',closeKickSheet);
+}
+function openKickSheet(){
+  kickActive={count:0,start:Date.now()};
+  renderKickSheetBody();
+  startKickTimerLoop();
+  document.getElementById('kickOverlay').classList.add('show');
+}
+function closeKickSheet(){
+  document.getElementById('kickOverlay').classList.remove('show');
+  stopKickTimerLoop();
+  kickActive=null;
+}
+document.getElementById('kickStartBtn').addEventListener('click',openKickSheet);
+document.getElementById('kickClose').addEventListener('click',closeKickSheet);
+document.getElementById('kickOverlay').addEventListener('click',e=>{if(e.target.id==='kickOverlay')closeKickSheet();});
+renderKickCard();
+
+/* ── Monitor de contrações ── */
+/* Só registra horários e duração — o app nunca declara "está em trabalho de
+   parto" nem dispara alerta por intervalo. Orientação de procurar a
+   maternidade é sempre textual e vale a qualquer momento, independente do padrão. */
+const CONTR_KEY='mkcalc_gem_contractions_v1';
+function loadContractions(){
+  try{const raw=localStorage.getItem(CONTR_KEY);return raw?JSON.parse(raw):[];}
+  catch{return[];}
+}
+function saveContractions(){
+  try{localStorage.setItem(CONTR_KEY,JSON.stringify(contractions));}catch{}
+}
+const contractions=loadContractions();
+let contrActive=null;
+let contrTimerInt=null;
+
+/* Marca de "fim de monitoramento": contrações registradas depois dessa marca
+   não calculam intervalo contra contrações de antes dela — evita um intervalo
+   enorme quando a gestante retoma o monitoramento horas depois. */
+const CONTR_SESSION_KEY='mkcalc_gem_contractions_session_v1';
+function loadContrSessionBreak(){
+  try{const raw=localStorage.getItem(CONTR_SESSION_KEY);return raw?Number(raw):0;}catch{return 0;}
+}
+function saveContrSessionBreak(ts){
+  try{localStorage.setItem(CONTR_SESSION_KEY,String(ts));}catch{}
+}
+let contrSessionBreakAt=loadContrSessionBreak();
+
+function fmtClock(d){
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function fmtGap(ms){
+  if(ms==null)return'—';
+  const totalMin=Math.round(ms/60000);
+  if(totalMin<1)return'menos de 1 min';
+  return totalMin===1?'1 min':`${totalMin} min`;
+}
+function renderContrCard(){
+  const last=contractions[contractions.length-1];
+  const subTxt=last
+    ?`Última: ${fmtClock(new Date(last.start))} · duração ${fmtKickDuration(last.ms)}`
+    :'Nenhum registro ainda';
+  document.getElementById('contrLastSub').textContent=subTxt;
+  document.getElementById('contrHeadSub').textContent=subTxt;
+}
+function contrHelperText(){
+  const weeks=currentIG?currentIG.weeks:null;
+  if(weeks!=null&&weeks<37){
+    return 'Você está com menos de 37 semanas. Contrações regulares nessa fase merecem avaliação médica o quanto antes — mesmo que ainda estejam bem espaçadas. <strong>Ligue para o seu obstetra.</strong>';
+  }
+  return 'Contrações de treinamento (Braxton Hicks) são comuns, especialmente no 3º trimestre, e costumam ser irregulares e sem dor. Um padrão às vezes citado para trabalho de parto ativo é contrações a cada 5 minutos, durando cerca de 1 minuto, por 1 hora seguida — mas isso varia de gestante para gestante. <strong>Sentiu contrações regulares e dolorosas, perdeu líquido ou está com qualquer dúvida? Ligue para o seu obstetra ou vá à maternidade</strong> — não é preciso esperar um padrão exato.';
+}
+/* Só aritmética sobre o que já foi registrado — média de intervalo e duração
+   das últimas contrações. Nunca usada sozinha para sugerir veredito: a
+   checklist de sinais (não relacionados a tempo) é quem decide o alerta. */
+function computeContrPattern(){
+  const recent=contractions.slice(-6);
+  const gaps=recent.map(c=>c.gapMs).filter(g=>g!=null);
+  if(gaps.length<3)return null;
+  const avgGap=gaps.reduce((a,b)=>a+b,0)/gaps.length;
+  const avgDur=recent.reduce((a,c)=>a+c.ms,0)/recent.length;
+  return{avgGap,avgDur,n:recent.length};
+}
+function contrPatternFootText(p){
+  const close=p.avgGap<=7*60000&&p.avgDur>=40000;
+  if(close)return'Isso se aproxima do padrão às vezes citado para trabalho de parto ativo (a cada 5 min, ~1 min, por 1h seguida). Não é um diagnóstico — vale conferir a checklist abaixo.';
+  return'Cada gestante tem um padrão diferente — isso é só um retrato das últimas contrações registradas, não uma indicação de trabalho de parto.';
+}
+function startContrTimerLoop(){
+  if(contrTimerInt)return;
+  contrTimerInt=setInterval(()=>{
+    const el=document.getElementById('contrTimerTxt');
+    if(!el||!contrActive){clearInterval(contrTimerInt);contrTimerInt=null;return;}
+    const s=Math.floor((Date.now()-contrActive.start)/1000);
+    el.textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  },1000);
+}
+function stopContrTimerLoop(){
+  if(contrTimerInt){clearInterval(contrTimerInt);contrTimerInt=null;}
+}
+function renderContrSheetBody(){
+  const body=document.getElementById('contrSheetBody');
+  const recent=[...contractions].slice(-8).reverse();
+  const listHtml=recent.length
+    ?`<div class="lbl" style="margin-top:20px">Contrações registradas</div>`+
+      recent.map(c=>`<div class="kick-history-item"><span>${fmtClock(new Date(c.start))} · intervalo ${fmtGap(c.gapMs)}</span><span class="kick-history-pill">⏱ ${fmtKickDuration(c.ms)}</span></div>`).join('')
+    :'';
+  if(contrActive){
+    body.innerHTML=`
+      <div class="exm-sheet-name">Contração em andamento</div>
+      <div class="exm-sheet-note">${contrHelperText()}</div>
+      <div class="mv-breathe-lbl">respire fundo</div>
+      <div class="mv-breathe-wrap">
+        <div class="mv-breathe"></div>
+        <div class="mv-breathe-timer" id="contrTimerTxt">00:00</div>
+      </div>
+      <button class="mv-ring-btn sm stop" id="contrStopBtn" type="button" style="margin:8px auto 0">
+        <span><span class="mv-ico">⏹</span><span class="mv-txt">Finalizar</span></span>
+      </button>
+      <button class="mv-cancel-btn" id="contrCancelBtn" type="button">Parar contagem sem registrar</button>
+      ${listHtml}`;
+    document.getElementById('contrStopBtn').addEventListener('click',()=>{
+      stopContrTimerLoop();
+      const last=contractions[contractions.length-1];
+      const lastStart=last?new Date(last.start).getTime():null;
+      const gapMs=(lastStart!=null&&lastStart>contrSessionBreakAt)?contrActive.start-lastStart:null;
+      contractions.push({start:new Date(contrActive.start).toISOString(),ms:Date.now()-contrActive.start,gapMs,weeks:currentIG?currentIG.weeks:null});
+      saveContractions();
+      contrActive=null;
+      renderContrCard();
+      renderContrSheetBody();
+      showToast('Contração registrada',1200);
+    });
+    document.getElementById('contrCancelBtn').addEventListener('click',()=>{
+      stopContrTimerLoop();
+      contrActive=null;
+      renderContrSheetBody();
+      showToast('Contagem cancelada',1200);
+    });
+  }else{
+    const weeks=currentIG?currentIG.weeks:null;
+    const isPreterm=weeks!=null&&weeks<37;
+    const pattern=computeContrPattern();
+    const noteHtml=(isPreterm||!pattern)?`<div class="exm-sheet-note">${contrHelperText()}</div>`:'';
+    const patternHtml=pattern?`
+      <div class="contr-pattern">
+        <div class="contr-pattern-lbl"><span class="dot"></span>Padrão das últimas ${pattern.n} contrações</div>
+        <div class="contr-pattern-stats">
+          <div class="contr-pattern-stat"><div class="v">${fmtGap(pattern.avgGap)}</div><div class="k">intervalo médio</div></div>
+          <div class="contr-pattern-stat"><div class="v">${fmtKickDuration(pattern.avgDur)}</div><div class="k">duração média</div></div>
+        </div>
+        <div class="contr-pattern-foot">${contrPatternFootText(pattern)}</div>
+      </div>`:'';
+    body.innerHTML=`
+      <div class="exm-sheet-name">Monitor de contrações</div>
+      ${noteHtml}
+      ${patternHtml}
+      <div class="contr-check-lbl">Além do tempo, você sente algum destes agora?</div>
+      <div class="contr-check-list" id="contrCheckList">
+        <label class="contr-check-item"><input type="checkbox" data-flag/>Perdeu líquido (bolsa)</label>
+        <label class="contr-check-item"><input type="checkbox" data-flag/>Sangramento vaginal</label>
+        <label class="contr-check-item"><input type="checkbox" data-flag/>Bebê mexendo bem menos</label>
+        <label class="contr-check-item"><input type="checkbox" data-flag/>Dor forte que não passa</label>
+      </div>
+      <div class="contr-alert" id="contrAlert">
+        <div class="contr-alert-title">📞 Isso merece uma ligação agora</div>
+        <div class="contr-alert-body">Não espere um horário exato — ligue para o seu obstetra ou vá à maternidade.</div>
+      </div>
+      <div class="kick-count-wrap">
+        <button class="mv-ring-btn" id="contrStartTapBtn" type="button">
+          <span><span class="mv-ico">💫</span><span class="mv-txt">Iniciar</span></span>
+        </button>
+      </div>
+      ${contractions.length?'<button class="mv-cancel-btn" id="contrEndSessionBtn" type="button">Encerrar monitoramento</button>':''}
+      ${listHtml}`;
+    document.getElementById('contrStartTapBtn').addEventListener('click',()=>{
+      contrActive={start:Date.now()};
+      startContrTimerLoop();
+      renderContrSheetBody();
+    });
+    const endSessionBtn=document.getElementById('contrEndSessionBtn');
+    if(endSessionBtn)endSessionBtn.addEventListener('click',()=>{
+      contrSessionBreakAt=Date.now();
+      saveContrSessionBreak(contrSessionBreakAt);
+      showToast('Monitoramento encerrado — a próxima contração começa sem intervalo',1800);
+    });
+    document.querySelectorAll('#contrCheckList input[data-flag]').forEach(cb=>{
+      cb.addEventListener('change',()=>{
+        cb.closest('.contr-check-item').classList.toggle('on',cb.checked);
+        const any=[...document.querySelectorAll('#contrCheckList input[data-flag]')].some(x=>x.checked);
+        document.getElementById('contrAlert').classList.toggle('show',any);
+      });
+    });
+  }
+}
+function openContrSheet(){
+  contrActive=null;
+  renderContrSheetBody();
+  document.getElementById('contrOverlay').classList.add('show');
+}
+function closeContrSheet(){
+  document.getElementById('contrOverlay').classList.remove('show');
+  stopContrTimerLoop();
+  contrActive=null;
+}
+document.getElementById('contrStartBtn').addEventListener('click',openContrSheet);
+document.getElementById('contrClose').addEventListener('click',closeContrSheet);
+document.getElementById('contrOverlay').addEventListener('click',e=>{if(e.target.id==='contrOverlay')closeContrSheet();});
+renderContrCard();
+
+/* ── Monitoramento de peso materno ── */
+const WEIGHT_KEY='mkcalc_gem_weight_v1';
+function loadWeights(){
+  try{const raw=localStorage.getItem(WEIGHT_KEY);return raw?JSON.parse(raw):[];}
+  catch{return[];}
+}
+function saveWeights(){
+  try{localStorage.setItem(WEIGHT_KEY,JSON.stringify(weightEntries));}catch{}
+}
+const weightEntries=loadWeights();
+weightEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+/* Semana gestacional referente à data escolhida no registro (não à data de hoje) —
+   necessário porque um registro pode ser de um dia anterior. */
+function weeksForDate(d){
+  const saved=loadPregnancy();
+  if(!saved)return null;
+  const lmp=new Date(saved.lmp+'T12:00:00');
+  const days=diffDaysUTC(lmp,d);
+  return days>=0?daysToWeeksInfo(days).weeks:null;
+}
+/* Semana de um registro de peso salvo, recalculada com a DUM atual — nunca
+   confiar no campo `weeks` gravado no registro, porque ele foi calculado com
+   a DUM de quando o registro foi salvo. Se a DUM for corrigida depois (ex:
+   por um ultrassom), registros antigos ficariam com a semana desatualizada
+   e as comparações de ganho de peso passariam a comparar semanas erradas. */
+function liveWeeksFor(entry){
+  return weeksForDate(new Date(entry.date));
+}
+
+function calcBMI(kg,cm){
+  if(!kg||!cm)return null;
+  const m=cm/100;
+  return kg/(m*m);
+}
+/* Classificação padrão de IMC (OMS) — usada como referência mesmo na gestação,
+   sempre com o aviso de que o IMC sobe naturalmente com a gravidez em si. */
+function bmiClass(bmi){
+  if(bmi<18.5)return{lbl:'Baixo peso',tone:'low'};
+  if(bmi<25)return{lbl:'Peso normal',tone:'normal'};
+  if(bmi<30)return{lbl:'Sobrepeso',tone:'over'};
+  if(bmi<35)return{lbl:'Obesidade grau I',tone:'ob'};
+  if(bmi<40)return{lbl:'Obesidade grau II',tone:'ob'};
+  return{lbl:'Obesidade grau III',tone:'ob'};
+}
+/* Faixa de ganho de peso total recomendado numa gestação única, por categoria
+   de IMC pré-gestacional (Institute of Medicine, 2009 — adotado também pelo
+   Ministério da Saúde no pré-natal). É a meta pro FINAL da gestação, usada
+   só como referência — nunca pra julgar o ganho parcial contra um ritmo
+   semanal esperado. */
+function gestGainRange(prePregBmi){
+  if(prePregBmi<18.5)return[12.5,18];
+  if(prePregBmi<25)return[11.5,16];
+  if(prePregBmi<30)return[7,11.5];
+  return[5,9];
+}
+function fmtKg(kg){
+  return `${kg.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} kg`;
+}
+function fmtBmi(bmi){
+  return bmi.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+}
+function renderWeightSummary(){
+  const wrap=document.getElementById('weightSummaryWrap');
+  const last=weightEntries[weightEntries.length-1];
+  if(!last){wrap.innerHTML='';return;}
+  const heightCm=profile.heightCm||null;
+  const bmi=calcBMI(last.kg,heightCm);
+  const bc=bmi?bmiClass(bmi):null;
+  let html=`<div class="wt-stat-grid">
+    <div class="wt-stat"><div class="lbl">Peso atual</div><div class="val">${fmtKg(last.kg)}</div></div>
+    <div class="wt-stat"><div class="lbl">IMC</div>${bc
+      ?`<div class="val">${fmtBmi(bmi)}</div><div class="bmi-pill tone-${bc.tone}">${bc.lbl}</div>`
+      :`<div class="val" style="font-size:12.5px;color:var(--ink3);font-family:inherit;font-weight:600">Informe a altura</div>`}</div>
+  </div>`;
+  const first=weightEntries[0];
+  const basePrePreg=profile.prePregWeightKg;
+  const baseKg=basePrePreg!=null?basePrePreg:first.kg;
+  const baseLbl=basePrePreg!=null?'peso pré-gestacional':'primeiro registro';
+  const baseBmi=heightCm?calcBMI(baseKg,heightCm):null;
+  if(baseBmi){
+    const gain=last.kg-baseKg;
+    const[totMin,totMax]=gestGainRange(baseBmi);
+    const pct=Math.max(4,Math.min(100,(gain/totMax)*100));
+    html+=`<div class="wg-summary">
+      <div class="wg-summary-top"><span class="lbl" style="margin:0">Ganho de peso total</span><span class="wg-summary-val">${gain>=0?'+':''}${fmtKg(gain)}</span></div>
+      <div class="wg-bar"><div class="wg-bar-fill tone-ok" style="width:${pct}%"></div></div>
+      <div class="wg-summary-txt">Considerando o ${baseLbl} de ${fmtKg(baseKg)}. Meta pro final da gestação: ${fmtKg(totMin)}–${fmtKg(totMax)}. <span style="color:var(--ink3)">O que é ideal pra você é sempre definido com seu obstetra.</span></div>
+    </div>`;
+  }
+  wrap.innerHTML=html;
+}
+function renderWeightChart(){
+  const wrap=document.getElementById('weightChartWrap');
+  if(weightEntries.length<2){wrap.innerHTML='';return;}
+  const pts=weightEntries;
+  const kgs=pts.map(p=>p.kg);
+  const minKg=Math.min(...kgs),maxKg=Math.max(...kgs);
+  const padKg=Math.max(0.5,(maxKg-minKg)*0.15);
+  const lo=minKg-padKg,hi=maxKg+padKg;
+  const W=300,H=110,padX=8,padY=10;
+  const xAt=i=>padX+(pts.length===1?0:(i/(pts.length-1))*(W-padX*2));
+  const yAt=kg=>padY+(1-((kg-lo)/((hi-lo)||1)))*(H-padY*2);
+  const pathD=pts.map((p,i)=>`${i===0?'M':'L'}${xAt(i).toFixed(1)},${yAt(p.kg).toFixed(1)}`).join(' ');
+  const areaD=`${pathD} L${xAt(pts.length-1).toFixed(1)},${H-padY} L${xAt(0).toFixed(1)},${H-padY} Z`;
+  const dots=pts.map((p,i)=>`<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(p.kg).toFixed(1)}" r="${i===pts.length-1?4.5:3}" fill="${i===pts.length-1?'var(--pd2)':'var(--track2)'}"><title>${fmt(new Date(p.date))} · ${fmtKg(p.kg)}</title></circle>`).join('');
+  wrap.innerHTML=`
+    <div class="lbl" style="margin-top:4px">Evolução do peso</div>
+    <div class="weight-chart-wrap">
+      <svg class="weight-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="wgGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--track2)" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="var(--track2)" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="${areaD}" fill="url(#wgGrad)" stroke="none"/>
+        <path d="${pathD}" fill="none" stroke="var(--track2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        ${dots}
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-top:2px">
+        <span>${fmt(new Date(pts[0].date))}${liveWeeksFor(pts[0])!=null?` · ${liveWeeksFor(pts[0])}s`:''}</span>
+        <span>${fmt(new Date(pts[pts.length-1].date))}${liveWeeksFor(pts[pts.length-1])!=null?` · ${liveWeeksFor(pts[pts.length-1])}s`:''}</span>
+      </div>
+    </div>`;
+}
+function renderWeightHistory(){
+  const wrap=document.getElementById('weightHistoryWrap');
+  if(!weightEntries.length){wrap.innerHTML='';return;}
+  const items=[...weightEntries].slice(-10).reverse();
+  wrap.innerHTML=`<div class="lbl" style="margin-top:18px">Seus últimos registros</div>`+
+    items.map((w)=>{
+      const realIdx=weightEntries.indexOf(w);
+      const wWeeks=liveWeeksFor(w);
+      return `<div class="weight-history-item"><span>${fmt(new Date(w.date))}${wWeeks!=null?` <span class="weight-history-w">· ${wWeeks}s</span>`:''}</span><span style="display:flex;align-items:center;gap:4px"><strong style="color:var(--ink)">${fmtKg(w.kg)}</strong><button class="weight-history-del" data-idx="${realIdx}" type="button" aria-label="Excluir registro">✕</button></span></div>`;
+    }).join('');
+  wrap.querySelectorAll('.weight-history-del').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(!confirm('Excluir esse registro de peso?'))return;
+      weightEntries.splice(Number(btn.dataset.idx),1);
+      saveWeights();
+      renderWeightCard();
+    });
+  });
+}
+function renderWeightCard(){
+  const last=weightEntries[weightEntries.length-1];
+  const subTxt=last
+    ?`Último registro: ${fmt(new Date(last.date))} · ${fmtKg(last.kg)}`
+    :'Nenhum registro ainda';
+  document.getElementById('weightLastSub').textContent=subTxt;
+  document.getElementById('weightHeadSub').textContent=subTxt;
+  renderWeightSummary();
+  renderWeightChart();
+  renderWeightHistory();
+}
+function renderWeightSheetBody(){
+  const body=document.getElementById('weightSheetBody');
+  const todayISO=toISO(TODAY);
+  body.innerHTML=`
+    <div class="exm-sheet-name">Registrar peso</div>
+    <div class="exm-sheet-desc">Pode registrar o peso de hoje ou de um dia anterior que você anotou.</div>
+    <div class="field"><label>Data</label>
+      <input class="inp" type="date" id="weightDateInp" value="${todayISO}" max="${todayISO}">
+    </div>
+    <div class="field"><label>Peso</label>
+      <div class="wt-field-row"><input class="inp" type="number" id="weightSheetInp" placeholder="Ex: 68.5" step="0.1" min="0" inputmode="decimal"><span class="wt-field-unit">kg</span></div>
+    </div>
+    <button class="kick-tap-btn" id="weightSaveBtn" type="button">Salvar registro</button>
+    <button class="kick-cancel-btn" id="weightCancelBtn" type="button">Cancelar</button>`;
+  document.getElementById('weightSaveBtn').addEventListener('click',()=>{
+    const raw=document.getElementById('weightSheetInp').value.replace(',','.');
+    const v=parseFloat(raw);
+    if(!v||v<=0){showToast('Informe um peso válido',1500);return;}
+    const dateStr=document.getElementById('weightDateInp').value;
+    if(!dateStr){showToast('Informe a data',1500);return;}
+    const entryDate=new Date(dateStr+'T12:00:00');
+    if(diffDaysUTC(TODAY,entryDate)>0){showToast('A data não pode ser no futuro',1500);return;}
+    weightEntries.push({date:entryDate.toISOString(),kg:v});
+    weightEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    saveWeights();
+    renderWeightCard();
+    closeWeightSheet();
+    showToast('Peso registrado',1500);
+  });
+  document.getElementById('weightCancelBtn').addEventListener('click',closeWeightSheet);
+}
+function openWeightSheet(){
+  renderWeightSheetBody();
+  document.getElementById('weightOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('weightSheetInp')?.focus(),80);
+}
+function closeWeightSheet(){
+  document.getElementById('weightOverlay').classList.remove('show');
+}
+document.getElementById('weightAddBtn').addEventListener('click',openWeightSheet);
+document.getElementById('weightClose').addEventListener('click',closeWeightSheet);
+document.getElementById('weightOverlay').addEventListener('click',e=>{if(e.target.id==='weightOverlay')closeWeightSheet();});
+document.getElementById('heightInp').value=profile.heightCm||'';
+document.getElementById('prePregInp').value=profile.prePregWeightKg||'';
+document.getElementById('heightInp').addEventListener('input',e=>{
+  const v=parseFloat(e.target.value.replace(',','.'));
+  profile.heightCm=v>0?v:null;
+  saveProfile();
+  renderWeightCard();
+});
+document.getElementById('prePregInp').addEventListener('input',e=>{
+  const v=parseFloat(e.target.value.replace(',','.'));
+  profile.prePregWeightKg=v>0?v:null;
+  saveProfile();
+  renderWeightCard();
+});
+renderWeightCard();
+
+/* ── Registro de pressão arterial ── */
+const BP_KEY='mkcalc_gem_bp_v1';
+function loadBP(){
+  try{const raw=localStorage.getItem(BP_KEY);return raw?JSON.parse(raw):[];}
+  catch{return[];}
+}
+function saveBP(){
+  try{localStorage.setItem(BP_KEY,JSON.stringify(bpEntries));}catch{}
+}
+const bpEntries=loadBP();
+bpEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+function fmtBP(sys,dia){
+  return `${sys}/${dia} mmHg`;
+}
+/* Limiares clássicos de pré-natal: ≥140/90 é o ponto de atenção pra pré-eclâmpsia,
+   ≥160/110 é considerado urgência hipertensiva. Reaproveita as tonalidades já
+   usadas no pill de IMC (tone-low/normal/over/ob), só com outro significado aqui. */
+function classifyBP(sys,dia){
+  if(sys>=160||dia>=110)return{lbl:'Muito alta',tone:'ob',urgent:true};
+  if(sys>=140||dia>=90)return{lbl:'Alta',tone:'over',urgent:false};
+  if(sys<90||dia<60)return{lbl:'Baixa',tone:'low',urgent:false};
+  return{lbl:'Normal',tone:'normal',urgent:false};
+}
+function bpAdviceText(cls){
+  if(cls.urgent)return'≥160/110 mmHg é considerado urgência — procure atendimento médico o quanto antes, não espere a próxima consulta.';
+  if(cls.tone==='over')return profile.chronicHtn
+    ?'Acima do que costuma ser seu valor de referência — registre e informe ao seu obstetra.'
+    :'≥140/90 mmHg é o limiar de atenção pra pressão alta na gestação (pré-eclâmpsia) — informe ao seu obstetra.';
+  if(cls.tone==='low')return'Abaixo do habitual — geralmente não é preocupante na gestação, mas informe se sentir tontura ou mal-estar.';
+  return'Dentro da faixa considerada normal.';
+}
+function renderBPSummary(){
+  const wrap=document.getElementById('bpSummaryWrap');
+  const last=bpEntries[bpEntries.length-1];
+  if(!last){wrap.innerHTML='';return;}
+  const cls=classifyBP(last.sys,last.dia);
+  wrap.innerHTML=`<div class="wt-stat-grid">
+    <div class="wt-stat"><div class="lbl">Última aferição</div><div class="val">${fmtBP(last.sys,last.dia)}</div></div>
+    <div class="wt-stat"><div class="lbl">Classificação</div><div class="bmi-pill tone-${cls.tone}">${cls.lbl}</div></div>
+  </div>
+  <div class="wg-summary"><div class="wg-summary-txt">${bpAdviceText(cls)}</div></div>`;
+}
+function renderBPHistory(){
+  const wrap=document.getElementById('bpHistoryWrap');
+  if(!bpEntries.length){wrap.innerHTML='';return;}
+  const items=[...bpEntries].slice(-10).reverse();
+  wrap.innerHTML=`<div class="lbl" style="margin-top:18px">Seus últimos registros</div>`+
+    items.map((b)=>{
+      const realIdx=bpEntries.indexOf(b);
+      return `<div class="weight-history-item"><span>${fmt(new Date(b.date))} <span class="weight-history-w">· ${fmtClock(new Date(b.date))}</span></span><span style="display:flex;align-items:center;gap:4px"><strong style="color:var(--ink)">${fmtBP(b.sys,b.dia)}</strong><button class="weight-history-del" data-idx="${realIdx}" type="button" aria-label="Excluir registro">✕</button></span></div>`;
+    }).join('');
+  wrap.querySelectorAll('.weight-history-del').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(!confirm('Excluir esse registro de pressão?'))return;
+      bpEntries.splice(Number(btn.dataset.idx),1);
+      saveBP();
+      renderBPCard();
+    });
+  });
+}
+function renderBPCard(){
+  const last=bpEntries[bpEntries.length-1];
+  const subTxt=last
+    ?`Último registro: ${fmt(new Date(last.date))} · ${fmtBP(last.sys,last.dia)}`
+    :'Nenhum registro ainda';
+  document.getElementById('bpLastSub').textContent=subTxt;
+  document.getElementById('bpHeadSub').textContent=subTxt;
+  document.querySelectorAll('#htnTabs .stab').forEach(b=>b.classList.toggle('on',b.dataset.htn===(profile.chronicHtn?'sim':'nao')));
+  renderBPSummary();
+  renderBPHistory();
+}
+function renderBPSheetBody(){
+  const body=document.getElementById('bpSheetBody');
+  const now=new Date();
+  const todayISO=toISO(TODAY);
+  const nowTime=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  body.innerHTML=`
+    <div class="exm-sheet-name">Registrar pressão</div>
+    <div class="exm-sheet-desc">Pode registrar a aferição de agora ou de um momento anterior que você anotou.</div>
+    <div class="field"><label>Data e horário</label>
+      <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:8px">
+        <input class="inp" type="date" id="bpDateInp" value="${todayISO}" max="${todayISO}">
+        <input class="inp" type="time" id="bpTimeInp" value="${nowTime}">
+      </div>
+    </div>
+    <div class="field"><label>Pressão arterial</label>
+      <div class="wt-field-row">
+        <input class="inp" type="number" id="bpSysInp" placeholder="Sistólica" step="1" min="0" inputmode="numeric" style="text-align:center">
+        <span class="wt-field-unit">/</span>
+        <input class="inp" type="number" id="bpDiaInp" placeholder="Diastólica" step="1" min="0" inputmode="numeric" style="text-align:center">
+        <span class="wt-field-unit">mmHg</span>
+      </div>
+    </div>
+    <button class="kick-tap-btn" id="bpSaveBtn" type="button">Salvar registro</button>
+    <button class="kick-cancel-btn" id="bpCancelBtn" type="button">Cancelar</button>`;
+  document.getElementById('bpSaveBtn').addEventListener('click',()=>{
+    const sys=parseInt(document.getElementById('bpSysInp').value,10);
+    const dia=parseInt(document.getElementById('bpDiaInp').value,10);
+    if(!sys||!dia||sys<=0||dia<=0){showToast('Informe a pressão sistólica e diastólica',1500);return;}
+    if(sys<=dia){showToast('A sistólica deve ser maior que a diastólica',1500);return;}
+    const dateStr=document.getElementById('bpDateInp').value;
+    const timeStr=document.getElementById('bpTimeInp').value;
+    if(!dateStr||!timeStr){showToast('Informe a data e o horário',1500);return;}
+    const entryDate=new Date(`${dateStr}T${timeStr}:00`);
+    if(entryDate.getTime()>Date.now()){showToast('A data/horário não pode ser no futuro',1500);return;}
+    bpEntries.push({date:entryDate.toISOString(),sys,dia});
+    bpEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    saveBP();
+    renderBPCard();
+    closeBPSheet();
+    showToast('Pressão registrada',1500);
+  });
+  document.getElementById('bpCancelBtn').addEventListener('click',closeBPSheet);
+}
+function openBPSheet(){
+  renderBPSheetBody();
+  document.getElementById('bpOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('bpSysInp')?.focus(),80);
+}
+function closeBPSheet(){
+  document.getElementById('bpOverlay').classList.remove('show');
+}
+document.getElementById('bpAddBtn').addEventListener('click',openBPSheet);
+document.getElementById('bpClose').addEventListener('click',closeBPSheet);
+document.getElementById('bpOverlay').addEventListener('click',e=>{if(e.target.id==='bpOverlay')closeBPSheet();});
+document.querySelectorAll('#htnTabs .stab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    profile.chronicHtn=btn.dataset.htn==='sim';
+    saveProfile();
+    renderBPCard();
+  });
+});
+renderBPCard();
+
+/* ── Curva glicêmica (TOTG) ──
+   Diferente de peso e pressão, o TOTG não é uma série temporal — é feito uma
+   única vez (24 a 28 semanas), então guardamos um único resultado (ou null),
+   não uma lista. Os 3 valores (jejum, 1h, 2h) usam os pontos de corte da
+   IADPSG: basta um valor alterado pra já ser considerado resultado alterado.
+   Registrar aqui marca automaticamente o item "Curva glicêmica (TOTG)" como
+   feito no Guia de Exames e no Checklist (chave 'lab-1', ver
+   CHECKLIST_EXAM_LINK) — e excluir o registro desmarca de novo. */
+const GTT_KEY='mkcalc_gem_gtt_v1';
+function loadGTT(){
+  try{const raw=localStorage.getItem(GTT_KEY);return raw?JSON.parse(raw):null;}
+  catch{return null;}
+}
+function saveGTT(){
+  try{
+    if(gttResult)localStorage.setItem(GTT_KEY,JSON.stringify(gttResult));
+    else localStorage.removeItem(GTT_KEY);
+  }catch{}
+}
+let gttResult=loadGTT();
+const GTT_CUTOFFS={fasting:92,h1:180,h2:153};
+function gttAltered(field,val){return val>=GTT_CUTOFFS[field];}
+function gttAnyAltered(r){return gttAltered('fasting',r.fasting)||gttAltered('h1',r.h1)||gttAltered('h2',r.h2);}
+function gttVerdictText(r){
+  return gttAnyAltered(r)
+    ?'Resultado alterado — pelo menos um valor atingiu o critério diagnóstico de diabetes gestacional (IADPSG). Fale com seu obstetra sobre os próximos passos.'
+    :'Resultado dentro da normalidade, pelos critérios da IADPSG.';
+}
+function setGttExamDone(done){
+  if(!!examDone['lab-1']===done)return;
+  examDone['lab-1']=done;
+  saveExamDone();
+  if(typeof renderExamGuide==='function')renderExamGuide();
+  if(typeof buildChecklist==='function')buildChecklist();
+}
+function renderGTTWrap(){
+  const wrap=document.getElementById('gttWrap');
+  if(!gttResult){
+    wrap.innerHTML=`<div class="exm-cta" id="gttAddBtn">
+      <div>
+        <div class="exm-cta-txt">🩸 Registrar resultado</div>
+        <div class="exm-cta-sub">Jejum, 1h e 2h depois do TOTG</div>
+      </div>
+      <div class="exm-cta-arrow">→</div>
+    </div>`;
+    document.getElementById('gttAddBtn').addEventListener('click',()=>openGTTSheet(false));
+    return;
+  }
+  const tone=f=>gttAltered(f,gttResult[f])?'ob':'normal';
+  const lbl=f=>gttAltered(f,gttResult[f])?'Alterado':'Normal';
+  wrap.innerHTML=`<div class="stat-grid" style="margin-bottom:8px">
+    <div class="stat"><div class="lbl">Jejum</div><div class="val">${gttResult.fasting}</div><div class="bmi-pill tone-${tone('fasting')}" style="margin-top:6px;font-size:10px;padding:4px 9px">${lbl('fasting')}</div></div>
+    <div class="stat"><div class="lbl">1h</div><div class="val">${gttResult.h1}</div><div class="bmi-pill tone-${tone('h1')}" style="margin-top:6px;font-size:10px;padding:4px 9px">${lbl('h1')}</div></div>
+    <div class="stat"><div class="lbl">2h</div><div class="val">${gttResult.h2}</div><div class="bmi-pill tone-${tone('h2')}" style="margin-top:6px;font-size:10px;padding:4px 9px">${lbl('h2')}</div></div>
+  </div>
+  <div style="text-align:center;font-size:10px;color:var(--ink3);margin-bottom:10px">Valores em mg/dL · feito em ${fmt(new Date(gttResult.date))}</div>
+  <div class="wg-summary"><div class="wg-summary-txt">${gttVerdictText(gttResult)}</div></div>
+  <div style="display:flex;gap:20px;justify-content:center">
+    <button class="kick-cancel-btn" id="gttEditBtn" type="button" style="display:inline;width:auto;margin-top:0">Editar resultado</button>
+    <button class="kick-cancel-btn" id="gttDelBtn" type="button" style="display:inline;width:auto;margin-top:0;color:var(--alert)">Excluir registro</button>
+  </div>`;
+  document.getElementById('gttEditBtn').addEventListener('click',()=>openGTTSheet(true));
+  document.getElementById('gttDelBtn').addEventListener('click',()=>{
+    if(!confirm('Excluir o resultado da curva glicêmica?'))return;
+    gttResult=null;
+    saveGTT();
+    setGttExamDone(false);
+    renderGTTCard();
+    showToast('Registro excluído',1500);
+  });
+}
+function renderGTTCard(){
+  document.getElementById('gttHeadSub').textContent=gttResult
+    ?`Registrada em ${fmt(new Date(gttResult.date))} · ${gttAnyAltered(gttResult)?'Alterada':'Normal'}`
+    :'Ainda não registrada';
+  renderGTTWrap();
+}
+function renderGTTSheetBody(editing){
+  const body=document.getElementById('gttSheetBody');
+  const todayISO=toISO(TODAY);
+  const r=editing&&gttResult?gttResult:null;
+  body.innerHTML=`
+    <div class="exm-sheet-name">${r?'Editar resultado':'Registrar curva glicêmica'}</div>
+    <div class="exm-sheet-desc">Informe os 3 valores do TOTG. Os pontos de corte usados aqui seguem os critérios da IADPSG.</div>
+    <div class="field"><label>Data do exame</label>
+      <input class="inp" type="date" id="gttDateInp" value="${r?toISO(new Date(r.date)):todayISO}" max="${todayISO}">
+    </div>
+    <div class="field"><label>Jejum</label>
+      <div class="wt-field-row"><input class="inp" type="number" id="gttFastingInp" value="${r?r.fasting:''}" placeholder="Ex: 85" step="1" min="0" inputmode="numeric"><span class="wt-field-unit">mg/dL</span></div>
+    </div>
+    <div class="field"><label>1 hora depois</label>
+      <div class="wt-field-row"><input class="inp" type="number" id="gttH1Inp" value="${r?r.h1:''}" placeholder="Ex: 150" step="1" min="0" inputmode="numeric"><span class="wt-field-unit">mg/dL</span></div>
+    </div>
+    <div class="field"><label>2 horas depois</label>
+      <div class="wt-field-row"><input class="inp" type="number" id="gttH2Inp" value="${r?r.h2:''}" placeholder="Ex: 120" step="1" min="0" inputmode="numeric"><span class="wt-field-unit">mg/dL</span></div>
+    </div>
+    <button class="kick-tap-btn" id="gttSaveBtn" type="button">Salvar resultado</button>
+    <button class="kick-cancel-btn" id="gttCancelBtn" type="button">Cancelar</button>`;
+  document.getElementById('gttSaveBtn').addEventListener('click',()=>{
+    const dateStr=document.getElementById('gttDateInp').value;
+    const fasting=parseInt(document.getElementById('gttFastingInp').value,10);
+    const h1=parseInt(document.getElementById('gttH1Inp').value,10);
+    const h2=parseInt(document.getElementById('gttH2Inp').value,10);
+    if(!dateStr){showToast('Informe a data do exame',1500);return;}
+    if(!fasting||!h1||!h2||fasting<=0||h1<=0||h2<=0){showToast('Informe os 3 valores da curva',1500);return;}
+    const entryDate=new Date(dateStr+'T12:00:00');
+    if(diffDaysUTC(TODAY,entryDate)>0){showToast('A data não pode ser no futuro',1500);return;}
+    gttResult={date:entryDate.toISOString(),fasting,h1,h2};
+    saveGTT();
+    setGttExamDone(true);
+    renderGTTCard();
+    closeGTTSheet();
+    showToast('Resultado registrado',1500);
+  });
+  document.getElementById('gttCancelBtn').addEventListener('click',closeGTTSheet);
+}
+function openGTTSheet(editing){
+  renderGTTSheetBody(editing);
+  document.getElementById('gttOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('gttFastingInp')?.focus(),80);
+}
+function closeGTTSheet(){
+  document.getElementById('gttOverlay').classList.remove('show');
+}
+document.getElementById('gttClose').addEventListener('click',closeGTTSheet);
+document.getElementById('gttOverlay').addEventListener('click',e=>{if(e.target.id==='gttOverlay')closeGTTSheet();});
+renderGTTCard();
+
+/* Cabeçalhos comprimidos dos cards de monitoramento (peso, pressão, curva
+   glicêmica, movimentos, contrações) — clique abre/fecha o card inteiro,
+   fechado por padrão. */
+function initMonToggle(headId,bodyId,chevId){
+  document.getElementById(headId).addEventListener('click',()=>{
+    const body=document.getElementById(bodyId);
+    const open=body.classList.toggle('open');
+    document.getElementById(chevId).textContent=open?'▴':'▾';
+    document.getElementById(headId).setAttribute('aria-expanded',open?'true':'false');
+  });
+}
+initMonToggle('weightHead','weightBody','weightChev');
+initMonToggle('bpHead','bpBody','bpChev');
+initMonToggle('gttHead','gttBody','gttChev');
+initMonToggle('kickHead','kickBody','kickChev');
+initMonToggle('contrHead','contrBody','contrChev');
+
+/* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
+const ONB_KEY='mkcalc_gem_onboarded';
+const ONBOARDING_STEPS=[
+  {ico:'🤰',title:'Bem-vinda ao MKCalc!',desc:'Um app simples pra acompanhar sua gestação: idade gestacional, período fértil, exames e muito mais.'},
+  {ico:'📅',title:'Qual sua idade gestacional?',desc:'Você pode informar pela <strong>DUM</strong>, pelo <strong>1º ultrassom</strong> ou pela <strong>DPP</strong>. A partir daí, o app calcula sua idade gestacional sozinho — sempre atualizada, toda vez que você abrir.',cta:'Informar agora',ctaPage:'calc'},
+  {ico:'🧭',title:'Use as abas aqui embaixo',desc:'Calcular, Resultado, Exames e Checklist ficam sempre a um toque de distância, na barra de navegação.'},
+  {ico:'🧸',title:'Personalize na aba Perfil',desc:'Coloque aqui o nome e o sexo do seu bebê.'},
+  {ico:'✨',title:'Pronto!',desc:'Você já pode começar. Sempre que quiser rever este tutorial, é só tocar no <span class="onb-help-mark">?</span> lá em cima. Começando uma <strong>nova gestação</strong>? Na aba Perfil tem a opção "Começar nova gestação", que apaga os dados antigos pra você recomeçar do zero.'}
+];
+let onbStep=0;
+let onbPendingResume=false;
+function renderOnb(){
+  const s=ONBOARDING_STEPS[onbStep];
+  document.getElementById('onbBody').innerHTML=`
+    <div class="onb-ico">${s.ico}</div>
+    <div class="onb-title serif">${s.title}</div>
+    <div class="onb-desc">${s.desc}</div>
+    ${s.cta?`<button class="onb-cta" id="onbCta">${s.cta}</button>`:''}`;
+  if(s.cta){
+    document.getElementById('onbCta').addEventListener('click',()=>{
+      document.getElementById('onbOverlay').classList.remove('show');
+      onbPendingResume=true;
+      goToPage(s.ctaPage);
+      if(s.ctaPage==='calc')setTimeout(()=>document.getElementById('lmpInp').focus(),320);
+    });
+  }
+  document.getElementById('onbDots').innerHTML=ONBOARDING_STEPS.map((_,i)=>`<span class="onb-dot${i===onbStep?' on':''}"></span>`).join('');
+  document.getElementById('onbNext').textContent=onbStep===ONBOARDING_STEPS.length-1?'Começar':'Próximo';
+}
+function openOnboarding(){
+  onbStep=0;
+  renderOnb();
+  document.getElementById('onbOverlay').classList.add('show');
+}
+function closeOnboarding(){
+  document.getElementById('onbOverlay').classList.remove('show');
+  onbPendingResume=false;
+  try{localStorage.setItem(ONB_KEY,'1');}catch{}
+}
+function resumeOnboardingAfterCalc(){
+  if(!onbPendingResume)return;
+  onbPendingResume=false;
+  onbStep=Math.min(onbStep+1,ONBOARDING_STEPS.length-1);
+  setTimeout(()=>{
+    renderOnb();
+    document.getElementById('onbOverlay').classList.add('show');
+  },500);
+}
+document.getElementById('onbNext').addEventListener('click',()=>{
+  if(onbStep<ONBOARDING_STEPS.length-1){onbStep++;renderOnb();}
+  else closeOnboarding();
+});
+document.getElementById('onbSkip').addEventListener('click',closeOnboarding);
+document.getElementById('onbHelpBtn').addEventListener('click',openOnboarding);
+if(!localStorage.getItem(ONB_KEY))openOnboarding();
+
+loadStoredPregnancy();
+</script>
+</body>
+</html>
