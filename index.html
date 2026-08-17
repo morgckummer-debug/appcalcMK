@@ -1495,6 +1495,32 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div class="helper">Ao escolher <strong>menina</strong>, as cores do app mudam para tons de rosa e lilás — ao escolher <strong>menino</strong>, muda-se para tons de azul.</div>
     </div>
 
+    <div class="card feat" id="accountCard">
+      <div class="lbl">👤 Conta</div>
+      <div class="card-title">Sincronize seus <span class="serif" style="color:var(--pd);font-style:italic">dados</span></div>
+      <div class="helper">Crie uma conta pra não perder o nome, o sexo do bebê e a data base da gestação ao trocar de aparelho. Os registros do dia a dia (peso, pressão, glicemia, checklist etc.) continuam salvos só neste aparelho.</div>
+
+      <div id="acctLoggedOut">
+        <div class="field"><label>E-mail</label>
+          <input class="inp" type="email" id="acctEmailInp" placeholder="seu@email.com" autocomplete="email">
+        </div>
+        <div class="field"><label>Senha</label>
+          <input class="inp" type="password" id="acctPassInp" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+        </div>
+        <button class="btn-calc" id="acctLoginBtn">Entrar</button>
+        <button class="btn-install" id="acctSignupBtn" style="margin-top:10px">Criar conta</button>
+        <div class="helper hidden" id="acctMsg" style="margin-top:10px;margin-bottom:0"></div>
+      </div>
+
+      <div class="hidden" id="acctLoggedIn">
+        <div class="wt-stat-grid">
+          <div class="wt-stat"><div class="lbl">Logada como</div><div class="val" style="font-size:12.5px;font-family:inherit;font-weight:600;word-break:break-all" id="acctEmailVal">—</div></div>
+          <div class="wt-stat"><div class="lbl">Sincronização</div><div class="val" style="font-size:12.5px;font-family:inherit;font-weight:600" id="acctSyncStatus">—</div></div>
+        </div>
+        <button class="btn-danger" id="acctLogoutBtn" style="margin-top:14px">Sair da conta</button>
+      </div>
+    </div>
+
     <div class="card hidden" id="installCard">
       <div class="lbl">📲 Instalar app</div>
       <div class="card-title" style="font-size:17px">CalcMK no seu <span class="serif" style="color:var(--pd);font-style:italic">aparelho</span></div>
@@ -1643,6 +1669,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
   <button class="nav-btn" data-page="about"><span class="nav-ico">ℹ️</span><span class="nav-lbl">Sobre</span></button>
 </nav>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const TODAY = new Date();
 const fmt = d => {
@@ -2011,8 +2038,9 @@ document.getElementById('babyNameInp').addEventListener('input',e=>{
   profile.name=e.target.value;
   saveProfile();
   updateBabyNameUI();
+  pushProfileToCloud();
 });
-document.querySelectorAll('.stab').forEach(btn=>{
+document.querySelectorAll('#sexTabs .stab').forEach(btn=>{
   btn.addEventListener('click',()=>{
     profile.sex=btn.dataset.sex;
     saveProfile();
@@ -2021,6 +2049,7 @@ document.querySelectorAll('.stab').forEach(btn=>{
     updateBabyNameUI();
     renderKickCard();
     showToast(profile.sex==='menina'?'Tema rosa/lilás ativado 🩷':'Tema padrão ativado 💙',1500);
+    pushProfileToCloud();
   });
 });
 applyProfileTheme();
@@ -2064,10 +2093,16 @@ function loadStoredPregnancy(){
   goToPage('result');
 }
 
-document.getElementById('resetPregBtn').addEventListener('click',()=>{
+document.getElementById('resetPregBtn').addEventListener('click',async()=>{
   const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso, pressão, curva glicêmica e glicemia capilar — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
   if(!ok)return;
   [PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY,GTT_KEY,GLY_KEY].forEach(k=>{try{localStorage.removeItem(k);}catch{}});
+  // Se estiver logada, apaga também o registro salvo na nuvem — senão, ao
+  // recarregar, a sincronização traria de volta o nome/sexo/data antigos.
+  if(sbClient){
+    const{data:{session}}=await sbClient.auth.getSession();
+    if(session)await sbClient.from('pregnancy_profiles').delete().eq('user_id',session.user.id);
+  }
   location.reload();
 });
 
@@ -2214,7 +2249,7 @@ function runCalc(){
     showToast('Essa data resulta em mais de 42 semanas de gestação. Confira a data informada.',3000);
     return;
   }
-  if(ig&&dpp){savePregnancy(ig.lmp,method,basis);currentPregMeta={method,basis};renderPregResult(ig,dpp,method);goResult();resumeOnboardingAfterCalc();}
+  if(ig&&dpp){savePregnancy(ig.lmp,method,basis);currentPregMeta={method,basis};renderPregResult(ig,dpp,method);goResult();resumeOnboardingAfterCalc();pushProfileToCloud();}
 }
 
 function goResult(){goToPage('result');}
@@ -3661,6 +3696,118 @@ document.getElementById('onbHelpBtn').addEventListener('click',openOnboarding);
 if(!localStorage.getItem(ONB_KEY))openOnboarding();
 
 loadStoredPregnancy();
+
+/* ── Conta de usuária (Supabase) ──
+   Login/cadastro por e-mail e senha, com sincronização em nuvem só dos
+   dados principais da gestação (nome e sexo do bebê, base de cálculo).
+   Os registros do dia a dia (peso, pressão, glicemia, checklist etc.)
+   continuam só neste aparelho — ver README. A anon key do Supabase é
+   segura de expor no front-end: a proteção real é via RLS no banco
+   (cada usuária só enxerga a própria linha em pregnancy_profiles). */
+const SUPABASE_URL='https://ustajtfcwnlrloutfrrt.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzdGFqdGZjd25scmxvdXRmcnJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MDY3OTQsImV4cCI6MjEwMjQ4Mjc5NH0.Cr3ANB10UOYmClsVG7gmy6uEScFg4VLo9YmOazEtIQo';
+const sbClient=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+
+function setAcctSyncStatus(text){
+  const el=document.getElementById('acctSyncStatus');
+  if(el)el.textContent=text;
+}
+function showAcctLoggedIn(email){
+  document.getElementById('acctLoggedOut').classList.add('hidden');
+  document.getElementById('acctLoggedIn').classList.remove('hidden');
+  document.getElementById('acctEmailVal').textContent=email;
+}
+function showAcctLoggedOut(){
+  document.getElementById('acctLoggedOut').classList.remove('hidden');
+  document.getElementById('acctLoggedIn').classList.add('hidden');
+  document.getElementById('acctEmailInp').value='';
+  document.getElementById('acctPassInp').value='';
+}
+async function pushProfileToCloud(){
+  if(!sbClient)return;
+  const{data:{session}}=await sbClient.auth.getSession();
+  if(!session)return;
+  setAcctSyncStatus('Sincronizando…');
+  const saved=loadPregnancy();
+  const{error}=await sbClient.from('pregnancy_profiles').upsert({
+    user_id:session.user.id,
+    baby_name:profile.name||null,
+    baby_sex:profile.sex||null,
+    pregnancy_lmp:saved?.lmp||null,
+    pregnancy_method:saved?.method||null,
+    pregnancy_basis:saved?.basis||null,
+    updated_at:new Date().toISOString()
+  },{onConflict:'user_id'});
+  setAcctSyncStatus(error?'Falha ao sincronizar':'Sincronizado agora');
+}
+async function pullProfileFromCloud(){
+  if(!sbClient)return;
+  const{data:{session}}=await sbClient.auth.getSession();
+  if(!session)return;
+  setAcctSyncStatus('Sincronizando…');
+  const{data,error}=await sbClient.from('pregnancy_profiles').select('*').eq('user_id',session.user.id).maybeSingle();
+  if(error){setAcctSyncStatus('Falha ao sincronizar');return;}
+  if(data){
+    if(data.baby_name!=null||data.baby_sex!=null){
+      profile.name=data.baby_name||'';
+      profile.sex=data.baby_sex||'';
+      saveProfile();
+      document.getElementById('babyNameInp').value=profile.name;
+      document.querySelectorAll('#sexTabs .stab').forEach(b=>b.classList.toggle('on',b.dataset.sex===profile.sex));
+      applyProfileTheme();
+      renderProfileUI();
+      updateBabyNameUI();
+    }
+    if(data.pregnancy_lmp){
+      savePregnancy(new Date(data.pregnancy_lmp+'T12:00:00'),data.pregnancy_method,data.pregnancy_basis);
+      loadStoredPregnancy();
+    }
+    setAcctSyncStatus('Sincronizado agora');
+  }else{
+    await pushProfileToCloud();
+  }
+}
+document.getElementById('acctLoginBtn').addEventListener('click',async()=>{
+  if(!sbClient){showToast('Sincronização indisponível offline',2000);return;}
+  const email=document.getElementById('acctEmailInp').value.trim();
+  const password=document.getElementById('acctPassInp').value;
+  const msg=document.getElementById('acctMsg');
+  if(!email||!password){showToast('Informe e-mail e senha',1500);return;}
+  const{error}=await sbClient.auth.signInWithPassword({email,password});
+  if(error){msg.textContent=error.message==='Invalid login credentials'?'E-mail ou senha incorretos.':error.message;msg.classList.remove('hidden');return;}
+  msg.classList.add('hidden');
+});
+document.getElementById('acctSignupBtn').addEventListener('click',async()=>{
+  if(!sbClient){showToast('Sincronização indisponível offline',2000);return;}
+  const email=document.getElementById('acctEmailInp').value.trim();
+  const password=document.getElementById('acctPassInp').value;
+  const msg=document.getElementById('acctMsg');
+  if(!email||!password){showToast('Informe e-mail e senha',1500);return;}
+  if(password.length<6){showToast('A senha precisa ter pelo menos 6 caracteres',2000);return;}
+  const{data,error}=await sbClient.auth.signUp({email,password});
+  if(error){msg.textContent=error.message;msg.classList.remove('hidden');return;}
+  if(data.session){
+    msg.classList.add('hidden');
+  }else{
+    msg.textContent='Conta criada! Confira seu e-mail pra confirmar antes de entrar.';
+    msg.classList.remove('hidden');
+  }
+});
+document.getElementById('acctLogoutBtn').addEventListener('click',async()=>{
+  if(!sbClient)return;
+  await sbClient.auth.signOut();
+  showToast('Você saiu da conta',1500);
+});
+if(sbClient){
+  sbClient.auth.onAuthStateChange((event,session)=>{
+    if(session){
+      showAcctLoggedIn(session.user.email);
+      pullProfileFromCloud();
+    }else{
+      showAcctLoggedOut();
+    }
+  });
+}
 
 /* ── PWA: instalação e service worker ── */
 (function(){
