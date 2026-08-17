@@ -1211,6 +1211,29 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         </div>
       </div>
 
+      <div class="card feat" id="glyCard">
+        <button class="mon-head" id="glyHead" type="button" aria-expanded="false">
+          <div class="mon-head-txt">
+            <div class="lbl">🩸 Saúde materna</div>
+            <div class="card-title mon-head-title">Glicemia <span class="serif" style="color:var(--pd);font-style:italic">capilar</span></div>
+            <div class="mon-head-sub" id="glyHeadSub">Nenhum registro ainda</div>
+          </div>
+          <i class="mon-chev" id="glyChev">▾</i>
+        </button>
+        <div class="mon-body" id="glyBody">
+          <div class="helper">Se seu obstetra pediu controle diário com o glicosímetro, registre aqui o jejum e as medidas pós-refeição — o app já destaca sozinho quando algum valor fica fora da meta. <span style="color:var(--ink3)">Metas usadas aqui: jejum ≤ 95 mg/dL · 1h pós-refeição ≤ 140 mg/dL · 2h pós-refeição ≤ 120 mg/dL. Sua meta pode ser diferente — confirme sempre com seu obstetra.</span></div>
+          <div id="glySummaryWrap"></div>
+          <div class="exm-cta" id="glyAddBtn" style="margin-top:12px">
+            <div>
+              <div class="exm-cta-txt">🩸 Registrar glicemia</div>
+              <div class="exm-cta-sub" id="glyLastSub">Nenhum registro ainda</div>
+            </div>
+            <div class="exm-cta-arrow">→</div>
+          </div>
+          <div id="glyHistoryWrap"></div>
+        </div>
+      </div>
+
       <div class="card feat" id="kickCard">
         <button class="mon-head" id="kickHead" type="button" aria-expanded="false">
           <div class="mon-head-txt">
@@ -1383,7 +1406,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     <div class="card">
       <div class="lbl">Nova gestação</div>
       <div class="card-title" style="font-size:17px">Começando <span class="serif" style="color:var(--pd);font-style:italic">tudo de novo?</span></div>
-      <div class="helper">Isso apaga, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso, pressão e curva glicêmica — pra você recomeçar do zero em uma nova gestação.</div>
+      <div class="helper">Isso apaga, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso, pressão, curva glicêmica e glicemia capilar — pra você recomeçar do zero em uma nova gestação.</div>
       <button class="btn-danger" id="resetPregBtn">🔄 Começar nova gestação</button>
     </div>
   </div>
@@ -1488,6 +1511,15 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     <div class="exm-sheet-handle"></div>
     <button class="exm-sheet-close" id="gttClose">✕</button>
     <div id="gttSheetBody"></div>
+  </div>
+</div>
+
+<!-- Registro de glicemia capilar diária -->
+<div class="exm-overlay" id="glyOverlay">
+  <div class="exm-sheet" id="glySheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="glyClose">✕</button>
+    <div id="glySheetBody"></div>
   </div>
 </div>
 
@@ -1824,9 +1856,9 @@ function loadStoredPregnancy(){
 }
 
 document.getElementById('resetPregBtn').addEventListener('click',()=>{
-  const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso, pressão e curva glicêmica — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
+  const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso, pressão, curva glicêmica e glicemia capilar — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
   if(!ok)return;
-  [PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY,GTT_KEY].forEach(k=>{try{localStorage.removeItem(k);}catch{}});
+  [PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY,GTT_KEY,GLY_KEY].forEach(k=>{try{localStorage.removeItem(k);}catch{}});
   location.reload();
 });
 
@@ -3093,6 +3125,135 @@ document.getElementById('gttClose').addEventListener('click',closeGTTSheet);
 document.getElementById('gttOverlay').addEventListener('click',e=>{if(e.target.id==='gttOverlay')closeGTTSheet();});
 renderGTTCard();
 
+/* ── Glicemia capilar diária (jejum / 1h / 2h pós-refeição) ──
+   Diferente do TOTG (um resultado único), aqui é uma série de registros do
+   dia a dia — a mulher pode medir várias vezes por dia, em vários dias.
+   As metas usadas para "fora da meta" são as de acompanhamento diário do
+   diabetes gestacional (ADA/Febrasgo: jejum ≤95, 1h ≤140, 2h ≤120 mg/dL),
+   que são mais rígidas e diferentes dos pontos de corte diagnósticos do
+   TOTG (IADPSG: 92/180/153) — por isso GLY_TARGETS não reaproveita
+   GTT_CUTOFFS. */
+const GLY_KEY='mkcalc_gly_v1';
+function loadGly(){
+  try{const raw=localStorage.getItem(GLY_KEY);return raw?JSON.parse(raw):[];}
+  catch{return[];}
+}
+function saveGly(){
+  try{localStorage.setItem(GLY_KEY,JSON.stringify(glyEntries));}catch{}
+}
+const glyEntries=loadGly();
+glyEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+const GLY_TARGETS={fasting:95,h1:140,h2:120};
+const GLY_MOMENT_LBL={fasting:'Jejum',h1:'1h pós-refeição',h2:'2h pós-refeição'};
+let glySelectedMoment='fasting';
+function glyOutOfTarget(moment,val){return val>GLY_TARGETS[moment];}
+function fmtGly(val){return `${val} mg/dL`;}
+function renderGlySummary(){
+  const wrap=document.getElementById('glySummaryWrap');
+  const last=glyEntries[glyEntries.length-1];
+  if(!last){wrap.innerHTML='';return;}
+  const out=glyOutOfTarget(last.moment,last.value);
+  wrap.innerHTML=`<div class="wt-stat-grid">
+    <div class="wt-stat"><div class="lbl">Última leitura</div><div class="val">${fmtGly(last.value)}</div></div>
+    <div class="wt-stat"><div class="lbl">${GLY_MOMENT_LBL[last.moment]}</div><div class="bmi-pill tone-${out?'ob':'normal'}">${out?'Fora da meta':'Na meta'}</div></div>
+  </div>
+  <div class="wg-summary"><div class="wg-summary-txt">${out
+    ?`Meta pra ${GLY_MOMENT_LBL[last.moment].toLowerCase()} é até ${GLY_TARGETS[last.moment]} mg/dL — esse valor ficou acima. Informe ao seu obstetra.`
+    :'Dentro da meta usada aqui.'}</div></div>`;
+}
+function renderGlyHistory(){
+  const wrap=document.getElementById('glyHistoryWrap');
+  if(!glyEntries.length){wrap.innerHTML='';return;}
+  const items=[...glyEntries].slice(-10).reverse();
+  wrap.innerHTML=`<div class="lbl" style="margin-top:18px">Seus últimos registros</div>`+
+    items.map((g)=>{
+      const realIdx=glyEntries.indexOf(g);
+      const out=glyOutOfTarget(g.moment,g.value);
+      return `<div class="weight-history-item"><span>${fmt(new Date(g.date))} <span class="weight-history-w">· ${fmtClock(new Date(g.date))} · ${GLY_MOMENT_LBL[g.moment]}</span></span><span style="display:flex;align-items:center;gap:6px"><span class="bmi-pill tone-${out?'ob':'normal'}" style="font-size:10px;padding:4px 9px">${fmtGly(g.value)}</span><button class="weight-history-del" data-idx="${realIdx}" type="button" aria-label="Excluir registro">✕</button></span></div>`;
+    }).join('');
+  wrap.querySelectorAll('.weight-history-del').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(!confirm('Excluir esse registro de glicemia?'))return;
+      glyEntries.splice(Number(btn.dataset.idx),1);
+      saveGly();
+      renderGlyCard();
+    });
+  });
+}
+function renderGlyCard(){
+  const last=glyEntries[glyEntries.length-1];
+  const subTxt=last
+    ?`Último registro: ${fmt(new Date(last.date))} · ${GLY_MOMENT_LBL[last.moment]} · ${fmtGly(last.value)}`
+    :'Nenhum registro ainda';
+  document.getElementById('glyLastSub').textContent=subTxt;
+  document.getElementById('glyHeadSub').textContent=subTxt;
+  renderGlySummary();
+  renderGlyHistory();
+}
+function renderGlySheetBody(){
+  const body=document.getElementById('glySheetBody');
+  const now=new Date();
+  const todayISO=toISO(TODAY);
+  const nowTime=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  body.innerHTML=`
+    <div class="exm-sheet-name">Registrar glicemia</div>
+    <div class="exm-sheet-desc">Pode registrar a medida de agora ou de um momento anterior que você anotou.</div>
+    <div class="field"><label>Momento</label>
+      <div class="sex-tabs" id="glyMomentTabs" style="grid-template-columns:repeat(3,1fr);margin-bottom:0">
+        <button class="stab" type="button" data-moment="fasting">Jejum</button>
+        <button class="stab" type="button" data-moment="h1">1h pós</button>
+        <button class="stab" type="button" data-moment="h2">2h pós</button>
+      </div>
+    </div>
+    <div class="field"><label>Data e horário</label>
+      <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:8px">
+        <input class="inp" type="date" id="glyDateInp" value="${todayISO}" max="${todayISO}">
+        <input class="inp" type="time" id="glyTimeInp" value="${nowTime}">
+      </div>
+    </div>
+    <div class="field"><label>Glicemia</label>
+      <div class="wt-field-row"><input class="inp" type="number" id="glyValueInp" placeholder="Ex: 88" step="1" min="0" inputmode="numeric"><span class="wt-field-unit">mg/dL</span></div>
+    </div>
+    <button class="kick-tap-btn" id="glySaveBtn" type="button">Salvar registro</button>
+    <button class="kick-cancel-btn" id="glyCancelBtn" type="button">Cancelar</button>`;
+  const momentTabs=[...body.querySelectorAll('#glyMomentTabs .stab')];
+  function paintMomentTabs(){momentTabs.forEach(b=>b.classList.toggle('on',b.dataset.moment===glySelectedMoment));}
+  paintMomentTabs();
+  momentTabs.forEach(btn=>{
+    btn.addEventListener('click',()=>{glySelectedMoment=btn.dataset.moment;paintMomentTabs();});
+  });
+  document.getElementById('glySaveBtn').addEventListener('click',()=>{
+    const value=parseInt(document.getElementById('glyValueInp').value,10);
+    if(!value||value<=0){showToast('Informe um valor de glicemia válido',1500);return;}
+    const dateStr=document.getElementById('glyDateInp').value;
+    const timeStr=document.getElementById('glyTimeInp').value;
+    if(!dateStr||!timeStr){showToast('Informe a data e o horário',1500);return;}
+    const entryDate=new Date(`${dateStr}T${timeStr}:00`);
+    if(entryDate.getTime()>Date.now()){showToast('A data/horário não pode ser no futuro',1500);return;}
+    glyEntries.push({date:entryDate.toISOString(),moment:glySelectedMoment,value});
+    glyEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    saveGly();
+    renderGlyCard();
+    closeGlySheet();
+    const out=glyOutOfTarget(glySelectedMoment,value);
+    showToast(out?'Registrado — valor fora da meta':'Glicemia registrada',1800);
+  });
+  document.getElementById('glyCancelBtn').addEventListener('click',closeGlySheet);
+}
+function openGlySheet(){
+  glySelectedMoment='fasting';
+  renderGlySheetBody();
+  document.getElementById('glyOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('glyValueInp')?.focus(),80);
+}
+function closeGlySheet(){
+  document.getElementById('glyOverlay').classList.remove('show');
+}
+document.getElementById('glyAddBtn').addEventListener('click',openGlySheet);
+document.getElementById('glyClose').addEventListener('click',closeGlySheet);
+document.getElementById('glyOverlay').addEventListener('click',e=>{if(e.target.id==='glyOverlay')closeGlySheet();});
+renderGlyCard();
+
 /* Cabeçalhos comprimidos dos cards de monitoramento (peso, pressão, curva
    glicêmica, movimentos, contrações) — clique abre/fecha o card inteiro,
    fechado por padrão. */
@@ -3107,6 +3268,7 @@ function initMonToggle(headId,bodyId,chevId){
 initMonToggle('weightHead','weightBody','weightChev');
 initMonToggle('bpHead','bpBody','bpChev');
 initMonToggle('gttHead','gttBody','gttChev');
+initMonToggle('glyHead','glyBody','glyChev');
 initMonToggle('kickHead','kickBody','kickChev');
 initMonToggle('contrHead','contrBody','contrChev');
 
