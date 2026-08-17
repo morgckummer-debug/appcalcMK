@@ -1163,7 +1163,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             </div>
           </div>
           <div class="femur-row">
-            <input class="inp" type="number" id="pfeWeightInp" placeholder="Peso (PFE) — somente IG acima de 22 semanas" step="1" min="0" inputmode="numeric">
+            <input class="inp" type="number" id="pfeWeightInp" placeholder="somente acima de 22 semanas" step="1" min="0" inputmode="numeric">
             <span class="femur-unit">g</span>
           </div>
           <div class="pfe-result hidden" id="pfeResult"></div>
@@ -2063,7 +2063,9 @@ function recomputePFE(){
   const resEl=document.getElementById('pfeResult');
   const weeks=parseInt(document.getElementById('pfeWeeksInp').value,10);
   const days=parseInt(document.getElementById('pfeDaysInp').value,10);
-  const weight=parseInt(document.getElementById('pfeWeightInp').value,10);
+  const weightStr=document.getElementById('pfeWeightInp').value.trim();
+  if(weightStr.length<3){resEl.classList.add('hidden');return;}
+  const weight=parseInt(weightStr,10);
   if(!Number.isFinite(weeks)||!Number.isFinite(days)||!Number.isFinite(weight)){resEl.classList.add('hidden');return;}
   const r=fetalWeightPercentile(weeks,days,weight);
   if(!r){resEl.classList.add('hidden');return;}
