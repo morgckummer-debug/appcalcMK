@@ -2012,7 +2012,7 @@ document.getElementById('babyNameInp').addEventListener('input',e=>{
   saveProfile();
   updateBabyNameUI();
 });
-document.querySelectorAll('.stab').forEach(btn=>{
+document.querySelectorAll('#sexTabs .stab').forEach(btn=>{
   btn.addEventListener('click',()=>{
     profile.sex=btn.dataset.sex;
     saveProfile();
