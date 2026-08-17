@@ -727,6 +727,25 @@ body::after{
 }
 .weight-history-del:active{opacity:.5}
 
+/* ── Resumo pra consulta ── */
+.summary-page{background:var(--surf);border-radius:var(--rl);padding:22px 20px;box-shadow:var(--co);margin-bottom:16px;transition:background .3s}
+.summary-title{font-family:'Fraunces',serif;font-size:22px;font-weight:500;color:var(--ink)}
+.summary-meta{font-size:12.5px;color:var(--ink2);margin-top:4px;line-height:1.6}
+.summary-section{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.summary-section-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:700;margin-bottom:10px}
+.summary-stat-row{display:flex;gap:10px;flex-wrap:wrap}
+.summary-stat{flex:1;min-width:88px;background:var(--surf2);border-radius:12px;padding:10px 12px}
+.summary-stat .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:700}
+.summary-stat .val{font-family:'Fraunces',serif;font-size:17px;color:var(--ink);margin-top:2px}
+.summary-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2);padding:7px 0;border-bottom:1px dashed var(--line)}
+.summary-row:last-child{border-bottom:none}
+.summary-empty{font-size:12.5px;color:var(--ink3);font-style:italic}
+.summary-legend{display:flex;gap:14px;margin-top:6px;font-size:11px;color:var(--ink3)}
+.summary-legend span{display:inline-flex;align-items:center;gap:5px}
+.summary-legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.summary-legend .dot-sys{background:var(--pd2)}
+.summary-legend .dot-dia{background:var(--bd)}
+
 /* Fertil */
 .f-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .fc{padding:16px;border-radius:16px;background:var(--surf);box-shadow:var(--cs);transition:var(--trans)}
@@ -1029,6 +1048,23 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
   z-index:10000;white-space:nowrap;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── Impressão do resumo pra consulta ── */
+@media print{
+  body::after,.hdr,.bottom-nav,.toast,.exm-overlay,.card{display:none!important}
+  html,body{background:#fff!important}
+  #app{padding:0}
+  .page{display:none!important;padding:0}
+  .page#pg-summary{display:block!important}
+  #summarySheet .summary-page{
+    box-shadow:none!important;background:#fff!important;color:#111!important;
+    border-radius:0;padding:0;
+  }
+  #summarySheet .summary-page *{color:#111!important;background:transparent!important}
+  #summarySheet .summary-stat,#summarySheet .bmi-pill{background:#f2f2f2!important}
+  #summarySheet .summary-legend .dot-sys{background:#c07a52!important}
+  #summarySheet .summary-legend .dot-dia{background:#6f8ba3!important}
+}
 </style>
 </head>
 <body>
@@ -1181,6 +1217,19 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             <div class="tl-dot" id="tlDot"></div>
             <div class="tl-months" id="tlMonths"></div>
           </div>
+        </div>
+      </div>
+
+      <div class="card feat">
+        <div class="lbl">📄 Pra sua consulta</div>
+        <div class="card-title">Resumo pra <span class="serif" style="color:var(--pd);font-style:italic">mostrar ao obstetra</span></div>
+        <div class="helper">Reúne idade gestacional, base de cálculo, peso, pressão e glicemia dos últimos dias numa página só — pronta pra mostrar na tela ou imprimir/salvar em PDF na consulta.</div>
+        <div class="exm-cta" id="summaryEntryBtn">
+          <div>
+            <div class="exm-cta-txt">📄 Ver resumo completo</div>
+            <div class="exm-cta-sub">Pronto pra consulta</div>
+          </div>
+          <div class="exm-cta-arrow">→</div>
         </div>
       </div>
 
@@ -1459,6 +1508,17 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div class="helper">Isso apaga, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso, pressão, curva glicêmica e glicemia capilar — pra você recomeçar do zero em uma nova gestação.</div>
       <button class="btn-danger" id="resetPregBtn">🔄 Começar nova gestação</button>
     </div>
+  </div>
+
+  <!-- ── Resumo pra consulta ── -->
+  <div class="page" id="pg-summary">
+    <div class="card feat">
+      <div class="lbl">📄 Resumo pra consulta</div>
+      <div class="card-title">Pronto pra <span class="serif" style="color:var(--pd);font-style:italic">mostrar ao obstetra</span></div>
+      <div class="helper">Toque em imprimir pra salvar como PDF ou levar impresso — o resto da tela não entra na impressão.</div>
+      <button class="btn-calc" id="summaryPrintBtn">🖨️ Imprimir / Salvar em PDF</button>
+    </div>
+    <div id="summarySheet"></div>
   </div>
 
   <!-- ── Sobre ── -->
@@ -1919,6 +1979,7 @@ function saveProfile(){
 }
 let profile=loadProfile();
 let currentIG=null;
+let currentPregMeta=null; // {method, basis} — base de cálculo usada, pro resumo pra consulta
 function applyProfileTheme(){
   document.documentElement.toggleAttribute('data-girl',profile.sex==='menina');
 }
@@ -1985,8 +2046,12 @@ const PREG_KEY='mkcalc_pregnancy';
 function loadPregnancy(){
   try{const raw=localStorage.getItem(PREG_KEY);return raw?JSON.parse(raw):null;}catch{return null;}
 }
-function savePregnancy(lmpDate,method){
-  try{localStorage.setItem(PREG_KEY,JSON.stringify({lmp:toISO(lmpDate),method}));}catch{}
+function savePregnancy(lmpDate,method,basis){
+  try{
+    const rec={lmp:toISO(lmpDate),method};
+    if(basis)rec.basis=basis;
+    localStorage.setItem(PREG_KEY,JSON.stringify(rec));
+  }catch{}
 }
 function loadStoredPregnancy(){
   const saved=loadPregnancy();
@@ -1994,6 +2059,7 @@ function loadStoredPregnancy(){
   const ig=igFromLMP(saved.lmp);
   if(ig.totalDays>MAX_WEEKS*7)return;
   const dpp=dppFromLMP(saved.lmp);
+  currentPregMeta={method:saved.method,basis:saved.basis||null};
   renderPregResult(ig,dpp,saved.method,true);
   goToPage('result');
 }
@@ -2117,11 +2183,12 @@ renderDi();
 document.getElementById('calcBtn').addEventListener('click',runCalc);
 
 function runCalc(){
-  let ig=null,dpp=null,method='',fertRes=null;
+  let ig=null,dpp=null,method='',fertRes=null,basis=null;
   if(curTab==='dum'){
     const v=parseBR(document.getElementById('lmpInp').value);
     if(!v){showToast('Data inválida. Confira o dia, mês e ano informados.',2500);return;}
     ig=igFromLMP(v);dpp=dppFromLMP(v);method='DUM';
+    basis={date:v};
   } else if(curTab==='usg'){
     const v=parseBR(document.getElementById('usgDate').value);
     const w=+document.getElementById('usgW').value;
@@ -2129,10 +2196,12 @@ function runCalc(){
     if(!v){showToast('Data inválida. Confira o dia, mês e ano informados.',2500);return;}
     if(!w){showToast('Informe as semanas do ultrassom',2000);return;}
     ig=igFromUSG(v,w,d||0);dpp=dppFromUSG(v,w,d||0);method='Ultrassom';
+    basis={date:v,weeks:w,days:d||0};
   } else if(curTab==='dpp'){
     const v=parseBR(document.getElementById('dppInp').value);
     if(!v){showToast('Data inválida. Confira o dia, mês e ano informados.',2500);return;}
     ig=igFromDPP(v);if(ig)dpp=new Date(v+'T12:00:00');method='DPP';
+    basis={date:v};
   } else if(curTab==='fertil'){
     const validDates=diDates.filter(Boolean);
     if(validDates.length<2){showToast('Informe pelo menos 2 datas',2000);return;}
@@ -2145,7 +2214,7 @@ function runCalc(){
     showToast('Essa data resulta em mais de 42 semanas de gestação. Confira a data informada.',3000);
     return;
   }
-  if(ig&&dpp){savePregnancy(ig.lmp,method);renderPregResult(ig,dpp,method);goResult();resumeOnboardingAfterCalc();}
+  if(ig&&dpp){savePregnancy(ig.lmp,method,basis);currentPregMeta={method,basis};renderPregResult(ig,dpp,method);goResult();resumeOnboardingAfterCalc();}
 }
 
 function goResult(){goToPage('result');}
@@ -3442,6 +3511,98 @@ initMonToggle('gttHead','gttBody','gttChev');
 initMonToggle('glyHead','glyBody','glyChev');
 initMonToggle('kickHead','kickBody','kickChev');
 initMonToggle('contrHead','contrBody','contrChev');
+
+/* ── Resumo pra consulta (tela + impressão/PDF) ──
+   Reúne, numa única página, a idade gestacional atual, a base de cálculo
+   usada (DUM, 1º ultrassom ou DPP informada) e os últimos registros de
+   peso, pressão e glicemia — pronta pra mostrar na tela ou imprimir via
+   window.print() (regras de impressão isolam #pg-summary, ver @media print). */
+function fmtBasisText(meta){
+  if(!meta||!meta.method)return'Não informada';
+  const b=meta.basis;
+  if(meta.method==='DUM')return`DUM em ${b?.date?fmt(new Date(b.date+'T12:00:00')):'—'}`;
+  if(meta.method==='Ultrassom')return b
+    ?`1º ultrassom em ${fmt(new Date(b.date+'T12:00:00'))} · IG no exame: ${b.weeks}s ${b.days}d`
+    :'1º ultrassom';
+  if(meta.method==='DPP')return`DPP informada: ${b?.date?fmt(new Date(b.date+'T12:00:00')):'—'}`;
+  return meta.method;
+}
+function summaryLineChartSVG(points,color,W=300,H=90,padX=6,padY=8){
+  if(points.length<2)return'';
+  const vals=points.map(p=>p.v);
+  const minV=Math.min(...vals),maxV=Math.max(...vals);
+  const pad=Math.max(0.5,(maxV-minV)*0.15);
+  const lo=minV-pad,hi=maxV+pad;
+  const xAt=i=>padX+(points.length===1?0:(i/(points.length-1))*(W-padX*2));
+  const yAt=v=>padY+(1-((v-lo)/((hi-lo)||1)))*(H-padY*2);
+  const pathD=points.map((p,i)=>`${i===0?'M':'L'}${xAt(i).toFixed(1)},${yAt(p.v).toFixed(1)}`).join(' ');
+  const dots=points.map((p,i)=>`<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(p.v).toFixed(1)}" r="${i===points.length-1?4:2.5}" fill="${color}"/>`).join('');
+  return`<svg class="weight-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
+}
+function summaryBPChartSVG(entries,W=300,H=90,padX=6,padY=8){
+  if(entries.length<2)return'';
+  const allVals=entries.flatMap(e=>[e.sys,e.dia]);
+  const minV=Math.min(...allVals),maxV=Math.max(...allVals);
+  const pad=Math.max(2,(maxV-minV)*0.15);
+  const lo=minV-pad,hi=maxV+pad;
+  const xAt=i=>padX+(entries.length===1?0:(i/(entries.length-1))*(W-padX*2));
+  const yAt=v=>padY+(1-((v-lo)/((hi-lo)||1)))*(H-padY*2);
+  const pathFor=key=>entries.map((e,i)=>`${i===0?'M':'L'}${xAt(i).toFixed(1)},${yAt(e[key]).toFixed(1)}`).join(' ');
+  return`<svg class="weight-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${pathFor('sys')}" fill="none" stroke="var(--pd2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${pathFor('dia')}" fill="none" stroke="var(--bd)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function renderSummary(){
+  const sheet=document.getElementById('summarySheet');
+  if(!currentIG){
+    sheet.innerHTML=`<div class="card"><div class="summary-empty">Calcule sua idade gestacional primeiro, na aba Calcular.</div></div>`;
+    return;
+  }
+  const ig=currentIG;
+  const tri=trimesterFromWeeks(ig.weeks);
+  const dpp=dppFromLMP(toISO(ig.lmp));
+  const babyName=profile.name||null;
+
+  const wPts=weightEntries.slice(-14).map(w=>({v:w.kg,date:w.date}));
+  const wChart=summaryLineChartSVG(wPts,'var(--pd2)');
+  const wRecent=[...weightEntries].slice(-5).reverse();
+
+  const bpRecent=[...bpEntries].slice(-5).reverse();
+  const bpChart=summaryBPChartSVG(bpEntries.slice(-14));
+
+  const glyRecent=[...glyEntries].slice(-6).reverse();
+
+  sheet.innerHTML=`
+    <div class="summary-page">
+      <div class="summary-title">Resumo pra consulta</div>
+      <div class="summary-meta">Gerado em ${fmt(TODAY)}${babyName?` · ${babyName}`:''}${profile.sex?` (${profile.sex})`:''}</div>
+
+      <div class="summary-stat-row" style="margin-top:16px">
+        <div class="summary-stat"><div class="lbl">IG atual</div><div class="val">${ig.weeks}s ${ig.days}d</div></div>
+        <div class="summary-stat"><div class="lbl">Trimestre</div><div class="val">${tri}º</div></div>
+        <div class="summary-stat"><div class="lbl">DPP</div><div class="val">${fmt(dpp)}</div></div>
+      </div>
+      <div class="summary-meta">Base de cálculo: <strong>${fmtBasisText(currentPregMeta)}</strong></div>
+
+      <div class="summary-section">
+        <div class="summary-section-title">Peso</div>
+        ${wChart?`<div class="weight-chart-wrap">${wChart}</div>`:''}
+        ${wRecent.length?wRecent.map(w=>`<div class="summary-row"><span>${fmt(new Date(w.date))}</span><strong>${fmtKg(w.kg)}</strong></div>`).join(''):'<div class="summary-empty">Nenhum registro de peso ainda.</div>'}
+      </div>
+
+      <div class="summary-section">
+        <div class="summary-section-title">Pressão arterial</div>
+        ${bpChart?`<div class="weight-chart-wrap">${bpChart}</div><div class="summary-legend"><span><i class="dot-sys"></i>Sistólica</span><span><i class="dot-dia"></i>Diastólica</span></div>`:''}
+        ${bpRecent.length?bpRecent.map(b=>`<div class="summary-row"><span>${fmt(new Date(b.date))} · ${fmtClock(new Date(b.date))}</span><strong>${fmtBP(b.sys,b.dia)}</strong></div>`).join(''):'<div class="summary-empty">Nenhum registro de pressão ainda.</div>'}
+      </div>
+
+      <div class="summary-section">
+        <div class="summary-section-title">Glicemia</div>
+        ${gttResult?`<div class="summary-row"><span>TOTG (${fmt(new Date(gttResult.date))})</span><strong>${gttResult.fasting} / ${gttResult.h1} / ${gttResult.h2} mg/dL${gttAnyAltered(gttResult)?' · Alterada':''}</strong></div>`:''}
+        ${glyRecent.length?glyRecent.map(g=>`<div class="summary-row"><span>${fmt(new Date(g.date))} · ${GLY_MOMENT_LBL[g.moment]}</span><strong>${fmtGly(g.value)}${glyOutOfTarget(g.moment,g.value)?' ⚠':''}</strong></div>`).join(''):(gttResult?'':'<div class="summary-empty">Nenhum registro de glicemia ainda.</div>')}
+      </div>
+    </div>`;
+}
+document.getElementById('summaryEntryBtn').addEventListener('click',()=>{renderSummary();goToPage('summary');});
+document.getElementById('summaryPrintBtn').addEventListener('click',()=>{renderSummary();window.print();});
 
 /* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
 const ONB_KEY='mkcalc_onboarded';
