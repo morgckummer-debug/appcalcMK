@@ -215,6 +215,21 @@ body::after{
 .mon-body{display:none}
 .mon-body.open{display:block;margin-top:18px;animation:fadeUp .25s ease both}
 
+/* ── Trava de recurso premium (sobreposta ao conteúdo real, sem alterar
+   a estrutura por baixo) ── */
+.premium-lock-host{position:relative}
+.premium-lock-overlay{
+  position:absolute;inset:0;z-index:5;border-radius:16px;
+  background:rgba(248,237,217,.9);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:20px;gap:8px;
+}
+[data-dark] .premium-lock-overlay{background:rgba(37,30,23,.9)}
+.premium-lock-overlay .ico{font-size:26px}
+.premium-lock-overlay .ttl{font-family:'Fraunces',serif;font-size:16px;color:var(--ink)}
+.premium-lock-overlay .msg{font-size:12.5px;color:var(--ink2);max-width:260px;line-height:1.5}
+.premium-lock-overlay .premium-unlock-btn{margin-top:4px;width:auto;padding:12px 26px}
+
 /* ── Calc tabs ── */
 .calc-tabs{
   display:grid;grid-template-columns:repeat(4,1fr);gap:5px;
@@ -1521,6 +1536,13 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       </div>
     </div>
 
+    <div class="card feat" id="premiumCard">
+      <div class="lbl">✨ Premium</div>
+      <div class="card-title">Peso, pressão, glicemia e <span class="serif" style="color:var(--pd);font-style:italic">resumo pra consulta</span></div>
+      <div class="helper">O básico do app (idade gestacional, exames, checklist, movimentos e contrações) é sempre grátis. O monitoramento de peso/pressão/glicemia e o resumo pra consulta têm 7 dias de teste grátis — depois, um desbloqueio único.</div>
+      <div id="premiumStatusWrap"></div>
+    </div>
+
     <div class="card hidden" id="installCard">
       <div class="lbl">📲 Instalar app</div>
       <div class="card-title" style="font-size:17px">CalcMK no seu <span class="serif" style="color:var(--pd);font-style:italic">aparelho</span></div>
@@ -2007,6 +2029,27 @@ function saveProfile(){
 let profile=loadProfile();
 let currentIG=null;
 let currentPregMeta=null; // {method, basis} — base de cálculo usada, pro resumo pra consulta
+
+/* Estado de premium declarado aqui em cima (não lá embaixo, perto do resto
+   do código de Premium) porque o callback onAuthStateChange do Supabase
+   pode disparar de forma síncrona logo ao ser registrado — se essas
+   variáveis só existissem mais adiante no arquivo, isso estouraria um erro
+   de "acesso antes da inicialização" (TDZ) nessa primeira chamada. */
+const TRIAL_DAYS=7;
+const ADMIN_EMAILS=['morgckummer@gmail.com'];
+const PREMIUM_KEY='mkcalc_premium_v1';
+function loadPremiumState(){
+  try{const raw=localStorage.getItem(PREMIUM_KEY);return raw?JSON.parse(raw):null;}catch{return null;}
+}
+function savePremiumState(){
+  try{localStorage.setItem(PREMIUM_KEY,JSON.stringify(premiumState));}catch{}
+}
+let premiumState=loadPremiumState();
+if(!premiumState){
+  premiumState={trialStart:new Date().toISOString(),unlocked:false};
+  savePremiumState();
+}
+let currentUserEmail=null;
 function applyProfileTheme(){
   document.documentElement.toggleAttribute('data-girl',profile.sex==='menina');
 }
@@ -2097,11 +2140,15 @@ document.getElementById('resetPregBtn').addEventListener('click',async()=>{
   const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso, pressão, curva glicêmica e glicemia capilar — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
   if(!ok)return;
   [PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY,GTT_KEY,GLY_KEY].forEach(k=>{try{localStorage.removeItem(k);}catch{}});
-  // Se estiver logada, apaga também o registro salvo na nuvem — senão, ao
-  // recarregar, a sincronização traria de volta o nome/sexo/data antigos.
+  // Se estiver logada, limpa nome/sexo/data base também na nuvem — senão, ao
+  // recarregar, a sincronização traria de volta os dados antigos. O
+  // desbloqueio premium fica de fora: é da conta, não da gestação, e não
+  // deve se perder num "começar de novo".
   if(sbClient){
     const{data:{session}}=await sbClient.auth.getSession();
-    if(session)await sbClient.from('pregnancy_profiles').delete().eq('user_id',session.user.id);
+    if(session)await sbClient.from('pregnancy_profiles').update({
+      baby_name:null,baby_sex:null,pregnancy_lmp:null,pregnancy_method:null,pregnancy_basis:null,updated_at:new Date().toISOString()
+    }).eq('user_id',session.user.id);
   }
   location.reload();
 });
@@ -3635,9 +3682,14 @@ function renderSummary(){
         ${glyRecent.length?glyRecent.map(g=>`<div class="summary-row"><span>${fmt(new Date(g.date))} · ${GLY_MOMENT_LBL[g.moment]}</span><strong>${fmtGly(g.value)}${glyOutOfTarget(g.moment,g.value)?' ⚠':''}</strong></div>`).join(''):(gttResult?'':'<div class="summary-empty">Nenhum registro de glicemia ainda.</div>')}
       </div>
     </div>`;
+  applyPremiumLock(sheet,'Resumo pra consulta');
 }
 document.getElementById('summaryEntryBtn').addEventListener('click',()=>{renderSummary();goToPage('summary');});
-document.getElementById('summaryPrintBtn').addEventListener('click',()=>{renderSummary();window.print();});
+document.getElementById('summaryPrintBtn').addEventListener('click',()=>{
+  renderSummary();
+  if(currentIG&&!hasPremiumAccess()){showToast('Desbloqueie o Premium pra imprimir o resumo',2200);return;}
+  window.print();
+});
 
 /* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
 const ONB_KEY='mkcalc_onboarded';
@@ -3716,12 +3768,16 @@ function showAcctLoggedIn(email){
   document.getElementById('acctLoggedOut').classList.add('hidden');
   document.getElementById('acctLoggedIn').classList.remove('hidden');
   document.getElementById('acctEmailVal').textContent=email;
+  currentUserEmail=email;
+  refreshPremiumGating();
 }
 function showAcctLoggedOut(){
   document.getElementById('acctLoggedOut').classList.remove('hidden');
   document.getElementById('acctLoggedIn').classList.add('hidden');
   document.getElementById('acctEmailInp').value='';
   document.getElementById('acctPassInp').value='';
+  currentUserEmail=null;
+  refreshPremiumGating();
 }
 async function pushProfileToCloud(){
   if(!sbClient)return;
@@ -3736,6 +3792,7 @@ async function pushProfileToCloud(){
     pregnancy_lmp:saved?.lmp||null,
     pregnancy_method:saved?.method||null,
     pregnancy_basis:saved?.basis||null,
+    premium_unlocked:premiumState.unlocked||false,
     updated_at:new Date().toISOString()
   },{onConflict:'user_id'});
   setAcctSyncStatus(error?'Falha ao sincronizar':'Sincronizado agora');
@@ -3762,6 +3819,11 @@ async function pullProfileFromCloud(){
       savePregnancy(new Date(data.pregnancy_lmp+'T12:00:00'),data.pregnancy_method,data.pregnancy_basis);
       loadStoredPregnancy();
     }
+    if(data.premium_unlocked&&!premiumState.unlocked){
+      premiumState.unlocked=true;
+      savePremiumState();
+    }
+    refreshPremiumGating();
     setAcctSyncStatus('Sincronizado agora');
   }else{
     await pushProfileToCloud();
@@ -3852,6 +3914,99 @@ if(sbClient){
     });
   }
 })();
+
+/* ── Premium (teste de 7 dias + desbloqueio via Kiwify) ──
+   Trava: monitoramento de peso/pressão/glicemia e o resumo pra consulta.
+   O resto do app (calculadora, exames, checklist, movimentos, contrações)
+   é sempre grátis.
+   Sem backend próprio aqui, o desbloqueio confia no retorno do checkout da
+   Kiwify (parâmetro na URL) — não é uma verificação criptográfica, só um
+   "melhoramento de honra" comum em apps sem servidor. Duas coisas reforçam
+   isso: contas em ADMIN_EMAILS sempre têm acesso liberado, e o desbloqueio
+   sincroniza pela conta (Supabase) pra não se perder ao trocar de aparelho
+   depois de comprado uma vez. (TRIAL_DAYS, ADMIN_EMAILS, premiumState e
+   currentUserEmail já foram declarados lá em cima, perto de currentIG.) */
+const KIWIFY_CHECKOUT_URL='https://pay.kiwify.com.br/SEU-LINK-AQUI'; // TODO: trocar pelo link real do produto na Kiwify
+const PREMIUM_RETURN_PARAM='premium_unlocked';
+
+/* Configure a URL de redirecionamento do produto na Kiwify pra voltar pro
+   app com "?premium_unlocked=1" — ex.: https://SEU-APP/?premium_unlocked=1 */
+(function checkPremiumReturn(){
+  const params=new URLSearchParams(location.search);
+  if(params.get(PREMIUM_RETURN_PARAM)==='1'){
+    premiumState.unlocked=true;
+    savePremiumState();
+    params.delete(PREMIUM_RETURN_PARAM);
+    const cleanUrl=location.pathname+(params.toString()?`?${params}`:'')+location.hash;
+    history.replaceState({},'',cleanUrl);
+    pushProfileToCloud();
+    setTimeout(()=>showToast('Premium desbloqueado! ✨',2500),300);
+  }
+})();
+
+function isAdminUser(){
+  return !!(currentUserEmail&&ADMIN_EMAILS.includes(currentUserEmail.toLowerCase()));
+}
+function trialDaysLeft(){
+  const start=new Date(premiumState.trialStart);
+  const daysUsed=Math.floor((Date.now()-start.getTime())/86400000);
+  return Math.max(0,TRIAL_DAYS-daysUsed);
+}
+function hasPremiumAccess(){
+  return isAdminUser()||premiumState.unlocked||trialDaysLeft()>0;
+}
+function openPremiumCheckout(){
+  window.open(KIWIFY_CHECKOUT_URL,'_blank','noopener');
+}
+function applyPremiumLock(bodyEl,label){
+  if(!bodyEl)return;
+  bodyEl.classList.add('premium-lock-host');
+  let overlay=bodyEl.querySelector('.premium-lock-overlay');
+  if(hasPremiumAccess()){
+    if(overlay)overlay.remove();
+    return;
+  }
+  if(!overlay){
+    overlay=document.createElement('div');
+    overlay.className='premium-lock-overlay';
+    bodyEl.appendChild(overlay);
+  }
+  const daysLeft=trialDaysLeft();
+  overlay.innerHTML=`
+    <div class="ico">🔒</div>
+    <div class="ttl">Recurso Premium</div>
+    <div class="msg">${label} faz parte do Premium. ${daysLeft>0?`Você ainda tem ${daysLeft} dia${daysLeft===1?'':'s'} de teste grátis.`:'Seu teste grátis terminou.'}</div>
+    <button class="btn-install premium-unlock-btn" type="button">Desbloquear</button>`;
+  overlay.querySelector('.premium-unlock-btn').addEventListener('click',openPremiumCheckout);
+}
+function renderPremiumCard(){
+  const wrap=document.getElementById('premiumStatusWrap');
+  if(!wrap)return;
+  if(isAdminUser()){
+    wrap.innerHTML=`<div class="wg-summary"><div class="wg-summary-txt">✨ Acesso liberado (conta administradora).</div></div>`;
+    return;
+  }
+  if(premiumState.unlocked){
+    wrap.innerHTML=`<div class="wg-summary"><div class="wg-summary-txt">✨ Premium desbloqueado. Obrigada por apoiar o app!</div></div>`;
+    return;
+  }
+  const daysLeft=trialDaysLeft();
+  wrap.innerHTML=daysLeft>0
+    ?`<div class="wt-stat-grid"><div class="wt-stat"><div class="lbl">Teste grátis</div><div class="val">${daysLeft} dia${daysLeft===1?'':'s'}</div></div></div>
+      <button class="btn-install" id="premiumUnlockNowBtn" style="margin-top:14px">Desbloquear agora</button>`
+    :`<div class="wg-summary"><div class="wg-summary-txt">Seu teste grátis terminou. Desbloqueie pra continuar usando peso, pressão, glicemia e o resumo pra consulta.</div></div>
+      <button class="btn-install" id="premiumUnlockNowBtn" style="margin-top:14px">Desbloquear premium</button>`;
+  document.getElementById('premiumUnlockNowBtn').addEventListener('click',openPremiumCheckout);
+}
+function refreshPremiumGating(){
+  renderPremiumCard();
+  applyPremiumLock(document.getElementById('weightBody'),'Monitoramento de peso');
+  applyPremiumLock(document.getElementById('bpBody'),'Monitoramento de pressão');
+  applyPremiumLock(document.getElementById('gttBody'),'Curva glicêmica');
+  applyPremiumLock(document.getElementById('glyBody'),'Glicemia capilar');
+  applyPremiumLock(document.getElementById('summarySheet'),'Resumo pra consulta');
+}
+refreshPremiumGating();
 </script>
 </body>
 </html>
