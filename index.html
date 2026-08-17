@@ -18,6 +18,7 @@
   --rose:#f0c9c0;
   --alert:#c14f3c;--alert-bg:#f7ded6;
   --good:#5f8f5a;--good-bg:#dfead9;
+  --gold:#dba838;--gold-bg:#f6e6c4;
   --cream:#f8edd9;--cream2:#f0e0c4;
   --ink:#3a2e2a;--ink2:#6b574e;--ink3:#9a8678;
   --surf:#f8edd9;--surf2:#efe0c4;--surfs:#fdf5ea;
@@ -38,6 +39,7 @@
   --rose:#7a4a42;
   --alert:#e2735c;--alert-bg:#3a231e;
   --good:#7fae74;--good-bg:#233524;
+  --gold:#e0b158;--gold-bg:#3d3018;
   --cream:#2a211a;--cream2:#322719;
   --ink:#f0e4d4;--ink2:#c4aa94;--ink3:#8a7060;
   --surf:#251e17;--surf2:#2e2418;--surfs:#332820;
@@ -390,6 +392,37 @@ body::after{
 .femur-unit{font-size:13px;color:var(--ink2);font-weight:700;flex-shrink:0}
 .femur-result{margin-top:10px;font-size:13.5px;color:var(--ink);line-height:1.55;background:var(--surf);border-radius:12px;padding:10px 12px;box-shadow:var(--cs)}
 .femur-result strong{color:var(--pd2)}
+
+/* ── Resultado do percentil de PFE (pill + barra de faixas) ── */
+.pfe-result{margin-top:10px;background:var(--surf);border-radius:16px;padding:20px 16px 14px;box-shadow:var(--cs);transition:background .3s}
+.pfe-pill-row{display:flex;justify-content:center;margin-bottom:22px}
+.pfe-pill{
+  font-family:'Fraunces',serif;font-weight:600;font-size:19px;letter-spacing:-.01em;
+  padding:11px 28px;border-radius:var(--pill);color:var(--cream);background:var(--ink);
+  box-shadow:var(--cs);transition:background .3s;
+}
+.pfe-result.tone-over .pfe-pill{background:var(--pd2)}
+.pfe-result.tone-ob .pfe-pill{background:var(--alert)}
+.pfe-bar-track{position:relative;height:10px;border-radius:var(--pill);margin:0 8px;
+  background:linear-gradient(to right,
+    var(--alert) 0%,var(--alert) 3%,
+    var(--gold) 3%,var(--gold) 10%,
+    var(--good) 10%,var(--good) 90%,
+    var(--alert) 90%,var(--alert) 100%);
+}
+.pfe-bar-thumb{
+  position:absolute;top:50%;width:22px;height:22px;border-radius:50%;
+  background:var(--ink);border:3px solid var(--surf);box-shadow:var(--cs);
+  transform:translate(-50%,-50%);transition:left .4s cubic-bezier(.22,.68,0,1.2),background .3s;
+}
+.pfe-result.tone-over .pfe-bar-thumb{background:var(--pd2)}
+.pfe-result.tone-ob .pfe-bar-thumb{background:var(--alert)}
+.pfe-bar-ticks{position:relative;height:16px;margin:8px 8px 0}
+.pfe-bar-ticks span{position:absolute;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--ink2)}
+.pfe-bar-range{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:0 8px}
+.pfe-bar-range span{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:700}
+.pfe-median-note{margin-top:16px;font-size:13px;color:var(--ink2);text-align:center;line-height:1.5}
+.pfe-median-note strong{color:var(--pd2)}
 @keyframes floatOrb{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-5px)}
@@ -1130,10 +1163,10 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             </div>
           </div>
           <div class="femur-row">
-            <input class="inp" type="number" id="pfeWeightInp" placeholder="Peso fetal estimado (PFE)" step="1" min="0" inputmode="numeric">
+            <input class="inp" type="number" id="pfeWeightInp" placeholder="Peso (PFE) — somente IG acima de 22 semanas" step="1" min="0" inputmode="numeric">
             <span class="femur-unit">g</span>
           </div>
-          <div class="femur-result hidden" id="pfeResult"></div>
+          <div class="pfe-result hidden" id="pfeResult"></div>
         </div>
       </div>
 
@@ -2034,7 +2067,13 @@ function recomputePFE(){
   if(!Number.isFinite(weeks)||!Number.isFinite(days)||!Number.isFinite(weight)){resEl.classList.add('hidden');return;}
   const r=fetalWeightPercentile(weeks,days,weight);
   if(!r){resEl.classList.add('hidden');return;}
-  resEl.innerHTML=`Percentil <strong>${r.percentile}</strong> · <span class="bmi-pill tone-${r.classification.tone}" style="font-size:10px;padding:4px 9px;vertical-align:middle">${r.classification.label}</span><br>Peso mediano (P50) esperado pra essa IG: <strong>${Math.round(r.median).toLocaleString('pt-BR')} g</strong>.`;
+  resEl.className=`pfe-result tone-${r.classification.tone}`;
+  resEl.innerHTML=`
+    <div class="pfe-pill-row"><div class="pfe-pill">Percentil ${r.percentile}</div></div>
+    <div class="pfe-bar-track"><div class="pfe-bar-thumb" style="left:${r.percentile}%"></div></div>
+    <div class="pfe-bar-ticks"><span style="left:10%">P10</span><span style="left:90%">P90</span></div>
+    <div class="pfe-bar-range"><span>P1</span><span>Percentil de peso</span><span>P99</span></div>
+    <div class="pfe-median-note">${r.classification.label} — peso mediano (P50) esperado pra essa IG: <strong>${Math.round(r.median).toLocaleString('pt-BR')} g</strong>.</div>`;
   resEl.classList.remove('hidden');
 }
 ['pfeWeeksInp','pfeDaysInp','pfeWeightInp'].forEach(id=>{
