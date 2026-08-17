@@ -1118,6 +1118,23 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
           </div>
           <div class="femur-result hidden" id="femurResult"></div>
         </div>
+        <div class="femur-calc" id="pfeCalc">
+          <div class="femur-title">Qual o percentil do peso estimado?</div>
+          <div class="femur-sub">Informe a idade gestacional do exame e o peso fetal estimado (PFE).</div>
+          <div class="row2" style="margin-top:10px;margin-bottom:0">
+            <div class="field" style="margin-bottom:10px"><label>Semanas</label>
+              <input class="inp" type="number" id="pfeWeeksInp" placeholder="ex: 32" min="20" max="40" inputmode="numeric">
+            </div>
+            <div class="field" style="margin-bottom:10px"><label>Dias</label>
+              <input class="inp" type="number" id="pfeDaysInp" placeholder="0–6" min="0" max="6" inputmode="numeric">
+            </div>
+          </div>
+          <div class="femur-row">
+            <input class="inp" type="number" id="pfeWeightInp" placeholder="Peso fetal estimado (PFE)" step="1" min="0" inputmode="numeric">
+            <span class="femur-unit">g</span>
+          </div>
+          <div class="femur-result hidden" id="pfeResult"></div>
+        </div>
       </div>
 
       <div class="card">
@@ -1668,6 +1685,99 @@ function fetalHeightFromFemur(femurCm){
   return femurCm*6.9;
 }
 
+/* ── Percentil de peso fetal estimado (PFE) ──
+   Combina duas tabelas de referência de peso (g), nos percentis 3/10/50/90,
+   por semana completa de IG: Hadlock (1991, 20–40 semanas) e INTERGROWTH-21st
+   (30–40 semanas, mais fiel perto do termo). Abaixo de 30 semanas usa só
+   Hadlock; a partir de 35 semanas usa só INTERGROWTH; entre 30 e 35 semanas
+   mistura as duas linearmente. Colunas de cada linha: [p3, p10, p50, p90]. */
+const PFE_HADLOCK_TABLE={
+  20:[247,275,331,387], 21:[298,331,399,467], 22:[357,397,478,559],
+  23:[424,472,568,664], 24:[503,556,670,784], 25:[590,653,785,918],
+  26:[685,758,913,1068], 27:[791,875,1055,1234], 28:[908,1004,1210,1416],
+  29:[1033,1143,1379,1613], 30:[1169,1294,1559,1824], 31:[1312,1452,1751,2049],
+  32:[1465,1621,1953,2285], 33:[1622,1795,2162,2530], 34:[1788,1978,2377,2781],
+  35:[1955,2164,2595,3036], 36:[2126,2352,2813,3291], 37:[2294,2537,3028,3543],
+  38:[2455,2716,3236,3786], 39:[2607,2884,3435,4019], 40:[2747,3039,3619,4234]
+};
+const PFE_INTERGROWTH_TABLE={
+  30:[967,1089,1396,1813], 31:[1062,1207,1568,2050], 32:[1162,1334,1755,2304],
+  33:[1269,1469,1954,2570], 34:[1380,1612,2162,2843], 35:[1494,1761,2378,3116],
+  36:[1612,1913,2594,3381], 37:[1731,2068,2806,3629], 38:[1851,2221,3006,3850],
+  39:[1969,2368,3186,4034], 40:[2085,2505,3338,4171]
+};
+/* Escores-z padrão dos percentis 3/10/50/90, usados pra interpolar a curva
+   peso→percentil sem assumir uma distribuição log-normal simétrica. */
+const PFE_PERCENTILE_Z=[-1.8808,-1.2816,0,1.2816];
+/* Interpola uma linha [p3,p10,p50,p90] da tabela pra uma IG fracionária
+   (semanas decimais), entre a semana inteira anterior e a seguinte. */
+function pfeInterpTableRow(table,gaWeeks){
+  const w0=Math.floor(gaWeeks);
+  const frac=gaWeeks-w0;
+  const row0=table[w0];
+  if(!row0)return null;
+  const row1=table[w0+1];
+  if(frac===0||!row1)return row0.slice();
+  return row0.map((v,i)=>v+(row1[i]-v)*frac);
+}
+/* Monta a linha [p3,p10,p50,p90] de referência pra uma IG, aplicando a
+   regra de mistura Hadlock/INTERGROWTH descrita acima. */
+function pfeReferenceRow(gaWeeks){
+  if(gaWeeks<30)return pfeInterpTableRow(PFE_HADLOCK_TABLE,gaWeeks);
+  if(gaWeeks>=35)return pfeInterpTableRow(PFE_INTERGROWTH_TABLE,gaWeeks);
+  const hadlockRow=pfeInterpTableRow(PFE_HADLOCK_TABLE,gaWeeks);
+  const intergrowthRow=pfeInterpTableRow(PFE_INTERGROWTH_TABLE,gaWeeks);
+  const t=(gaWeeks-30)/(35-30);
+  return hadlockRow.map((v,i)=>v+(intergrowthRow[i]-v)*t);
+}
+/* Aproximação de Abramowitz & Stegun 7.1.26 pra função erro. */
+function pfeErf(x){
+  const sign=x<0?-1:1;
+  const ax=Math.abs(x);
+  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  const t=1/(1+p*ax);
+  const y=1-(((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t)*Math.exp(-ax*ax);
+  return sign*y;
+}
+function pfeNormalCdf(z){
+  return 0.5*(1+pfeErf(z/Math.sqrt(2)));
+}
+/* Converte peso (g) em escore-z, interpolando linearmente no espaço
+   (ln(peso), z) entre os dois pontos da linha de referência que cercam o
+   peso informado. Fora de [P3, P90], estende a inclinação do segmento mais
+   próximo (P3–P10 pra baixo, P50–P90 pra cima) em vez de travar no limite —
+   preserva a assimetria real das tabelas. */
+function pfeWeightToZ(row,weightG){
+  const points=row.map((w,i)=>({w,z:PFE_PERCENTILE_Z[i]}));
+  let a,b;
+  if(weightG<=points[0].w){[a,b]=[points[0],points[1]];}
+  else if(weightG>=points[3].w){[a,b]=[points[2],points[3]];}
+  else{
+    for(let i=0;i<points.length-1;i++){
+      if(weightG>=points[i].w&&weightG<=points[i+1].w){[a,b]=[points[i],points[i+1]];break;}
+    }
+  }
+  const lnW=Math.log(weightG),lnA=Math.log(a.w),lnB=Math.log(b.w);
+  return a.z+(b.z-a.z)*((lnW-lnA)/(lnB-lnA));
+}
+function classifyPFE(percentile){
+  if(percentile<=3)return{code:'CIUR',label:'CIUR · restrição de crescimento',tone:'ob'};
+  if(percentile<10)return{code:'PIG',label:'PIG · pequeno pra idade gestacional',tone:'over'};
+  if(percentile>90)return{code:'GIG',label:'GIG · grande pra idade gestacional',tone:'over'};
+  return{code:'AIG',label:'AIG · adequado pra idade gestacional',tone:'normal'};
+}
+/* IG válida: 20 a 40 semanas (0 a 6 dias). Peso válido: 50 a 6000 g. */
+function fetalWeightPercentile(weeks,days,weightG){
+  const gaWeeks=weeks+days/7;
+  if(weeks<20||weeks>40||days<0||days>6)return null;
+  if(!weightG||weightG<50||weightG>6000)return null;
+  const row=pfeReferenceRow(gaWeeks);
+  if(!row)return null;
+  const z=pfeWeightToZ(row,weightG);
+  const percentile=Math.max(1,Math.min(99,Math.round(pfeNormalCdf(z)*100)));
+  return{percentile,median:row[2],row,classification:classifyPFE(percentile)};
+}
+
 const ULTRASSONS=[
   {weekStart:8,weekEnd:10,name:'Ultrassom inicial',periodo:'8 a 10 semanas',
     desc:'Confirma a idade gestacional, os batimentos cardíacos do bebê, a localização da gestação e o número de bebês.'},
@@ -1915,6 +2025,22 @@ document.getElementById('femurInp').addEventListener('input',e=>{
   resEl.classList.remove('hidden');
 });
 
+/* ── Percentil de peso fetal estimado (dentro do card do bebê) ── */
+function recomputePFE(){
+  const resEl=document.getElementById('pfeResult');
+  const weeks=parseInt(document.getElementById('pfeWeeksInp').value,10);
+  const days=parseInt(document.getElementById('pfeDaysInp').value,10);
+  const weight=parseInt(document.getElementById('pfeWeightInp').value,10);
+  if(!Number.isFinite(weeks)||!Number.isFinite(days)||!Number.isFinite(weight)){resEl.classList.add('hidden');return;}
+  const r=fetalWeightPercentile(weeks,days,weight);
+  if(!r){resEl.classList.add('hidden');return;}
+  resEl.innerHTML=`Percentil <strong>${r.percentile}</strong> · <span class="bmi-pill tone-${r.classification.tone}" style="font-size:10px;padding:4px 9px;vertical-align:middle">${r.classification.label}</span><br>Peso mediano (P50) esperado pra essa IG: <strong>${Math.round(r.median).toLocaleString('pt-BR')} g</strong>.`;
+  resEl.classList.remove('hidden');
+}
+['pfeWeeksInp','pfeDaysInp','pfeWeightInp'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',recomputePFE);
+});
+
 /* ── Fertil dates ── */
 let diDates=['',''];
 function renderDi(){
@@ -2073,6 +2199,10 @@ function renderPregResult(ig,dpp,method,silent){
   updateBabyLabels(ig);
   document.getElementById('femurInp').value='';
   document.getElementById('femurResult').classList.add('hidden');
+  document.getElementById('pfeWeeksInp').value=ig.weeks;
+  document.getElementById('pfeDaysInp').value=ig.days;
+  document.getElementById('pfeWeightInp').value='';
+  document.getElementById('pfeResult').classList.add('hidden');
 
   renderTimeline(ig);
 
