@@ -1,6 +1,6 @@
 {
-  "name": "MK-Duo",
-  "short_name": "MK-Duo",
+  "name": "CalcMK",
+  "short_name": "CalcMK",
   "description": "Acompanhamento de gestação: idade gestacional, exames, monitoramento e resumo pra consulta.",
   "start_url": "./index.html",
   "scope": "./",
