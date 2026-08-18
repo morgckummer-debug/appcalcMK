@@ -397,7 +397,7 @@ body::after{
   display:flex;align-items:center;justify-content:center;
   animation:floatOrb 3.5s ease-in-out infinite;
 }
-.baby-orb-img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(4px 10px 12px rgba(40,55,70,.3))}
+.baby-orb-img{width:100%;height:100%;object-fit:contain}
 .femur-calc{margin-top:14px;background:rgba(255,250,240,.5);border-radius:12px;padding:12px 14px}
 [data-dark] .femur-calc{background:rgba(30,20,10,.35)}
 .femur-title{font-family:'Fraunces',serif;font-size:16px;font-weight:500;color:var(--ink)}
@@ -1496,6 +1496,32 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 
   <!-- ── Perfil ── -->
   <div class="page" id="pg-profile">
+    <div class="card feat" id="accountCard">
+      <div class="lbl">👤 Conta</div>
+      <div class="card-title">Sincronize seus <span class="serif" style="color:var(--pd);font-style:italic">dados</span></div>
+      <div class="helper">Crie uma conta pra não perder o nome, o sexo do bebê e a data base da gestação ao trocar de aparelho. Os registros do dia a dia (peso, pressão, glicemia, checklist etc.) continuam salvos só neste aparelho.</div>
+
+      <div id="acctLoggedOut">
+        <div class="field"><label>E-mail</label>
+          <input class="inp" type="email" id="acctEmailInp" placeholder="seu@email.com" autocomplete="email">
+        </div>
+        <div class="field"><label>Senha</label>
+          <input class="inp" type="password" id="acctPassInp" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+        </div>
+        <button class="btn-calc" id="acctLoginBtn">Entrar</button>
+        <button class="btn-install" id="acctSignupBtn" style="margin-top:10px">Criar conta</button>
+        <div class="helper hidden" id="acctMsg" style="margin-top:10px;margin-bottom:0"></div>
+      </div>
+
+      <div class="hidden" id="acctLoggedIn">
+        <div class="wt-stat-grid">
+          <div class="wt-stat"><div class="lbl">Logada como</div><div class="val" style="font-size:12.5px;font-family:inherit;font-weight:600;word-break:break-all" id="acctEmailVal">—</div></div>
+          <div class="wt-stat"><div class="lbl">Sincronização</div><div class="val" style="font-size:12.5px;font-family:inherit;font-weight:600" id="acctSyncStatus">—</div></div>
+        </div>
+        <button class="btn-danger" id="acctLogoutBtn" style="margin-top:14px">Sair da conta</button>
+      </div>
+    </div>
+
     <div class="card feat">
       <div class="lbl">👩 Seus dados</div>
       <div class="card-title">Pra <span class="serif" style="color:var(--pd);font-style:italic">identificar você</span> no resumo</div>
@@ -1521,32 +1547,6 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         </div>
       </div>
       <div class="helper">Ao escolher <strong>menina</strong>, as cores do app mudam para tons de rosa e lilás — ao escolher <strong>menino</strong>, muda-se para tons de azul.</div>
-    </div>
-
-    <div class="card feat" id="accountCard">
-      <div class="lbl">👤 Conta</div>
-      <div class="card-title">Sincronize seus <span class="serif" style="color:var(--pd);font-style:italic">dados</span></div>
-      <div class="helper">Crie uma conta pra não perder o nome, o sexo do bebê e a data base da gestação ao trocar de aparelho. Os registros do dia a dia (peso, pressão, glicemia, checklist etc.) continuam salvos só neste aparelho.</div>
-
-      <div id="acctLoggedOut">
-        <div class="field"><label>E-mail</label>
-          <input class="inp" type="email" id="acctEmailInp" placeholder="seu@email.com" autocomplete="email">
-        </div>
-        <div class="field"><label>Senha</label>
-          <input class="inp" type="password" id="acctPassInp" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
-        </div>
-        <button class="btn-calc" id="acctLoginBtn">Entrar</button>
-        <button class="btn-install" id="acctSignupBtn" style="margin-top:10px">Criar conta</button>
-        <div class="helper hidden" id="acctMsg" style="margin-top:10px;margin-bottom:0"></div>
-      </div>
-
-      <div class="hidden" id="acctLoggedIn">
-        <div class="wt-stat-grid">
-          <div class="wt-stat"><div class="lbl">Logada como</div><div class="val" style="font-size:12.5px;font-family:inherit;font-weight:600;word-break:break-all" id="acctEmailVal">—</div></div>
-          <div class="wt-stat"><div class="lbl">Sincronização</div><div class="val" style="font-size:12.5px;font-family:inherit;font-weight:600" id="acctSyncStatus">—</div></div>
-        </div>
-        <button class="btn-danger" id="acctLogoutBtn" style="margin-top:14px">Sair da conta</button>
-      </div>
     </div>
 
     <div class="card feat" id="premiumCard">
