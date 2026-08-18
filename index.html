@@ -268,6 +268,8 @@ body::after{
 .card.feat .sex-tabs{background:rgba(224,208,180,.5)}
 [data-dark] .card.feat .sex-tabs{background:rgba(40,30,16,.5)}
 
+.link-btn{display:block;width:100%;border:none;background:transparent;color:var(--pd2);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;margin-top:10px;padding:6px;text-decoration:underline}
+
 /* ── Fields ── */
 .field{margin-bottom:14px}
 .field label{display:block;font-size:11px;color:var(--ink2);letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-bottom:8px;transition:color .3s}
@@ -1510,7 +1512,17 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         </div>
         <button class="btn-calc" id="acctLoginBtn">Entrar</button>
         <button class="btn-install" id="acctSignupBtn" style="margin-top:10px">Criar conta</button>
+        <button class="link-btn" id="acctForgotBtn">Esqueci minha senha</button>
         <div class="helper hidden" id="acctMsg" style="margin-top:10px;margin-bottom:0"></div>
+      </div>
+
+      <div class="hidden" id="acctRecovery">
+        <div class="helper">Escolha uma nova senha pra sua conta.</div>
+        <div class="field"><label>Nova senha</label>
+          <input class="inp" type="password" id="acctNewPassInp" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+        </div>
+        <button class="btn-calc" id="acctSaveNewPassBtn">Salvar nova senha</button>
+        <div class="helper hidden" id="acctRecoveryMsg" style="margin-top:10px;margin-bottom:0"></div>
       </div>
 
       <div class="hidden" id="acctLoggedIn">
@@ -3834,6 +3846,7 @@ function setAcctSyncStatus(text){
 }
 function showAcctLoggedIn(email){
   document.getElementById('acctLoggedOut').classList.add('hidden');
+  document.getElementById('acctRecovery').classList.add('hidden');
   document.getElementById('acctLoggedIn').classList.remove('hidden');
   document.getElementById('acctEmailVal').textContent=email;
   currentUserEmail=email;
@@ -3841,11 +3854,17 @@ function showAcctLoggedIn(email){
 }
 function showAcctLoggedOut(){
   document.getElementById('acctLoggedOut').classList.remove('hidden');
+  document.getElementById('acctRecovery').classList.add('hidden');
   document.getElementById('acctLoggedIn').classList.add('hidden');
   document.getElementById('acctEmailInp').value='';
   document.getElementById('acctPassInp').value='';
   currentUserEmail=null;
   refreshPremiumGating();
+}
+function showAcctRecovery(){
+  document.getElementById('acctLoggedOut').classList.add('hidden');
+  document.getElementById('acctLoggedIn').classList.add('hidden');
+  document.getElementById('acctRecovery').classList.remove('hidden');
 }
 async function pushProfileToCloud(){
   if(!sbClient)return;
@@ -3935,6 +3954,28 @@ document.getElementById('acctSignupBtn').addEventListener('click',async()=>{
     msg.classList.remove('hidden');
   }
 });
+document.getElementById('acctForgotBtn').addEventListener('click',async()=>{
+  if(!sbClient){showToast('Sincronização indisponível offline',2000);return;}
+  const email=document.getElementById('acctEmailInp').value.trim();
+  const msg=document.getElementById('acctMsg');
+  if(!email){showToast('Informe seu e-mail',1500);return;}
+  const{error}=await sbClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  if(error){msg.textContent=error.message;msg.classList.remove('hidden');return;}
+  msg.textContent='Te enviamos um link por e-mail pra redefinir a senha.';
+  msg.classList.remove('hidden');
+});
+document.getElementById('acctSaveNewPassBtn').addEventListener('click',async()=>{
+  if(!sbClient)return;
+  const password=document.getElementById('acctNewPassInp').value;
+  const msg=document.getElementById('acctRecoveryMsg');
+  if(!password||password.length<6){showToast('A senha precisa ter pelo menos 6 caracteres',2000);return;}
+  const{data,error}=await sbClient.auth.updateUser({password});
+  if(error){msg.textContent=error.message;msg.classList.remove('hidden');return;}
+  document.getElementById('acctNewPassInp').value='';
+  msg.classList.add('hidden');
+  showToast('Senha atualizada!',1800);
+  showAcctLoggedIn(data.user.email);
+});
 document.getElementById('acctLogoutBtn').addEventListener('click',async()=>{
   if(!sbClient)return;
   await sbClient.auth.signOut();
@@ -3942,6 +3983,10 @@ document.getElementById('acctLogoutBtn').addEventListener('click',async()=>{
 });
 if(sbClient){
   sbClient.auth.onAuthStateChange((event,session)=>{
+    if(event==='PASSWORD_RECOVERY'){
+      showAcctRecovery();
+      return;
+    }
     if(session){
       showAcctLoggedIn(session.user.email);
       pullProfileFromCloud();
