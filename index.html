@@ -3926,7 +3926,7 @@ document.getElementById('acctSignupBtn').addEventListener('click',async()=>{
   const msg=document.getElementById('acctMsg');
   if(!email||!password){showToast('Informe e-mail e senha',1500);return;}
   if(password.length<6){showToast('A senha precisa ter pelo menos 6 caracteres',2000);return;}
-  const{data,error}=await sbClient.auth.signUp({email,password});
+  const{data,error}=await sbClient.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
   if(error){msg.textContent=error.message;msg.classList.remove('hidden');return;}
   if(data.session){
     msg.classList.add('hidden');
