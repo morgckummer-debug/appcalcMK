@@ -745,6 +745,7 @@ body::after{
 /* ── Resumo pra consulta ── */
 .summary-page{background:var(--surf);border-radius:var(--rl);padding:22px 20px;box-shadow:var(--co);margin-bottom:16px;transition:background .3s}
 .summary-title{font-family:'Fraunces',serif;font-size:22px;font-weight:500;color:var(--ink)}
+.summary-patient{font-size:14px;font-weight:700;color:var(--ink);margin-top:6px}
 .summary-meta{font-size:12.5px;color:var(--ink2);margin-top:4px;line-height:1.6}
 .summary-section{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
 .summary-section-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:700;margin-bottom:10px}
@@ -1496,6 +1497,18 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
   <!-- ── Perfil ── -->
   <div class="page" id="pg-profile">
     <div class="card feat">
+      <div class="lbl">👩 Seus dados</div>
+      <div class="card-title">Pra <span class="serif" style="color:var(--pd);font-style:italic">identificar você</span> no resumo</div>
+      <div class="field"><label>Nome completo</label>
+        <input class="inp" type="text" id="patientNameInp" placeholder="Seu nome e sobrenome" autocomplete="name">
+      </div>
+      <div class="field"><label>Data de nascimento</label>
+        <input class="inp" type="date" id="patientDobInp">
+      </div>
+      <div class="helper">Usado só pra identificar você (nome e idade) no resumo que você mostra ao seu obstetra.</div>
+    </div>
+
+    <div class="card feat">
       <div class="lbl">Perfil</div>
       <div class="card-title">Deixe o app com a <span class="serif" style="color:var(--pd);font-style:italic">cara do bebê</span></div>
       <div class="field"><label>Nome do bebê</label>
@@ -2019,14 +2032,23 @@ document.getElementById('darkBtn').addEventListener('click',()=>{
 
 /* ── Perfil (nome + sexo do bebê, persistido no localStorage) ── */
 const PROFILE_KEY='mkcalc_profile';
+const PROFILE_DEFAULTS={name:'',sex:'',patientName:'',patientDOB:''};
 function loadProfile(){
-  try{const raw=localStorage.getItem(PROFILE_KEY);return raw?JSON.parse(raw):{name:'',sex:''};}
-  catch{return {name:'',sex:''};}
+  try{const raw=localStorage.getItem(PROFILE_KEY);return raw?{...PROFILE_DEFAULTS,...JSON.parse(raw)}:{...PROFILE_DEFAULTS};}
+  catch{return {...PROFILE_DEFAULTS};}
 }
 function saveProfile(){
   try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));}catch{}
 }
 let profile=loadProfile();
+function calcAge(dobISO){
+  if(!dobISO)return null;
+  const dob=new Date(dobISO+'T12:00:00');
+  let age=TODAY.getFullYear()-dob.getFullYear();
+  const m=TODAY.getMonth()-dob.getMonth();
+  if(m<0||(m===0&&TODAY.getDate()<dob.getDate()))age--;
+  return age>=0?age:null;
+}
 let currentIG=null;
 let currentPregMeta=null; // {method, basis} — base de cálculo usada, pro resumo pra consulta
 
@@ -2057,6 +2079,19 @@ function renderProfileUI(){
   document.getElementById('babyNameInp').value=profile.name||'';
   document.querySelectorAll('.stab').forEach(b=>b.classList.toggle('on',b.dataset.sex===profile.sex));
 }
+function renderPatientUI(){
+  document.getElementById('patientNameInp').value=profile.patientName||'';
+  document.getElementById('patientDobInp').value=profile.patientDOB||'';
+}
+document.getElementById('patientDobInp').max=toISO(TODAY);
+document.getElementById('patientNameInp').addEventListener('input',e=>{
+  profile.patientName=e.target.value;
+  saveProfile();
+});
+document.getElementById('patientDobInp').addEventListener('change',e=>{
+  profile.patientDOB=e.target.value;
+  saveProfile();
+});
 function babyNameHTML(){
   return `<strong class="baby-name-em">${profile.name.toUpperCase()}</strong>`;
 }
@@ -2097,6 +2132,7 @@ document.querySelectorAll('#sexTabs .stab').forEach(btn=>{
 });
 applyProfileTheme();
 renderProfileUI();
+renderPatientUI();
 updateBabyNameUI();
 
 /* ── Nav ── */
@@ -2139,7 +2175,11 @@ function loadStoredPregnancy(){
 document.getElementById('resetPregBtn').addEventListener('click',async()=>{
   const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso, pressão, curva glicêmica e glicemia capilar — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
   if(!ok)return;
+  const keepPatient={patientName:profile.patientName||'',patientDOB:profile.patientDOB||''};
   [PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY,GTT_KEY,GLY_KEY].forEach(k=>{try{localStorage.removeItem(k);}catch{}});
+  // Seu próprio nome e data de nascimento não são "dados da gestação" —
+  // continuam a mesma pessoa numa gestação nova, então sobrevivem ao reset.
+  try{localStorage.setItem(PROFILE_KEY,JSON.stringify({...PROFILE_DEFAULTS,...keepPatient}));}catch{}
   // Se estiver logada, limpa nome/sexo/data base também na nuvem — senão, ao
   // recarregar, a sincronização traria de volta os dados antigos. O
   // desbloqueio premium fica de fora: é da conta, não da gestação, e não
@@ -3651,10 +3691,16 @@ function renderSummary(){
   const bpChart=summaryBPChartSVG(bpEntries.slice(-14));
 
   const glyRecent=[...glyEntries].slice(-6).reverse();
+  const patientAge=calcAge(profile.patientDOB);
+  const escName=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const patientLine=profile.patientName
+    ?`${escName(profile.patientName)}${patientAge!=null?` · ${patientAge} anos`:''}`
+    :null;
 
   sheet.innerHTML=`
     <div class="summary-page">
       <div class="summary-title">Resumo pra consulta</div>
+      ${patientLine?`<div class="summary-patient">${patientLine}</div>`:''}
       <div class="summary-meta">Gerado em ${fmt(TODAY)}${babyName?` · ${babyName}`:''}${profile.sex?` (${profile.sex})`:''}</div>
 
       <div class="summary-stat-row" style="margin-top:16px">
@@ -3695,6 +3741,7 @@ document.getElementById('summaryPrintBtn').addEventListener('click',()=>{
 const ONB_KEY='mkcalc_onboarded';
 const ONBOARDING_STEPS=[
   {ico:'🤰',title:'Bem-vinda ao CalcMK!',desc:'Um app simples pra acompanhar sua gestação: idade gestacional, período fértil, exames e muito mais.'},
+  {ico:'📝',title:'Antes de começar...',desc:'Coloque seu nome completo e sua data de nascimento. Assim, o resumo que você mostra ao seu obstetra já vem com sua identificação e idade.',form:true},
   {ico:'📅',title:'Qual sua idade gestacional?',desc:'Você pode informar pela <strong>DUM</strong>, pelo <strong>1º ultrassom</strong> ou pela <strong>DPP</strong>. A partir daí, o app calcula sua idade gestacional sozinho — sempre atualizada, toda vez que você abrir.',cta:'Informar agora',ctaPage:'calc'},
   {ico:'🧭',title:'Use as abas aqui embaixo',desc:'Calcular, Resultado, Exames e Checklist ficam sempre a um toque de distância, na barra de navegação.'},
   {ico:'🧸',title:'Personalize na aba Perfil',desc:'Coloque aqui o nome e o sexo do seu bebê.'},
@@ -3708,7 +3755,28 @@ function renderOnb(){
     <div class="onb-ico">${s.ico}</div>
     <div class="onb-title serif">${s.title}</div>
     <div class="onb-desc">${s.desc}</div>
+    ${s.form?`
+    <div class="field" style="text-align:left;margin-top:8px"><label>Nome completo</label>
+      <input class="inp" type="text" id="onbPatientNameInp" placeholder="Seu nome e sobrenome" autocomplete="name">
+    </div>
+    <div class="field" style="text-align:left"><label>Data de nascimento</label>
+      <input class="inp" type="date" id="onbPatientDobInp" max="${toISO(TODAY)}">
+    </div>`:''}
     ${s.cta?`<button class="onb-cta" id="onbCta">${s.cta}</button>`:''}`;
+  if(s.form){
+    document.getElementById('onbPatientNameInp').value=profile.patientName||'';
+    document.getElementById('onbPatientDobInp').value=profile.patientDOB||'';
+    document.getElementById('onbPatientNameInp').addEventListener('input',e=>{
+      profile.patientName=e.target.value;
+      saveProfile();
+      renderPatientUI();
+    });
+    document.getElementById('onbPatientDobInp').addEventListener('change',e=>{
+      profile.patientDOB=e.target.value;
+      saveProfile();
+      renderPatientUI();
+    });
+  }
   if(s.cta){
     document.getElementById('onbCta').addEventListener('click',()=>{
       document.getElementById('onbOverlay').classList.remove('show');
