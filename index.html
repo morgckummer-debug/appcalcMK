@@ -3792,10 +3792,26 @@ async function pushProfileToCloud(){
     pregnancy_lmp:saved?.lmp||null,
     pregnancy_method:saved?.method||null,
     pregnancy_basis:saved?.basis||null,
-    premium_unlocked:premiumState.unlocked||false,
     updated_at:new Date().toISOString()
   },{onConflict:'user_id'});
   setAcctSyncStatus(error?'Falha ao sincronizar':'Sincronizado agora');
+}
+/* Confere o desbloqueio premium direto na tabela premium_unlocks, que só a
+   Kiwify consegue escrever (via webhook + Edge Function, com a service role
+   key) — o app nunca escreve nela. Diferente de pregnancy_profiles (onde o
+   próprio app podia se autodeclarar "desbloqueada" antes dessa mudança),
+   essa consulta é a fonte da verdade: se a Kiwify confirmou o pagamento,
+   confirma aqui; senão, o desbloqueio local (via retorno do checkout) fica
+   provisório até o próximo login confirmar de verdade. */
+async function checkPremiumFromServer(){
+  if(!sbClient||!currentUserEmail)return;
+  const{data,error}=await sbClient.from('premium_unlocks').select('unlocked').eq('email',currentUserEmail.toLowerCase()).maybeSingle();
+  if(error||!data)return;
+  if(data.unlocked&&!premiumState.unlocked){
+    premiumState.unlocked=true;
+    savePremiumState();
+    refreshPremiumGating();
+  }
 }
 async function pullProfileFromCloud(){
   if(!sbClient)return;
@@ -3819,15 +3835,11 @@ async function pullProfileFromCloud(){
       savePregnancy(new Date(data.pregnancy_lmp+'T12:00:00'),data.pregnancy_method,data.pregnancy_basis);
       loadStoredPregnancy();
     }
-    if(data.premium_unlocked&&!premiumState.unlocked){
-      premiumState.unlocked=true;
-      savePremiumState();
-    }
-    refreshPremiumGating();
     setAcctSyncStatus('Sincronizado agora');
   }else{
     await pushProfileToCloud();
   }
+  await checkPremiumFromServer();
 }
 document.getElementById('acctLoginBtn').addEventListener('click',async()=>{
   if(!sbClient){showToast('Sincronização indisponível offline',2000);return;}
@@ -3930,7 +3942,10 @@ const KIWIFY_CHECKOUT_URL='https://pay.kiwify.com.br/RBCxOeu';
 const PREMIUM_RETURN_PARAM='premium_unlocked';
 
 /* Configure a URL de redirecionamento do produto na Kiwify pra voltar pro
-   app com "?premium_unlocked=1" — ex.: https://SEU-APP/?premium_unlocked=1 */
+   app com "?premium_unlocked=1" — ex.: https://SEU-APP/?premium_unlocked=1
+   Isso dá o desbloqueio na hora (boa experiência), mas é só provisório: a
+   confirmação de verdade vem de checkPremiumFromServer() no próximo login,
+   lendo a tabela que só a Kiwify (via webhook) consegue escrever. */
 (function checkPremiumReturn(){
   const params=new URLSearchParams(location.search);
   if(params.get(PREMIUM_RETURN_PARAM)==='1'){
@@ -3939,7 +3954,7 @@ const PREMIUM_RETURN_PARAM='premium_unlocked';
     params.delete(PREMIUM_RETURN_PARAM);
     const cleanUrl=location.pathname+(params.toString()?`?${params}`:'')+location.hash;
     history.replaceState({},'',cleanUrl);
-    pushProfileToCloud();
+    checkPremiumFromServer();
     setTimeout(()=>showToast('Premium desbloqueado! ✨',2500),300);
   }
 })();
