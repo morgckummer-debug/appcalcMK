@@ -509,6 +509,7 @@ body::after{
 .exm-card:active{transform:scale(.98)}
 .exm-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
 .exm-name{font-family:'Fraunces',serif;font-size:16px;font-weight:500;color:var(--ink);line-height:1.3}
+#exmUsgList .exm-name{font-size:18px;font-weight:700}
 .exm-chevron{font-size:16px;color:var(--ink3);flex-shrink:0;margin-top:2px}
 .exm-card-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .exm-chk{cursor:pointer}
@@ -1951,6 +1952,9 @@ const ULTRASSONS=[
   {weekStart:12,weekEnd:13+6/7,name:'Ultrassom Morfológico do 1º trimestre',periodo:'12 semanas a 13 semanas e 6 dias',
     desc:'Avalia detalhadamente o desenvolvimento do bebê e ajuda no rastreamento de algumas alterações cromossômicas e malformações. Durante esse exame também é feita a medida da translucência nucal (TN) e o rastreamento do risco de pré-eclâmpsia.',
     nota:'Esse exame não é a mesma coisa que "Translucência Nucal" isoladamente — a TN faz parte dele, mas o Morfológico do 1º trimestre é bem mais completo.'},
+  {weekStart:16,weekEnd:18,name:'Ultrassom Pré-morfológico',periodo:'16 a 18 semanas',
+    desc:'Não faz parte do pré-natal convencional, mas vem sendo cada vez mais pedido antes do Morfológico do 2º trimestre. É nele que costuma ser confirmado o sexo do bebê, caso ainda não tenha sido identificado no ultrassom do 1º trimestre.',
+    indicacao:'Não é obrigatório — pode ser solicitado pelo obstetra ou por vontade dos pais, conforme disponibilidade.'},
   {weekStart:22,weekEnd:24,name:'Ultrassom Morfológico do 2º trimestre',periodo:'22 a 24 semanas',
     desc:'Avalia detalhadamente a anatomia do bebê, o crescimento, a placenta, o líquido amniótico e faz o rastreamento do parto prematuro através da medida do colo do útero por via vaginal.'},
   {weekStart:24,weekEnd:30,name:'Ecocardiograma Fetal',periodo:'24 a 30 semanas',
@@ -2015,14 +2019,14 @@ const CHECKLIST=[
    usada em examDone (ver renderExamGuide/examCard). */
 const CHECKLIST_EXAM_LINK={
   '0-6':'usg-1', // Ultrassom Morfológico do 1º trimestre
-  '1-1':'usg-2', // USG Morfológico do 2º trimestre
+  '1-1':'usg-3', // USG Morfológico do 2º trimestre
   '1-2':'vac-2', // Vacina dTpa
   '1-3':'lab-1', // Curva glicêmica (TOTG)
   '2-0':'lab-2', // Hemograma + Coombs (28 semanas)
   '2-1':'vac-3', // Vacina da Bronquiolite (VSR)
-  '2-2':'usg-4', // USG de crescimento (Doppler)
+  '2-2':'usg-5', // USG de crescimento (Doppler)
   '2-3':'lab-3', // Exame do Cotonete
-  '2-4':'usg-5'  // Perfil Biofísico Fetal (PBF)
+  '2-4':'usg-6'  // Perfil Biofísico Fetal (PBF)
 };
 
 /* ── Toast ── */
@@ -3396,7 +3400,7 @@ function gttAltered(field,val){return val>=GTT_CUTOFFS[field];}
 function gttAnyAltered(r){return gttAltered('fasting',r.fasting)||gttAltered('h1',r.h1)||gttAltered('h2',r.h2);}
 function gttVerdictText(r){
   return gttAnyAltered(r)
-    ?'Resultado alterado — pelo menos um valor atingiu o critério diagnóstico de diabetes gestacional (IADPSG). Fale com seu obstetra sobre os próximos passos.'
+    ?'Resultado alterado — pelo menos um valor atingiu o critério diagnóstico de <strong style="color:var(--alert)">diabetes gestacional</strong> (IADPSG). Fale com seu obstetra sobre os próximos passos.'
     :'Resultado dentro da normalidade, pelos critérios da IADPSG.';
 }
 function setGttExamDone(done){
