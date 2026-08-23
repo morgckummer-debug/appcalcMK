@@ -2105,6 +2105,7 @@ document.getElementById('patientDobInp').max=toISO(TODAY);
 document.getElementById('patientNameInp').addEventListener('input',e=>{
   profile.patientName=e.target.value;
   saveProfile();
+  refreshGreeting();
 });
 document.getElementById('patientDobInp').addEventListener('change',e=>{
   profile.patientDOB=e.target.value;
@@ -2112,6 +2113,30 @@ document.getElementById('patientDobInp').addEventListener('change',e=>{
 });
 function babyNameHTML(){
   return `<strong class="baby-name-em">${profile.name.toUpperCase()}</strong>`;
+}
+
+/* Primeiro nome da gestante (campo "Nome completo" do Perfil), usado na
+   saudação do resultado. Normaliza a capitalização pra que "marina" e
+   "MARINA" apareçam como "Marina". */
+function patientFirstName(){
+  const first=(profile.patientName||'').trim().split(/\s+/)[0]||'';
+  if(!first)return '';
+  const rest=first===first.toUpperCase()?first.slice(1).toLowerCase():first.slice(1);
+  return first.charAt(0).toUpperCase()+rest;
+}
+function escHTML(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+/* Com nome preenchido: "Oi Marina! Hoje você está com 21 semanas".
+   Sem nome: mantém o texto antigo, "Você está com 21 semanas". */
+function greetingTitleHTML(ig){
+  const weeks=`<span class="serif" style="color:var(--pd);font-style:italic">${formatWeeksText(ig.weeks,ig.days)}</span>`;
+  const name=patientFirstName();
+  return name?`Oi ${escHTML(name)}! Hoje você está com ${weeks}`:`Você está com ${weeks}`;
+}
+function refreshGreeting(){
+  if(!currentIG)return;
+  document.getElementById('resTitle').innerHTML=greetingTitleHTML(currentIG);
 }
 function updateBabyLabels(ig){
   if(!ig)return;
@@ -2429,7 +2454,7 @@ function renderPregResult(ig,dpp,method,silent){
   const pct=Math.min(100,(ig.totalDays/GESTATION_DAYS)*100);
 
   document.getElementById('resMethod').textContent='Resultado · '+method;
-  document.getElementById('resTitle').innerHTML=`Você está com <span class="serif" style="color:var(--pd);font-style:italic">${formatWeeksText(ig.weeks,ig.days)}</span>`;
+  document.getElementById('resTitle').innerHTML=greetingTitleHTML(ig);
   document.getElementById('igBig').innerHTML=`<em>${ig.weeks}</em><span style="font-size:28px;color:var(--ink2)">+${ig.days}</span>`;
 
   // Animate ring after a small delay (let stagger start)
@@ -3787,6 +3812,7 @@ function renderOnb(){
       profile.patientName=e.target.value;
       saveProfile();
       renderPatientUI();
+      refreshGreeting();
     });
     document.getElementById('onbPatientDobInp').addEventListener('change',e=>{
       profile.patientDOB=e.target.value;
