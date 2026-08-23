@@ -2895,6 +2895,21 @@ let contrSessionBreakAt=loadContrSessionBreak();
 function fmtClock(d){
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
+
+/* ── Período do dia de uma aferição (pressão e glicemia) ──
+   Manhã 06:00–11:59 · Tarde 12:00–17:59 · Noite 18:00–05:59. A madrugada
+   entra na noite: quem afere às 3h da manhã está aferindo de noite, não
+   começando o dia. */
+const PERIOD_NOTE='Manhã 6h–12h · Tarde 12h–18h · Noite 18h–6h.';
+const DAY_PERIOD_LBL={manha:'Manhã',tarde:'Tarde',noite:'Noite'};
+function dayPeriodOf(d){
+  const h=d.getHours();
+  if(h<6)return'noite';
+  if(h<12)return'manha';
+  if(h<18)return'tarde';
+  return'noite';
+}
+function dayPeriodLbl(d){return DAY_PERIOD_LBL[dayPeriodOf(d)];}
 function fmtGap(ms){
   if(ms==null)return'—';
   const totalMin=Math.round(ms/60000);
@@ -3761,13 +3776,15 @@ function renderSummary(){
       <div class="summary-section">
         <div class="summary-section-title">Pressão arterial</div>
         ${bpChart?`<div class="weight-chart-wrap">${bpChart}</div><div class="summary-legend"><span><i class="dot-sys"></i>Sistólica</span><span><i class="dot-dia"></i>Diastólica</span></div>`:''}
-        ${bpRecent.length?bpRecent.map(b=>`<div class="summary-row"><span>${fmt(new Date(b.date))} · ${fmtClock(new Date(b.date))}</span><strong>${fmtBP(b.sys,b.dia)}</strong></div>`).join(''):'<div class="summary-empty">Nenhum registro de pressão ainda.</div>'}
+        ${bpRecent.length?bpRecent.map(b=>`<div class="summary-row"><span>${fmt(new Date(b.date))} · ${dayPeriodLbl(new Date(b.date))} · ${fmtClock(new Date(b.date))}</span><strong>${fmtBP(b.sys,b.dia)}</strong></div>`).join(''):'<div class="summary-empty">Nenhum registro de pressão ainda.</div>'}
+        ${bpRecent.length?`<div class="summary-meta">${PERIOD_NOTE}</div>`:''}
       </div>
 
       <div class="summary-section">
         <div class="summary-section-title">Glicemia</div>
         ${gttResult?`<div class="summary-row"><span>TOTG (${fmt(new Date(gttResult.date))})</span><strong>${gttResult.fasting} / ${gttResult.h1} / ${gttResult.h2} mg/dL${gttAnyAltered(gttResult)?' · Alterada':''}</strong></div>`:''}
-        ${glyRecent.length?glyRecent.map(g=>`<div class="summary-row"><span>${fmt(new Date(g.date))} · ${GLY_MOMENT_LBL[g.moment]}</span><strong>${fmtGly(g.value)}${glyOutOfTarget(g.moment,g.value)?' ⚠':''}</strong></div>`).join(''):(gttResult?'':'<div class="summary-empty">Nenhum registro de glicemia ainda.</div>')}
+        ${glyRecent.length?glyRecent.map(g=>`<div class="summary-row"><span>${fmt(new Date(g.date))} · ${dayPeriodLbl(new Date(g.date))} · ${GLY_MOMENT_LBL[g.moment]}</span><strong>${fmtGly(g.value)}${glyOutOfTarget(g.moment,g.value)?' ⚠':''}</strong></div>`).join(''):(gttResult?'':'<div class="summary-empty">Nenhum registro de glicemia ainda.</div>')}
+        ${glyRecent.length?`<div class="summary-meta">${PERIOD_NOTE}</div>`:''}
       </div>
     </div>`;
   applyPremiumLock(sheet,'Resumo pra consulta');
