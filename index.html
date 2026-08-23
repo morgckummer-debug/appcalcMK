@@ -444,7 +444,7 @@ body::after{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-5px)}
 }
-.baby-avg{background:rgba(255,250,240,.6);backdrop-filter:blur(8px);border-radius:14px;padding:14px;text-align:center;margin-top:14px}
+.baby-avg{background:rgba(255,250,240,.6);backdrop-filter:blur(8px);border-radius:14px;padding:14px;text-align:center;margin-top:10px}
 [data-dark] .baby-avg{background:rgba(30,20,10,.4)}
 .baby-avg .val{font-family:'Fraunces',serif;font-size:17px;font-weight:500;color:var(--ink)}
 .baby-dev{font-size:13px;color:var(--ink2);line-height:1.6;margin-top:12px;background:rgba(255,250,240,.5);border-radius:12px;padding:12px 14px}
@@ -1190,14 +1190,13 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 
       <div class="baby-card" id="babyCard">
         <div class="lbl" id="babyWeekLbl">Bebê</div>
-        <div class="card-title serif" id="babyFruit">—</div>
+        <div class="baby-avg">
+          <div class="val serif" id="babyPhrase">—</div>
+        </div>
         <div class="baby-orb-wrap">
           <div class="baby-orb">
             <img class="baby-orb-img" id="babyFruitImg" src="" alt="" onerror="this.src='frutas/semente.png'">
           </div>
-        </div>
-        <div class="baby-avg">
-          <div class="val serif" id="babyPhrase">—</div>
         </div>
         <div class="baby-dev" id="babyDev"></div>
         <div class="femur-calc">
@@ -2119,7 +2118,6 @@ function updateBabyLabels(ig){
   const milestone=getMilestone(ig.weeks);
   const fruit=getFruitForWeek(ig.weeks);
   document.getElementById('babyWeekLbl').textContent=`${profile.name||'Bebê'} · semana ${ig.weeks}`;
-  document.getElementById('babyFruit').textContent=fruit.name;
   document.getElementById('babyFruitImg').src=`frutas/${fruit.file}.png`;
   document.getElementById('babyFruitImg').alt=fruit.name;
   document.getElementById('babyDev').textContent=milestone.d;
