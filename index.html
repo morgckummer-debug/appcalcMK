@@ -20,6 +20,7 @@
   --alert:#c14f3c;--alert-bg:#f7ded6;
   --good:#5f8f5a;--good-bg:#dfead9;
   --gold:#dba838;--gold-bg:#f6e6c4;
+  --pfe-lo:#d4a394;--pfe-mid:#e8d19f;--pfe-ok:#a3bd97;
   --cream:#f8edd9;--cream2:#f0e0c4;
   --ink:#3a2e2a;--ink2:#6b574e;--ink3:#9a8678;
   --surf:#f8edd9;--surf2:#efe0c4;--surfs:#fdf5ea;
@@ -41,6 +42,7 @@
   --alert:#e2735c;--alert-bg:#3a231e;
   --good:#7fae74;--good-bg:#233524;
   --gold:#e0b158;--gold-bg:#3d3018;
+  --pfe-lo:#a97d6c;--pfe-mid:#b8a56e;--pfe-ok:#7a9470;
   --cream:#2a211a;--cream2:#322719;
   --ink:#f0e4d4;--ink2:#c4aa94;--ink3:#8a7060;
   --surf:#251e17;--surf2:#2e2418;--surfs:#332820;
@@ -423,10 +425,11 @@ body::after{
 .pfe-result.tone-ob .pfe-pill{background:var(--alert)}
 .pfe-bar-track{position:relative;height:10px;border-radius:var(--pill);margin:0 8px;
   background:linear-gradient(to right,
-    var(--alert) 0%,var(--alert) 3%,
-    var(--gold) 3%,var(--gold) 10%,
-    var(--good) 10%,var(--good) 90%,
-    var(--alert) 90%,var(--alert) 100%);
+    var(--pfe-lo) 0%,var(--pfe-lo) 3%,
+    var(--pfe-mid) 3%,var(--pfe-mid) 10%,
+    var(--pfe-ok) 10%,var(--pfe-ok) 90%,
+    var(--pfe-mid) 90%,var(--pfe-mid) 97%,
+    var(--pfe-lo) 97%,var(--pfe-lo) 100%);
 }
 .pfe-bar-thumb{
   position:absolute;top:50%;width:22px;height:22px;border-radius:50%;
