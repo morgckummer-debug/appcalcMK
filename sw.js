@@ -1,11 +1,11 @@
-const CACHE_NAME = 'babymk-v3';
+const CACHE_NAME = 'babymk-v4';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
-  './apple-touch-icon.png'
+  './icon-2026.jpg'
 ];
 
 self.addEventListener('install', e => {
