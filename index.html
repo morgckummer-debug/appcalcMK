@@ -4053,6 +4053,10 @@ function showAcctRecovery(){
   document.getElementById('acctLoggedOut').classList.add('hidden');
   document.getElementById('acctLoggedIn').classList.add('hidden');
   document.getElementById('acctRecovery').classList.remove('hidden');
+  /* O link de "esqueci minha senha" redireciona de volta pro app, mas o
+     formulário de nova senha mora dentro da aba Perfil — sem navegar pra
+     lá, a usuária cai na aba Calcular e nunca vê o formulário aberto. */
+  goToPage('profile');
 }
 async function pushProfileToCloud(){
   if(!sbClient)return;
