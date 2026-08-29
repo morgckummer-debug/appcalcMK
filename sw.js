@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calcmk-v2';
+const CACHE_NAME = 'babymk-v3';
 const APP_SHELL = [
   './',
   './index.html',
