@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-<title>CalcMK</title>
+<title>Baby-MK</title>
 <link rel="manifest" href="manifest.webmanifest"/>
 <meta name="theme-color" content="#c07a52"/>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -578,6 +578,32 @@ body::after{
   padding:8px 12px;box-shadow:var(--cs);
 }
 
+/* ── Consentimento (LGPD) ── */
+.consent-bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:4000;
+  max-width:480px;margin:0 auto;
+  background:var(--surfs);color:var(--ink);
+  border-radius:var(--rl) var(--rl) 0 0;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -12px 32px rgba(0,0,0,.25);
+  transform:translateY(12px);opacity:0;transition:transform .3s cubic-bezier(.22,.68,0,1.2),opacity .25s;
+}
+.consent-bar.show{transform:translateY(0);opacity:1}
+.consent-bar h2{font-family:'Fraunces',serif;font-size:19px;font-weight:500;margin-bottom:8px}
+.consent-bar p{font-size:13px;line-height:1.55;color:var(--ink2);margin-bottom:10px}
+.consent-bar label{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:var(--ink2);cursor:pointer;margin:12px 0;line-height:1.4}
+.consent-bar input[type=checkbox]{margin-top:2px;cursor:pointer;flex-shrink:0}
+.privacy-note{
+  font-size:12.5px;color:var(--ink2);line-height:1.55;background:var(--alert-bg);
+  border-radius:14px;padding:12px 14px;margin-bottom:16px;box-shadow:var(--ci);
+}
+.privacy-note strong{color:var(--alert)}
+.privacy-block{margin:16px 0;padding:15px;border-radius:16px;background:var(--surf);box-shadow:var(--cs)}
+.privacy-block h3{font-size:14px;color:var(--ink);margin-bottom:6px}
+.privacy-block p{font-size:12.5px;color:var(--ink2);line-height:1.5;margin-bottom:10px}
+.privacy-block.danger{background:var(--alert-bg)}
+.privacy-block.danger h3{color:var(--alert)}
+
 /* Contador de movimentos fetais / monitor de contrações */
 .kick-count-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;margin:14px 0 22px}
 .kick-count-num{font-family:'Fraunces',serif;font-size:52px;font-weight:500;color:var(--pd2);line-height:1}
@@ -1092,7 +1118,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 <body>
 <div id="app">
   <div class="hdr">
-    <div class="brand serif">Calc<span>MK</span></div>
+    <div class="brand serif">Baby-<span>MK</span></div>
     <div class="hdr-actions">
       <button class="dark-btn" id="onbHelpBtn" title="Ver tutorial">?</button>
       <button class="dark-btn" id="darkBtn" title="Alternar tema"><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--peach)" stroke="var(--pd2)" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" style="display:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
@@ -1573,9 +1599,9 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 
     <div class="card hidden" id="installCard">
       <div class="lbl">📲 Instalar app</div>
-      <div class="card-title" style="font-size:17px">CalcMK no seu <span class="serif" style="color:var(--pd);font-style:italic">aparelho</span></div>
+      <div class="card-title" style="font-size:17px">Baby-MK no seu <span class="serif" style="color:var(--pd);font-style:italic">aparelho</span></div>
       <div class="helper hidden" id="iosInstallHelp">No iPhone/iPad: toque em <strong>Compartilhar</strong> (o ícone com a seta) na barra do Safari e depois em <strong>Adicionar à Tela de Início</strong>.</div>
-      <button class="btn-install hidden" id="installBtn"><span class="ico">📲</span>Instalar CalcMK</button>
+      <button class="btn-install hidden" id="installBtn"><span class="ico">📲</span>Instalar Baby-MK</button>
     </div>
 
     <div class="card">
@@ -1621,13 +1647,19 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     </div>
     <div class="card">
       <div class="lbl">Sobre o app</div>
-      <div class="card-title" style="font-size:21px;margin-bottom:14px">Calc<span style="color:var(--pd)">MK</span> <span style="font-size:11px;color:var(--ink3);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-family:inherit">· App de Gestação</span></div>
+      <div class="card-title" style="font-size:21px;margin-bottom:14px">Baby-<span style="color:var(--pd)">MK</span> <span style="font-size:11px;color:var(--ink3);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-family:inherit">· App de Gestação</span></div>
       <div class="about-bio">
         <p>App desenvolvido para apoiar gestantes e mulheres em planejamento familiar com cálculos de idade gestacional, período fértil e acompanhamento pré-natal.</p>
         <p style="color:var(--ink3);font-size:12px">⚠️ Os resultados são informativos. Confirme sempre com seu obstetra.</p>
       </div>
     </div>
-    <footer style="padding-bottom:8px">mkcalc v3 · desenvolvido com carinho por Dra. Morgana Kummer</footer>
+    <div class="card">
+      <div class="lbl">🔒 Privacidade</div>
+      <div class="card-title" style="font-size:18px;margin-bottom:10px">Seus dados <span style="color:var(--pd)" class="serif">são seus</span></div>
+      <div class="helper">Baixe, edite ou apague os dados que o Baby-MK guardou sobre você, e leia a política de privacidade completa.</div>
+      <button class="btn-install" id="openPrivacyBtn" style="margin-top:14px">Meus dados & privacidade</button>
+    </div>
+    <footer style="padding-bottom:8px">Baby-MK v3 · desenvolvido com carinho por Dra. Morgana Kummer</footer>
   </div>
 </div>
 
@@ -1706,6 +1738,15 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     <div class="exm-sheet-handle"></div>
     <button class="exm-sheet-close" id="glyClose">✕</button>
     <div id="glySheetBody"></div>
+  </div>
+</div>
+
+<!-- Privacidade & meus dados (LGPD) -->
+<div class="exm-overlay" id="privacyOverlay">
+  <div class="exm-sheet" id="privacySheet">
+    <div class="exm-sheet-handle"></div>
+    <button class="exm-sheet-close" id="privacyClose">✕</button>
+    <div id="privacySheetBody"></div>
   </div>
 </div>
 
@@ -3782,7 +3823,7 @@ document.getElementById('summaryPrintBtn').addEventListener('click',()=>{
 /* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
 const ONB_KEY='mkcalc_onboarded';
 const ONBOARDING_STEPS=[
-  {ico:'🤰',title:'Bem-vinda ao CalcMK!',desc:'Um app simples pra acompanhar sua gestação: idade gestacional, período fértil, exames e muito mais.'},
+  {ico:'🤰',title:'Bem-vinda ao Baby-MK!',desc:'Um app simples pra acompanhar sua gestação: idade gestacional, período fértil, exames e muito mais.'},
   {ico:'📝',title:'Antes de começar...',desc:'Coloque seu nome completo e sua data de nascimento. Assim, o resumo que você mostra ao seu obstetra já vem com sua identificação e idade.',form:true},
   {ico:'📅',title:'Qual sua idade gestacional?',desc:'Você pode informar pela <strong>DUM</strong>, pelo <strong>1º ultrassom</strong> ou pela <strong>DPP</strong>. A partir daí, o app calcula sua idade gestacional sozinho — sempre atualizada, toda vez que você abrir.',cta:'Informar agora',ctaPage:'calc'},
   {ico:'🧭',title:'Use as abas aqui embaixo',desc:'Calcular, Resultado, Exames e Checklist ficam sempre a um toque de distância, na barra de navegação.'},
@@ -3856,7 +3897,8 @@ document.getElementById('onbNext').addEventListener('click',()=>{
 });
 document.getElementById('onbSkip').addEventListener('click',closeOnboarding);
 document.getElementById('onbHelpBtn').addEventListener('click',openOnboarding);
-if(!localStorage.getItem(ONB_KEY))openOnboarding();
+/* maybeStartFirstRun() é chamado no fim do script, depois que CONSENT_KEY
+   e CONSENT_VERSION são declarados — ver seção Privacidade & LGPD. */
 
 loadStoredPregnancy();
 
@@ -4166,6 +4208,164 @@ function refreshPremiumGating(){
   applyPremiumLock(document.getElementById('summarySheet'),'Resumo pra consulta');
 }
 refreshPremiumGating();
+
+/* ══════════════════════════════════════════
+   Privacidade & LGPD
+   ══════════════════════════════════════════ */
+const CONSENT_KEY='mkcalc_consent_v1';
+const CONSENT_VERSION='1.0';
+const ALL_LOCAL_DATA_KEYS=[PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY,GTT_KEY,GLY_KEY,PREMIUM_KEY];
+
+function loadConsent(){
+  try{const raw=localStorage.getItem(CONSENT_KEY);return raw?JSON.parse(raw):null;}
+  catch{return null;}
+}
+function showConsentBar(onAccepted){
+  if(document.getElementById('consentBar'))return;
+  const bar=document.createElement('div');
+  bar.className='consent-bar';
+  bar.id='consentBar';
+  bar.innerHTML=`
+    <h2>👶 Bem-vinda ao Baby-MK</h2>
+    <p><strong>O Baby-MK é educacional.</strong> Ajuda a acompanhar sua gestação, mas <strong>nunca substitui seu médico</strong>. Em caso de sangramento, dor ou qualquer urgência, procure atendimento imediatamente.</p>
+    <p>Os dados que você digita ficam salvos neste aparelho. Se você criar uma conta, nome, sexo do bebê e data base da gestação também são salvos com segurança na nuvem, só pra você.</p>
+    <label><input type="checkbox" id="consentCheck">Li e entendi que o Baby-MK é educacional e não substitui acompanhamento médico.</label>
+    <button class="btn-calc" id="consentAcceptBtn" type="button">Aceitar e continuar</button>
+    <button class="link-btn" id="consentPolicyBtn" type="button">Ver política completa</button>`;
+  document.body.appendChild(bar);
+  requestAnimationFrame(()=>bar.classList.add('show'));
+  document.getElementById('consentPolicyBtn').addEventListener('click',()=>window.open('politica.html','_blank'));
+  document.getElementById('consentAcceptBtn').addEventListener('click',()=>{
+    if(!document.getElementById('consentCheck').checked){
+      showToast('Confirme que entendeu que o Baby-MK não substitui seu médico',2200);
+      return;
+    }
+    try{localStorage.setItem(CONSENT_KEY,JSON.stringify({date:new Date().toISOString(),version:CONSENT_VERSION,accepted:true}));}catch{}
+    bar.classList.remove('show');
+    setTimeout(()=>bar.remove(),300);
+    if(onAccepted)onAccepted();
+  });
+}
+function maybeStartFirstRun(){
+  const consent=loadConsent();
+  if(!consent||consent.version!==CONSENT_VERSION||!consent.accepted){
+    showConsentBar(()=>{if(!localStorage.getItem(ONB_KEY))openOnboarding();});
+  }else if(!localStorage.getItem(ONB_KEY)){
+    openOnboarding();
+  }
+}
+
+async function exportUserData(){
+  const local={};
+  ALL_LOCAL_DATA_KEYS.forEach(k=>{
+    try{const raw=localStorage.getItem(k);if(raw!=null)local[k]=JSON.parse(raw);}catch{}
+  });
+  const payload={
+    exportDate:new Date().toISOString(),
+    app:'Baby-MK',
+    dadosNesteAparelho:local,
+    consentimento:loadConsent(),
+    conta:null,
+    dadosNaNuvem:null
+  };
+  if(sbClient){
+    const{data:{session}}=await sbClient.auth.getSession();
+    if(session){
+      payload.conta={email:currentUserEmail,userId:session.user.id};
+      const{data}=await sbClient.from('pregnancy_profiles').select('*').eq('user_id',session.user.id).maybeSingle();
+      payload.dadosNaNuvem=data||null;
+    }
+  }
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;
+  link.download='baby-mk-meus-dados.json';
+  link.click();
+  URL.revokeObjectURL(url);
+  showToast('Seus dados foram baixados',2000);
+}
+
+function goEditMyData(){
+  closePrivacySheet();
+  goToPage('profile');
+  showToast('Edite seus dados aqui embaixo',2200);
+}
+
+async function eraseAllUserData(){
+  const typed=prompt('Isso apaga PERMANENTEMENTE, neste aparelho, todos os seus dados no Baby-MK: nome, sexo do bebê, data base da gestação, checklist, exames marcados, movimentos, contrações, peso, pressão, curva glicêmica e glicemia capilar.\n\nSe você tiver conta, também desconecta você e apaga os dados sincronizados na nuvem (nome, sexo do bebê e data base).\n\nDigite APAGAR para confirmar:');
+  if(typed==null)return;
+  if(typed.trim().toUpperCase()!=='APAGAR'){showToast('Confirmação incorreta, nada foi apagado',2000);return;}
+
+  let hadAccount=false;
+  if(sbClient){
+    const{data:{session}}=await sbClient.auth.getSession();
+    if(session){
+      hadAccount=true;
+      await sbClient.from('pregnancy_profiles').update({
+        baby_name:null,baby_sex:null,pregnancy_lmp:null,pregnancy_method:null,pregnancy_basis:null,updated_at:new Date().toISOString()
+      }).eq('user_id',session.user.id);
+      await sbClient.auth.signOut();
+    }
+  }
+  ALL_LOCAL_DATA_KEYS.concat([CONSENT_KEY]).forEach(k=>{try{localStorage.removeItem(k);}catch{}});
+  alert(hadAccount
+    ?'Pronto. Seus dados neste aparelho foram apagados e você foi desconectada — os dados sincronizados na nuvem (nome, sexo do bebê e data base) também foram removidos.\n\nPara encerrar de vez o cadastro de login (e-mail e senha), escreva pra gente pelo contato da política de privacidade.'
+    :'Pronto. Todos os seus dados neste aparelho foram apagados.');
+  location.reload();
+}
+
+function renderPrivacySheetBody(){
+  document.getElementById('privacySheetBody').innerHTML=`
+    <div class="exm-sheet-name">🔒 Meus dados &amp; privacidade</div>
+    <div class="privacy-note"><strong>⚠️ Emergência?</strong> Em caso de sangramento, dor ou qualquer urgência, vá ao hospital — não espere resposta por aqui.</div>
+    <div class="exm-sheet-desc">O Baby-MK guarda os dados que você digita neste aparelho. Se você cria uma conta, nome, sexo do bebê e data base da gestação também ficam salvos na nuvem, só pra você.</div>
+
+    <div class="privacy-block">
+      <h3>📥 Baixar meus dados</h3>
+      <p>Recebe um arquivo com tudo que o Baby-MK guardou sobre você, neste aparelho e na nuvem (se tiver conta).</p>
+      <button class="btn-calc" id="privacyExportBtn" type="button">Baixar meus dados (JSON)</button>
+    </div>
+
+    <div class="privacy-block">
+      <h3>✏️ Editar minhas informações</h3>
+      <p>Nome, sexo do bebê, data base e os registros do dia a dia ficam na página Perfil.</p>
+      <button class="btn-install" id="privacyEditBtn" type="button">Ir para editar</button>
+    </div>
+
+    <div class="privacy-block">
+      <h3>📖 Política de privacidade</h3>
+      <p>Leia sobre como usamos seus dados e seus direitos garantidos pela LGPD.</p>
+      <button class="btn-install" id="privacyPolicyOpenBtn" type="button">Ver política completa</button>
+    </div>
+
+    <div class="privacy-block danger">
+      <h3>🗑️ Apagar meus dados</h3>
+      <p><strong>Permanente.</strong> Apaga tudo neste aparelho e, se você tiver conta, também desconecta e limpa os dados sincronizados na nuvem.</p>
+      <button class="btn-danger" id="privacyDeleteBtn" type="button">Apagar meus dados</button>
+    </div>
+
+    <div class="privacy-block">
+      <h3>💬 Dúvidas sobre privacidade?</h3>
+      <p>📧 dramorganapremium@gmail.com<br>📞 31 99391-0212</p>
+    </div>`;
+  document.getElementById('privacyExportBtn').addEventListener('click',exportUserData);
+  document.getElementById('privacyEditBtn').addEventListener('click',goEditMyData);
+  document.getElementById('privacyPolicyOpenBtn').addEventListener('click',()=>window.open('politica.html','_blank'));
+  document.getElementById('privacyDeleteBtn').addEventListener('click',eraseAllUserData);
+}
+function openPrivacySheet(){
+  renderPrivacySheetBody();
+  document.getElementById('privacyOverlay').classList.add('show');
+}
+function closePrivacySheet(){
+  document.getElementById('privacyOverlay').classList.remove('show');
+}
+document.getElementById('openPrivacyBtn').addEventListener('click',openPrivacySheet);
+document.getElementById('privacyClose').addEventListener('click',closePrivacySheet);
+document.getElementById('privacyOverlay').addEventListener('click',e=>{if(e.target.id==='privacyOverlay')closePrivacySheet();});
+
+maybeStartFirstRun();
 </script>
 </body>
 </html>

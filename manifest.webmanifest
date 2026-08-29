@@ -1,6 +1,6 @@
 {
-  "name": "CalcMK",
-  "short_name": "CalcMK",
+  "name": "Baby-MK",
+  "short_name": "Baby-MK",
   "description": "Acompanhamento de gestação: idade gestacional, exames, monitoramento e resumo pra consulta.",
   "start_url": "./index.html",
   "scope": "./",
