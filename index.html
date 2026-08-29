@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-<title>CalcMK</title>
+<title>Baby-MK</title>
 <link rel="manifest" href="manifest.webmanifest"/>
 <meta name="theme-color" content="#c07a52"/>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -1118,7 +1118,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 <body>
 <div id="app">
   <div class="hdr">
-    <div class="brand serif">Calc<span>MK</span></div>
+    <div class="brand serif">Baby-<span>MK</span></div>
     <div class="hdr-actions">
       <button class="dark-btn" id="onbHelpBtn" title="Ver tutorial">?</button>
       <button class="dark-btn" id="darkBtn" title="Alternar tema"><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--peach)" stroke="var(--pd2)" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" style="display:block"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
@@ -1599,9 +1599,9 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 
     <div class="card hidden" id="installCard">
       <div class="lbl">📲 Instalar app</div>
-      <div class="card-title" style="font-size:17px">CalcMK no seu <span class="serif" style="color:var(--pd);font-style:italic">aparelho</span></div>
+      <div class="card-title" style="font-size:17px">Baby-MK no seu <span class="serif" style="color:var(--pd);font-style:italic">aparelho</span></div>
       <div class="helper hidden" id="iosInstallHelp">No iPhone/iPad: toque em <strong>Compartilhar</strong> (o ícone com a seta) na barra do Safari e depois em <strong>Adicionar à Tela de Início</strong>.</div>
-      <button class="btn-install hidden" id="installBtn"><span class="ico">📲</span>Instalar CalcMK</button>
+      <button class="btn-install hidden" id="installBtn"><span class="ico">📲</span>Instalar Baby-MK</button>
     </div>
 
     <div class="card">
@@ -1647,7 +1647,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     </div>
     <div class="card">
       <div class="lbl">Sobre o app</div>
-      <div class="card-title" style="font-size:21px;margin-bottom:14px">Calc<span style="color:var(--pd)">MK</span> <span style="font-size:11px;color:var(--ink3);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-family:inherit">· App de Gestação</span></div>
+      <div class="card-title" style="font-size:21px;margin-bottom:14px">Baby-<span style="color:var(--pd)">MK</span> <span style="font-size:11px;color:var(--ink3);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-family:inherit">· App de Gestação</span></div>
       <div class="about-bio">
         <p>App desenvolvido para apoiar gestantes e mulheres em planejamento familiar com cálculos de idade gestacional, período fértil e acompanhamento pré-natal.</p>
         <p style="color:var(--ink3);font-size:12px">⚠️ Os resultados são informativos. Confirme sempre com seu obstetra.</p>
@@ -1656,10 +1656,10 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     <div class="card">
       <div class="lbl">🔒 Privacidade</div>
       <div class="card-title" style="font-size:18px;margin-bottom:10px">Seus dados <span style="color:var(--pd)" class="serif">são seus</span></div>
-      <div class="helper">Baixe, edite ou apague os dados que o CalcMK guardou sobre você, e leia a política de privacidade completa.</div>
+      <div class="helper">Baixe, edite ou apague os dados que o Baby-MK guardou sobre você, e leia a política de privacidade completa.</div>
       <button class="btn-install" id="openPrivacyBtn" style="margin-top:14px">Meus dados & privacidade</button>
     </div>
-    <footer style="padding-bottom:8px">mkcalc v3 · desenvolvido com carinho por Dra. Morgana Kummer</footer>
+    <footer style="padding-bottom:8px">Baby-MK v3 · desenvolvido com carinho por Dra. Morgana Kummer</footer>
   </div>
 </div>
 
@@ -3823,7 +3823,7 @@ document.getElementById('summaryPrintBtn').addEventListener('click',()=>{
 /* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
 const ONB_KEY='mkcalc_onboarded';
 const ONBOARDING_STEPS=[
-  {ico:'🤰',title:'Bem-vinda ao CalcMK!',desc:'Um app simples pra acompanhar sua gestação: idade gestacional, período fértil, exames e muito mais.'},
+  {ico:'🤰',title:'Bem-vinda ao Baby-MK!',desc:'Um app simples pra acompanhar sua gestação: idade gestacional, período fértil, exames e muito mais.'},
   {ico:'📝',title:'Antes de começar...',desc:'Coloque seu nome completo e sua data de nascimento. Assim, o resumo que você mostra ao seu obstetra já vem com sua identificação e idade.',form:true},
   {ico:'📅',title:'Qual sua idade gestacional?',desc:'Você pode informar pela <strong>DUM</strong>, pelo <strong>1º ultrassom</strong> ou pela <strong>DPP</strong>. A partir daí, o app calcula sua idade gestacional sozinho — sempre atualizada, toda vez que você abrir.',cta:'Informar agora',ctaPage:'calc'},
   {ico:'🧭',title:'Use as abas aqui embaixo',desc:'Calcular, Resultado, Exames e Checklist ficam sempre a um toque de distância, na barra de navegação.'},
@@ -4226,10 +4226,10 @@ function showConsentBar(onAccepted){
   bar.className='consent-bar';
   bar.id='consentBar';
   bar.innerHTML=`
-    <h2>👶 Bem-vinda ao CalcMK</h2>
-    <p><strong>O CalcMK é educacional.</strong> Ajuda a acompanhar sua gestação, mas <strong>nunca substitui seu médico</strong>. Em caso de sangramento, dor ou qualquer urgência, procure atendimento imediatamente.</p>
+    <h2>👶 Bem-vinda ao Baby-MK</h2>
+    <p><strong>O Baby-MK é educacional.</strong> Ajuda a acompanhar sua gestação, mas <strong>nunca substitui seu médico</strong>. Em caso de sangramento, dor ou qualquer urgência, procure atendimento imediatamente.</p>
     <p>Os dados que você digita ficam salvos neste aparelho. Se você criar uma conta, nome, sexo do bebê e data base da gestação também são salvos com segurança na nuvem, só pra você.</p>
-    <label><input type="checkbox" id="consentCheck">Li e entendi que o CalcMK é educacional e não substitui acompanhamento médico.</label>
+    <label><input type="checkbox" id="consentCheck">Li e entendi que o Baby-MK é educacional e não substitui acompanhamento médico.</label>
     <button class="btn-calc" id="consentAcceptBtn" type="button">Aceitar e continuar</button>
     <button class="link-btn" id="consentPolicyBtn" type="button">Ver política completa</button>`;
   document.body.appendChild(bar);
@@ -4237,7 +4237,7 @@ function showConsentBar(onAccepted){
   document.getElementById('consentPolicyBtn').addEventListener('click',()=>window.open('politica.html','_blank'));
   document.getElementById('consentAcceptBtn').addEventListener('click',()=>{
     if(!document.getElementById('consentCheck').checked){
-      showToast('Confirme que entendeu que o CalcMK não substitui seu médico',2200);
+      showToast('Confirme que entendeu que o Baby-MK não substitui seu médico',2200);
       return;
     }
     try{localStorage.setItem(CONSENT_KEY,JSON.stringify({date:new Date().toISOString(),version:CONSENT_VERSION,accepted:true}));}catch{}
@@ -4262,7 +4262,7 @@ async function exportUserData(){
   });
   const payload={
     exportDate:new Date().toISOString(),
-    app:'CalcMK',
+    app:'Baby-MK',
     dadosNesteAparelho:local,
     consentimento:loadConsent(),
     conta:null,
@@ -4293,7 +4293,7 @@ function goEditMyData(){
 }
 
 async function eraseAllUserData(){
-  const typed=prompt('Isso apaga PERMANENTEMENTE, neste aparelho, todos os seus dados no CalcMK: nome, sexo do bebê, data base da gestação, checklist, exames marcados, movimentos, contrações, peso, pressão, curva glicêmica e glicemia capilar.\n\nSe você tiver conta, também desconecta você e apaga os dados sincronizados na nuvem (nome, sexo do bebê e data base).\n\nDigite APAGAR para confirmar:');
+  const typed=prompt('Isso apaga PERMANENTEMENTE, neste aparelho, todos os seus dados no Baby-MK: nome, sexo do bebê, data base da gestação, checklist, exames marcados, movimentos, contrações, peso, pressão, curva glicêmica e glicemia capilar.\n\nSe você tiver conta, também desconecta você e apaga os dados sincronizados na nuvem (nome, sexo do bebê e data base).\n\nDigite APAGAR para confirmar:');
   if(typed==null)return;
   if(typed.trim().toUpperCase()!=='APAGAR'){showToast('Confirmação incorreta, nada foi apagado',2000);return;}
 
@@ -4319,11 +4319,11 @@ function renderPrivacySheetBody(){
   document.getElementById('privacySheetBody').innerHTML=`
     <div class="exm-sheet-name">🔒 Meus dados &amp; privacidade</div>
     <div class="privacy-note"><strong>⚠️ Emergência?</strong> Em caso de sangramento, dor ou qualquer urgência, vá ao hospital — não espere resposta por aqui.</div>
-    <div class="exm-sheet-desc">O CalcMK guarda os dados que você digita neste aparelho. Se você cria uma conta, nome, sexo do bebê e data base da gestação também ficam salvos na nuvem, só pra você.</div>
+    <div class="exm-sheet-desc">O Baby-MK guarda os dados que você digita neste aparelho. Se você cria uma conta, nome, sexo do bebê e data base da gestação também ficam salvos na nuvem, só pra você.</div>
 
     <div class="privacy-block">
       <h3>📥 Baixar meus dados</h3>
-      <p>Recebe um arquivo com tudo que o CalcMK guardou sobre você, neste aparelho e na nuvem (se tiver conta).</p>
+      <p>Recebe um arquivo com tudo que o Baby-MK guardou sobre você, neste aparelho e na nuvem (se tiver conta).</p>
       <button class="btn-calc" id="privacyExportBtn" type="button">Baixar meus dados (JSON)</button>
     </div>
 
