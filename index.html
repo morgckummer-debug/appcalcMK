@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#c07a52"/>
 <link rel="icon" href="icon-2026.jpg" type="image/jpeg">
 <link rel="apple-touch-icon" href="icon-2026.jpg">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,500;9..144,1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,500;9..144,1,400&family=DM+Sans:wght@400;500;600;700&family=Comfortaa:wght@600;700&display=swap" rel="stylesheet">
 <style>
 /* ── Tokens ── */
 :root{
@@ -775,25 +775,74 @@ body::after{
 }
 .weight-history-del:active{opacity:.5}
 
-/* ── Resumo pra consulta ── */
-.summary-page{background:var(--surf);border-radius:var(--rl);padding:22px 20px;box-shadow:var(--co);margin-bottom:16px;transition:background .3s}
-.summary-title{font-family:'Fraunces',serif;font-size:22px;font-weight:500;color:var(--ink)}
-.summary-patient{font-size:14px;font-weight:700;color:var(--ink);margin-top:6px}
-.summary-meta{font-size:12.5px;color:var(--ink2);margin-top:4px;line-height:1.6}
-.summary-section{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
-.summary-section-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:700;margin-bottom:10px}
-.summary-stat-row{display:flex;gap:10px;flex-wrap:wrap}
-.summary-stat{flex:1;min-width:88px;background:var(--surf2);border-radius:12px;padding:10px 12px}
-.summary-stat .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:700}
-.summary-stat .val{font-family:'Fraunces',serif;font-size:17px;color:var(--ink);margin-top:2px}
-.summary-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:var(--ink2);padding:7px 0;border-bottom:1px dashed var(--line)}
-.summary-row:last-child{border-bottom:none}
+/* ── Resumo pra consulta ──
+   Layout inspirado no relatório em PDF da Curva de Crescimento Fetal (mesma
+   identidade: cabeçalho roxo/dourado, Comfortaa nos números, caixa de IG,
+   banner de status, tiles e seções em cartão). Paleta fixa (não segue
+   --ink/--surf do app nem o data-dark) porque isso é um "documento" — deve
+   sair igual na tela e impresso, faça ou não teste de trocar tema. */
+#summarySheet{
+  --rp-roxo:#3D2352;--rp-lilas:#8B6BA8;--rp-lavanda:#C3B1D1;--rp-lavanda-bg:#F1ECF4;
+  --rp-nude:#F5EDE3;--rp-nude2:#EDE4F2;--rp-dourado:#B08D3F;--rp-dourado-claro:#D9BE7A;
+  --rp-texto:#3B2A2A;--rp-texto2:#6B5A5A;--rp-texto3:#9B8C8C;--rp-papel:#FFFDFB;--rp-linha:#E3D9DE;
+  --rp-alerta:#A8425F;
+}
 .summary-empty{font-size:12.5px;color:var(--ink3);font-style:italic}
-.summary-legend{display:flex;gap:14px;margin-top:6px;font-size:11px;color:var(--ink3)}
-.summary-legend span{display:inline-flex;align-items:center;gap:5px}
-.summary-legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
-.summary-legend .dot-sys{background:var(--pd2)}
-.summary-legend .dot-dia{background:var(--bd)}
+
+.rpt-page{background:var(--rp-papel);border-radius:var(--rl);overflow:hidden;box-shadow:var(--co);margin-bottom:16px;color:var(--rp-texto);font-family:'DM Sans',sans-serif}
+.rpt-hdr{background:var(--rp-roxo);padding:18px 20px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:2px solid var(--rp-dourado)}
+.rpt-hdr-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.rpt-mono{flex:none;width:38px;height:38px;border:1px solid var(--rp-dourado);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Comfortaa',sans-serif;font-size:14px;font-weight:600;color:var(--rp-dourado-claro);letter-spacing:.03em}
+.rpt-hdr-name{font-family:'Comfortaa',sans-serif;font-size:15px;font-weight:600;color:#FAF7F5;line-height:1.2}
+.rpt-hdr-sub{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--rp-lavanda);margin-top:3px}
+.rpt-hdr-right{text-align:right;flex:none}
+.rpt-hdr-kicker{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--rp-dourado-claro)}
+.rpt-hdr-doc{font-family:'Comfortaa',sans-serif;font-size:11.5px;color:#FAF7F5;margin-top:3px}
+
+.rpt-body{padding:18px 20px 4px;display:flex;flex-direction:column;gap:16px}
+.rpt-eyebrow{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--rp-lilas)}
+
+.rpt-ident{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.rpt-paciente{font-family:'Comfortaa',sans-serif;font-size:20px;font-weight:600;color:var(--rp-roxo);line-height:1.15;margin:5px 0}
+.rpt-paciente-meta{font-size:11.5px;color:var(--rp-texto2)}
+.rpt-ig{background:var(--rp-nude);border-radius:12px;padding:10px 16px 11px;text-align:right;min-width:118px}
+.rpt-ig-label{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--rp-lilas);margin-bottom:3px}
+.rpt-ig-val{font-family:'Comfortaa',sans-serif;font-size:23px;font-weight:600;color:var(--rp-dourado);line-height:1}
+.rpt-ig-val small{font-size:13px}
+
+.rpt-status{background:var(--rp-lavanda-bg);border-radius:12px;padding:12px 15px;display:flex;align-items:center;gap:13px}
+.rpt-status-ic{width:26px;height:26px;flex:none;border-radius:50%;background:var(--rp-lilas);color:#FAF7F5;display:flex;align-items:center;justify-content:center;font-size:13px}
+.rpt-status-body{flex:1;min-width:0}
+.rpt-status-t{font-family:'Comfortaa',sans-serif;font-size:13.5px;font-weight:600;color:var(--rp-roxo)}
+.rpt-status-s{font-size:11px;color:var(--rp-texto2);margin-top:3px;line-height:1.4}
+.rpt-status--atencao .rpt-status-ic{background:var(--rp-dourado)}
+.rpt-status--alerta .rpt-status-ic{background:var(--rp-alerta)}
+
+.rpt-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.rpt-tile{background:var(--rp-nude);border-radius:10px;padding:9px 11px 10px}
+.rpt-tile--accent{background:var(--rp-nude2)}
+.rpt-tile .l{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--rp-lilas)}
+.rpt-tile .v{font-family:'Comfortaa',sans-serif;font-size:14.5px;font-weight:600;color:var(--rp-roxo);margin-top:4px;line-height:1.25}
+
+.rpt-section{border-top:1px solid var(--rp-linha);padding-top:14px}
+.rpt-section-t{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:9px}
+.rpt-section-t b{font-family:'Comfortaa',sans-serif;font-size:12px;font-weight:600;color:var(--rp-roxo)}
+.rpt-section-t i{font-style:normal;font-size:10.5px;color:var(--rp-dourado)}
+.rpt-chart-wrap{background:var(--rp-nude);border-radius:10px;padding:8px 10px 4px;margin-bottom:8px}
+.rpt-chart-wrap svg{width:100%;height:auto;display:block}
+.rpt-legend{display:flex;gap:14px;margin:-3px 0 8px;font-size:10px;color:var(--rp-texto2)}
+.rpt-legend span{display:inline-flex;align-items:center;gap:5px}
+.rpt-legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.rpt-legend .dot-sys{background:var(--rp-roxo)}
+.rpt-legend .dot-dia{background:var(--rp-lilas)}
+.rpt-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--rp-texto2);padding:6px 0;border-bottom:1px dashed var(--rp-linha)}
+.rpt-row:last-child{border-bottom:none}
+.rpt-row strong{color:var(--rp-texto);font-weight:700}
+.rpt-empty{font-size:11.5px;color:var(--rp-texto3);font-style:italic}
+
+.rpt-note{font-size:11px;color:var(--rp-texto3);border-top:1px solid var(--rp-linha);padding:14px 0 16px;line-height:1.5}
+.rpt-ftr{background:var(--rp-roxo);padding:8px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--rp-lavanda)}
+.rpt-ftr b{color:var(--rp-dourado-claro);font-weight:400}
 
 /* Fertil */
 .f-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
@@ -1098,21 +1147,20 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── Impressão do resumo pra consulta ── */
+/* ── Impressão do resumo pra consulta ──
+   Ao contrário do resto do app, aqui a cor É o ponto — é o mesmo documento
+   de marca usado no relatório da Curva Fetal — então a impressão preserva
+   fundo e cores (print-color-adjust:exact) em vez de reduzir a preto e branco. */
 @media print{
   body::after,.hdr,.bottom-nav,.toast,.exm-overlay,.card{display:none!important}
   html,body{background:#fff!important}
   #app{padding:0}
   .page{display:none!important;padding:0}
   .page#pg-summary{display:block!important}
-  #summarySheet .summary-page{
-    box-shadow:none!important;background:#fff!important;color:#111!important;
-    border-radius:0;padding:0;
+  #summarySheet .rpt-page{
+    box-shadow:none!important;border-radius:0;margin-bottom:0;
   }
-  #summarySheet .summary-page *{color:#111!important;background:transparent!important}
-  #summarySheet .summary-stat,#summarySheet .bmi-pill{background:#f2f2f2!important}
-  #summarySheet .summary-legend .dot-sys{background:#c07a52!important}
-  #summarySheet .summary-legend .dot-dia{background:#6f8ba3!important}
+  #summarySheet *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
 </head>
@@ -3742,10 +3790,15 @@ function summaryLineChartSVG(points,color,W=300,H=90,padX=6,padY=8){
   const xAt=i=>padX+(points.length===1?0:(i/(points.length-1))*(W-padX*2));
   const yAt=v=>padY+(1-((v-lo)/((hi-lo)||1)))*(H-padY*2);
   const pathD=points.map((p,i)=>`${i===0?'M':'L'}${xAt(i).toFixed(1)},${yAt(p.v).toFixed(1)}`).join(' ');
-  const dots=points.map((p,i)=>`<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(p.v).toFixed(1)}" r="${i===points.length-1?4:2.5}" fill="${color}"/>`).join('');
-  return`<svg class="weight-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
+  const dots=points.map((p,i)=>{
+    const last=i===points.length-1;
+    return last
+      ?`<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(p.v).toFixed(1)}" r="4.2" fill="var(--rp-papel)" stroke="${color}" stroke-width="2.2"/>`
+      :`<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(p.v).toFixed(1)}" r="2.3" fill="${color}"/>`;
+  }).join('');
+  return`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
 }
-function summaryBPChartSVG(entries,W=300,H=90,padX=6,padY=8){
+function summaryBPChartSVG(entries,colorSys,colorDia,W=300,H=90,padX=6,padY=8){
   if(entries.length<2)return'';
   const allVals=entries.flatMap(e=>[e.sys,e.dia]);
   const minV=Math.min(...allVals),maxV=Math.max(...allVals);
@@ -3754,7 +3807,32 @@ function summaryBPChartSVG(entries,W=300,H=90,padX=6,padY=8){
   const xAt=i=>padX+(entries.length===1?0:(i/(entries.length-1))*(W-padX*2));
   const yAt=v=>padY+(1-((v-lo)/((hi-lo)||1)))*(H-padY*2);
   const pathFor=key=>entries.map((e,i)=>`${i===0?'M':'L'}${xAt(i).toFixed(1)},${yAt(e[key]).toFixed(1)}`).join(' ');
-  return`<svg class="weight-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${pathFor('sys')}" fill="none" stroke="var(--pd2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${pathFor('dia')}" fill="none" stroke="var(--bd)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${pathFor('sys')}" fill="none" stroke="${colorSys}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${pathFor('dia')}" fill="none" stroke="${colorDia}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+/* Status do banner (✓ normal / ! atenção / ⚠ alerta) — só olha pro registro
+   mais recente de pressão e glicemia, reaproveitando os mesmos limiares já
+   usados nas abas de Pressão (classifyBP) e Glicemia (glyOutOfTarget/GTT). */
+function summaryStatus(lastBP,glyRecent,gttResult){
+  const flags=[];
+  let tone='normal';
+  if(lastBP){
+    const cls=classifyBP(lastBP.sys,lastBP.dia);
+    if(cls.urgent){tone='alerta';flags.push(`Última pressão ${fmtBP(lastBP.sys,lastBP.dia)} — urgência hipertensiva.`);}
+    else if(cls.tone==='over'){if(tone!=='alerta')tone='atencao';flags.push(`Última pressão ${fmtBP(lastBP.sys,lastBP.dia)} — acima do limiar de atenção.`);}
+  }
+  const lastGly=glyRecent[0];
+  if(lastGly&&glyOutOfTarget(lastGly.moment,lastGly.value)){
+    if(tone!=='alerta')tone='atencao';
+    flags.push(`Última glicemia (${GLY_MOMENT_LBL[lastGly.moment].toLowerCase()}) acima da meta.`);
+  }
+  if(gttResult&&gttAnyAltered(gttResult)){
+    if(tone!=='alerta')tone='atencao';
+    flags.push('TOTG com valor alterado (critério de diabetes gestacional).');
+  }
+  if(tone==='alerta')return{tone,icon:'⚠',title:'Atenção aos valores registrados',sub:flags.join(' ')};
+  if(tone==='atencao')return{tone,icon:'!',title:'Vale atenção nos registros recentes',sub:flags.join(' ')};
+  if(!lastBP&&!lastGly&&!gttResult)return{tone,icon:'✓',title:'Acompanhamento em dia',sub:'Sem registros de pressão ou glicemia ainda — adicione nas abas correspondentes pra completar o resumo.'};
+  return{tone,icon:'✓',title:'Dentro da normalidade',sub:'Nenhum valor de pressão ou glicemia fora da meta nos registros recentes.'};
 }
 function renderSummary(){
   const sheet=document.getElementById('summarySheet');
@@ -3765,51 +3843,84 @@ function renderSummary(){
   const ig=currentIG;
   const tri=trimesterFromWeeks(ig.weeks);
   const dpp=dppFromLMP(toISO(ig.lmp));
-  const babyName=profile.name||null;
+  const patientAge=calcAge(profile.patientDOB);
+  const escName=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   const wPts=weightEntries.slice(-14).map(w=>({v:w.kg,date:w.date}));
-  const wChart=summaryLineChartSVG(wPts,'var(--pd2)');
+  const wChart=summaryLineChartSVG(wPts,'#B08D3F');
   const wRecent=[...weightEntries].slice(-5).reverse();
 
   const bpRecent=[...bpEntries].slice(-5).reverse();
-  const bpChart=summaryBPChartSVG(bpEntries.slice(-14));
+  const bpChart=summaryBPChartSVG(bpEntries.slice(-14),'#3D2352','#8B6BA8');
 
   const glyRecent=[...glyEntries].slice(-6).reverse();
-  const patientAge=calcAge(profile.patientDOB);
-  const escName=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const patientLine=profile.patientName
-    ?`${escName(profile.patientName)}${patientAge!=null?` · ${patientAge} anos`:''}`
-    :null;
+  const status=summaryStatus(bpRecent[0],glyRecent,gttResult);
 
   sheet.innerHTML=`
-    <div class="summary-page">
-      <div class="summary-title">Resumo pra consulta</div>
-      ${patientLine?`<div class="summary-patient">${patientLine}</div>`:''}
-      <div class="summary-meta">Gerado em ${fmt(TODAY)}${babyName?` · ${babyName}`:''}${profile.sex?` (${profile.sex})`:''}</div>
-
-      <div class="summary-stat-row" style="margin-top:16px">
-        <div class="summary-stat"><div class="lbl">IG atual</div><div class="val">${ig.weeks}s ${ig.days}d</div></div>
-        <div class="summary-stat"><div class="lbl">Trimestre</div><div class="val">${tri}º</div></div>
-        <div class="summary-stat"><div class="lbl">DPP</div><div class="val">${fmt(dpp)}</div></div>
+    <div class="rpt-page">
+      <div class="rpt-hdr">
+        <div class="rpt-hdr-brand">
+          <div class="rpt-mono">MK</div>
+          <div>
+            <div class="rpt-hdr-name">Baby-MK</div>
+            <div class="rpt-hdr-sub">Acompanhamento gestacional</div>
+          </div>
+        </div>
+        <div class="rpt-hdr-right">
+          <div class="rpt-hdr-kicker">Resumo</div>
+          <div class="rpt-hdr-doc">Pra consulta com o obstetra</div>
+        </div>
       </div>
-      <div class="summary-meta">Base de cálculo: <strong>${fmtBasisText(currentPregMeta)}</strong></div>
+      <div class="rpt-body">
+        <div class="rpt-eyebrow">Gestante</div>
+        <div class="rpt-ident">
+          <div>
+            <div class="rpt-paciente">${profile.patientName?escName(profile.patientName):'—'}</div>
+            <div class="rpt-paciente-meta">${patientAge!=null?`${patientAge} anos · `:''}Base de cálculo: ${fmtBasisText(currentPregMeta)}</div>
+          </div>
+          <div class="rpt-ig">
+            <div class="rpt-ig-label">Idade gestacional</div>
+            <div class="rpt-ig-val">${ig.weeks}<small>s</small>+${ig.days}<small>d</small></div>
+          </div>
+        </div>
 
-      <div class="summary-section">
-        <div class="summary-section-title">Peso</div>
-        ${wChart?`<div class="weight-chart-wrap">${wChart}</div>`:''}
-        ${wRecent.length?wRecent.map(w=>`<div class="summary-row"><span>${fmt(new Date(w.date))}</span><strong>${fmtKg(w.kg)}</strong></div>`).join(''):'<div class="summary-empty">Nenhum registro de peso ainda.</div>'}
+        <div class="rpt-status rpt-status--${status.tone}">
+          <div class="rpt-status-ic">${status.icon}</div>
+          <div class="rpt-status-body">
+            <div class="rpt-status-t">${status.title}</div>
+            <div class="rpt-status-s">${status.sub}</div>
+          </div>
+        </div>
+
+        <div class="rpt-tiles">
+          <div class="rpt-tile"><div class="l">Trimestre</div><div class="v">${tri}º</div></div>
+          <div class="rpt-tile"><div class="l">DPP</div><div class="v">${fmt(dpp)}</div></div>
+          <div class="rpt-tile rpt-tile--accent"><div class="l">Gerado em</div><div class="v">${fmt(TODAY)}</div></div>
+        </div>
+
+        <div class="rpt-section">
+          <div class="rpt-section-t"><b>Peso</b>${wRecent[0]?`<i>${fmtKg(wRecent[0].kg)}</i>`:''}</div>
+          ${wChart?`<div class="rpt-chart-wrap">${wChart}</div>`:''}
+          ${wRecent.length?wRecent.map(w=>`<div class="rpt-row"><span>${fmt(new Date(w.date))}</span><strong>${fmtKg(w.kg)}</strong></div>`).join(''):'<div class="rpt-empty">Nenhum registro de peso ainda.</div>'}
+        </div>
+
+        <div class="rpt-section">
+          <div class="rpt-section-t"><b>Pressão arterial</b>${bpRecent[0]?`<i>${fmtBP(bpRecent[0].sys,bpRecent[0].dia)}</i>`:''}</div>
+          ${bpChart?`<div class="rpt-chart-wrap">${bpChart}</div><div class="rpt-legend"><span><i class="dot-sys"></i>Sistólica</span><span><i class="dot-dia"></i>Diastólica</span></div>`:''}
+          ${bpRecent.length?bpRecent.map(b=>`<div class="rpt-row"><span>${fmt(new Date(b.date))} · ${fmtClock(new Date(b.date))}</span><strong>${fmtBP(b.sys,b.dia)}</strong></div>`).join(''):'<div class="rpt-empty">Nenhum registro de pressão ainda.</div>'}
+        </div>
+
+        <div class="rpt-section">
+          <div class="rpt-section-t"><b>Glicemia</b>${gttResult?`<i>TOTG ${gttAnyAltered(gttResult)?'alterada':'normal'}</i>`:(glyRecent[0]?`<i>${fmtGly(glyRecent[0].value)}</i>`:'')}</div>
+          ${gttResult?`<div class="rpt-row"><span>TOTG (${fmt(new Date(gttResult.date))})</span><strong>${gttResult.fasting} / ${gttResult.h1} / ${gttResult.h2} mg/dL${gttAnyAltered(gttResult)?' · Alterada':''}</strong></div>`:''}
+          ${glyRecent.length?glyRecent.map(g=>`<div class="rpt-row"><span>${fmt(new Date(g.date))} · ${GLY_MOMENT_LBL[g.moment]}</span><strong>${fmtGly(g.value)}${glyOutOfTarget(g.moment,g.value)?' ⚠':''}</strong></div>`).join(''):(gttResult?'':'<div class="rpt-empty">Nenhum registro de glicemia ainda.</div>')}
+        </div>
+
+        <div class="rpt-note">⚠️ Os resultados são informativos e não substituem a avaliação do seu obstetra na consulta.</div>
       </div>
-
-      <div class="summary-section">
-        <div class="summary-section-title">Pressão arterial</div>
-        ${bpChart?`<div class="weight-chart-wrap">${bpChart}</div><div class="summary-legend"><span><i class="dot-sys"></i>Sistólica</span><span><i class="dot-dia"></i>Diastólica</span></div>`:''}
-        ${bpRecent.length?bpRecent.map(b=>`<div class="summary-row"><span>${fmt(new Date(b.date))} · ${fmtClock(new Date(b.date))}</span><strong>${fmtBP(b.sys,b.dia)}</strong></div>`).join(''):'<div class="summary-empty">Nenhum registro de pressão ainda.</div>'}
-      </div>
-
-      <div class="summary-section">
-        <div class="summary-section-title">Glicemia</div>
-        ${gttResult?`<div class="summary-row"><span>TOTG (${fmt(new Date(gttResult.date))})</span><strong>${gttResult.fasting} / ${gttResult.h1} / ${gttResult.h2} mg/dL${gttAnyAltered(gttResult)?' · Alterada':''}</strong></div>`:''}
-        ${glyRecent.length?glyRecent.map(g=>`<div class="summary-row"><span>${fmt(new Date(g.date))} · ${GLY_MOMENT_LBL[g.moment]}</span><strong>${fmtGly(g.value)}${glyOutOfTarget(g.moment,g.value)?' ⚠':''}</strong></div>`).join(''):(gttResult?'':'<div class="summary-empty">Nenhum registro de glicemia ainda.</div>')}
+      <div class="rpt-ftr">
+        <span>Baby-MK · <b>Acompanhamento gestacional</b></span>
+        <span>Documento gerado pela paciente</span>
       </div>
     </div>`;
   applyPremiumLock(sheet,'Resumo pra consulta');
