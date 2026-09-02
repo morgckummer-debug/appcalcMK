@@ -1150,6 +1150,45 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ── Início (Home) ── */
+.home-greet{display:flex;align-items:center;justify-content:space-between;margin:4px 0 16px}
+.home-greet-txt .lbl{margin-bottom:2px}
+.home-avatar{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--pd),var(--pd2));color:var(--cream);
+  display:grid;place-items:center;font-family:'Fraunces',serif;font-weight:600;font-size:16px;
+  box-shadow:var(--cs);
+}
+.home-hero-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.home-hero-nav{display:flex;gap:6px}
+.home-hero-body{display:flex;align-items:center;gap:16px;margin:12px 0 18px}
+.home-orb{width:88px;height:88px;flex-shrink:0;display:flex;align-items:center;justify-content:center;animation:floatOrb 3.5s ease-in-out infinite}
+.home-orb-img{width:100%;height:100%;object-fit:contain}
+.home-hero-info{min-width:0}
+.home-hero-phrase{font-size:18px;font-weight:500;line-height:1.3;color:var(--ink)}
+.home-hero-dev{font-size:12.5px;color:var(--ink2);margin-top:6px;line-height:1.5}
+
+.home-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.home-mini{padding:16px;margin-bottom:0;cursor:pointer;transition:var(--trans);border:none;text-align:left;font-family:inherit}
+.home-mini:hover{transform:translateY(-2px)}
+.home-mini:active{transform:scale(.97)}
+.home-mini-title{font-family:'Fraunces',serif;font-size:15px;font-weight:500;color:var(--ink);line-height:1.3;margin-top:2px}
+.home-mini-sub{font-size:11.5px;color:var(--ink3);margin-top:4px;line-height:1.4}
+
+.home-quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.home-quick{
+  display:flex;flex-direction:column;align-items:flex-start;gap:8px;
+  background:var(--surf);border:none;border-radius:16px;padding:14px;
+  box-shadow:var(--cs);cursor:pointer;text-align:left;
+  font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink2);
+  transition:var(--trans);
+}
+.home-quick:hover{transform:translateY(-2px)}
+.home-quick:active{transform:scale(.96)}
+.home-quick-ico{font-size:22px}
+.calc-back-row{margin-bottom:10px}
+.calc-back-row.hidden{display:none}
+
 /* ── Impressão do resumo pra consulta ──
    Ao contrário do resto do app, aqui a cor É o ponto — é o mesmo documento
    de marca usado no relatório da Curva Fetal — então a impressão preserva
@@ -1177,9 +1216,70 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     </div>
   </div>
 
+  <!-- ── Início ── -->
+  <div class="page active" id="pg-home">
+    <div class="home-greet">
+      <div class="home-greet-txt">
+        <div class="lbl" id="homeGreetLbl">Bom dia</div>
+        <div class="card-title" id="homeGreetTitle" style="margin-bottom:0">Vamos ver sua gestação?</div>
+      </div>
+      <div class="home-avatar" id="homeAvatar">🤰</div>
+    </div>
+
+    <div id="homeContent" class="hidden">
+      <div class="card feat">
+        <div class="home-hero-top">
+          <div class="lbl" id="homeWeekLbl">Semana —</div>
+        </div>
+        <div class="home-hero-body">
+          <div class="home-orb">
+            <img class="home-orb-img" id="homeFruitImg" src="" alt="" onerror="this.src='frutas/semente.png'">
+          </div>
+          <div class="home-hero-info">
+            <div class="home-hero-phrase serif" id="homePhrase">—</div>
+            <div class="home-hero-dev" id="homeDev"></div>
+          </div>
+        </div>
+        <div class="stat-grid" id="homeStatGrid"></div>
+      </div>
+
+      <div class="home-grid2">
+        <button class="card home-mini" id="homeAgendaCard" type="button">
+          <div class="lbl">🗓️ Agenda</div>
+          <div class="home-mini-title" id="homeAgendaTitle">—</div>
+          <div class="home-mini-sub" id="homeAgendaSub">—</div>
+        </button>
+        <button class="card home-mini" id="homeChecklistCard" type="button">
+          <div class="lbl">✅ Checklist</div>
+          <div class="home-mini-title" id="homeChecklistTitle">—</div>
+          <div class="chk-prog" style="margin-top:10px"><div class="chk-prog-fill" id="homeChkFill" style="width:0%"></div></div>
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="lbl">Acompanhamento</div>
+        <div class="card-title">Continue de onde <span class="serif" style="color:var(--pd);font-style:italic">parou</span></div>
+        <div class="home-quick-grid">
+          <button class="home-quick" id="homeQuickSummary" type="button"><span class="home-quick-ico">📄</span><span>Resumo pra consulta</span></button>
+          <button class="home-quick" id="homeQuickKick" type="button"><span class="home-quick-ico">👣</span><span>Movimentos do bebê</span></button>
+          <button class="home-quick" id="homeQuickContr" type="button"><span class="home-quick-ico">💫</span><span>Contrações</span></button>
+          <button class="home-quick" id="homeQuickRecalc" type="button"><span class="home-quick-ico">🧮</span><span>Recalcular data</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="homeEmpty" style="text-align:center;padding:48px 24px">
+      <div style="font-size:48px;margin-bottom:16px">🌸</div>
+      <div class="serif" style="font-size:22px;color:var(--ink2);margin-bottom:8px">Vamos começar?</div>
+      <div style="font-size:14px;color:var(--ink3);line-height:1.6;margin-bottom:18px">Calcule sua idade gestacional pra desbloquear seu painel do dia a dia.</div>
+      <button class="btn-calc" id="homeEmptyBtn" style="max-width:280px;margin:0 auto">Calcular agora →</button>
+    </div>
+  </div>
+
   <!-- ── Calcular ── -->
-  <div class="page active" id="pg-calc">
+  <div class="page" id="pg-calc">
     <div class="card feat">
+      <div class="calc-back-row hidden" id="calcBackRow"><button class="link-btn" id="calcBackBtn" type="button">← Voltar</button></div>
       <div class="lbl">Calcular</div>
       <div class="card-title">Como você quer <span class="serif" style="color:var(--pd);font-style:italic">começar?</span></div>
 
@@ -1527,7 +1627,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     <div id="noResult" class="card" style="text-align:center;padding:48px 24px">
       <div style="font-size:48px;margin-bottom:16px">🌸</div>
       <div class="serif" style="font-size:22px;color:var(--ink2);margin-bottom:8px">Nenhum cálculo ainda</div>
-      <div style="font-size:14px;color:var(--ink3);line-height:1.6">Vá até a aba <strong>Calcular</strong> e informe a data para ver seu resultado aqui.</div>
+      <div style="font-size:14px;color:var(--ink3);line-height:1.6">Vá até a aba <strong>Início</strong> e toque em "Calcular agora" para ver seu resultado aqui.</div>
     </div>
   </div>
 
@@ -1640,6 +1740,13 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         </div>
       </div>
       <div class="helper">Ao escolher <strong>menina</strong>, as cores do app mudam para tons de rosa e lilás — ao escolher <strong>menino</strong>, muda-se para tons de azul.</div>
+    </div>
+
+    <div class="card feat" id="recalcCard">
+      <div class="lbl">📅 Data base</div>
+      <div class="card-title">Precisa <span class="serif" style="color:var(--pd);font-style:italic">ajustar a data</span>?</div>
+      <div class="helper">Recalcule a idade gestacional se a data da última menstruação, o resultado do ultrassom ou a DPP mudaram.</div>
+      <button class="btn-install" id="recalcBtn" type="button">🧮 Recalcular idade gestacional</button>
     </div>
 
     <div class="card feat" id="premiumCard">
@@ -1804,7 +1911,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 
 <!-- Bottom Nav -->
 <nav class="bottom-nav">
-  <button class="nav-btn on" data-page="calc"><span class="nav-ico">🧮</span><span class="nav-lbl">Calcular</span></button>
+  <button class="nav-btn on" data-page="home"><span class="nav-ico">🏠</span><span class="nav-lbl">Início</span></button>
   <button class="nav-btn" data-page="result"><span class="nav-ico">📊</span><span class="nav-lbl">Resultado</span></button>
   <button class="nav-btn" data-page="exames"><span class="nav-ico">🔬</span><span class="nav-lbl">Exames</span></button>
   <button class="nav-btn" data-page="check"><span class="nav-ico">✅</span><span class="nav-lbl">Checklist</span></button>
@@ -2228,6 +2335,7 @@ function greetingTitleHTML(ig){
   return name?`Oi ${escHTML(name)}! Hoje você está com ${weeks}`:`Você está com ${weeks}`;
 }
 function refreshGreeting(){
+  renderHome();
   if(!currentIG)return;
   document.getElementById('resTitle').innerHTML=greetingTitleHTML(currentIG);
 }
@@ -2246,6 +2354,7 @@ function updateBabyLabels(ig){
 function updateBabyNameUI(){
   document.getElementById('exmUsgTitle').innerHTML=profile.name?`Acompanhando ${profile.sex==='menina'?'a':'o'} ${babyNameHTML()}`:'Acompanhando o bebê';
   updateBabyLabels(currentIG);
+  renderHome();
 }
 document.getElementById('babyNameInp').addEventListener('input',e=>{
   profile.name=e.target.value;
@@ -2253,6 +2362,121 @@ document.getElementById('babyNameInp').addEventListener('input',e=>{
   updateBabyNameUI();
   pushProfileToCloud();
 });
+
+/* ── Início (Home) ──
+   Painel de entrada do app: resume a semana atual, o próximo exame/vacina
+   pendente e o progresso do checklist, com atalhos pro que já existe nas
+   outras abas — sem duplicar o cálculo em si (aba Calcular) nem os cards
+   detalhados de saúde (aba Resultado). */
+function timeGreeting(){
+  const h=new Date().getHours();
+  if(h<12)return'Bom dia';
+  if(h<18)return'Boa tarde';
+  return'Boa noite';
+}
+function nextUpcomingExam(){
+  const lists={
+    usg:[...ULTRASSONS].sort((a,b)=>a.weekStart-b.weekStart),
+    lab:[...LABORATORIAIS].sort((a,b)=>a.weekStart-b.weekStart),
+    vac:[...VACINAS],
+  };
+  const all=[];
+  Object.entries(lists).forEach(([cat,list])=>{
+    list.forEach((ex,i)=>all.push({ex,cat,key:`${cat}-${i}`}));
+  });
+  const pending=all
+    .filter(it=>{const st=examStatus(it.ex,it.key);return st==='now'||st==='soon';})
+    .sort((a,b)=>{
+      const sa=examStatus(a.ex,a.key),sb=examStatus(b.ex,b.key);
+      if(sa!==sb)return sa==='now'?-1:1;
+      return a.ex.weekStart-b.ex.weekStart;
+    });
+  return pending[0]||null;
+}
+function checklistOverallPct(){
+  const all=CHECKLIST.reduce((s,c)=>s+c.items.length,0);
+  let doneAll=0;
+  CHECKLIST.forEach((cat,ci)=>cat.items.forEach((_,ii)=>{if(checklistItemOn(ci,ii))doneAll++;}));
+  return{pct:all?Math.round(doneAll/all*100):0,pending:all-doneAll};
+}
+function renderHome(){
+  const ig=currentIG;
+  const first=patientFirstName();
+  document.getElementById('homeGreetLbl').textContent=timeGreeting();
+  document.getElementById('homeAvatar').textContent=first?first.charAt(0).toUpperCase():'🤰';
+
+  const empty=document.getElementById('homeEmpty');
+  const content=document.getElementById('homeContent');
+  if(!ig){
+    document.getElementById('homeGreetTitle').textContent=first?`Oi, ${first}!`:'Vamos ver sua gestação?';
+    empty.classList.remove('hidden');
+    content.classList.add('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  content.classList.remove('hidden');
+  document.getElementById('homeGreetTitle').innerHTML=first?`Oi, ${escHTML(first)}!`:'Que bom ter você aqui!';
+
+  const milestone=getMilestone(ig.weeks);
+  const fruit=getFruitForWeek(ig.weeks);
+  document.getElementById('homeWeekLbl').textContent=`Semana ${ig.weeks} de gestação`;
+  document.getElementById('homeFruitImg').src=`frutas/${fruit.file}.png`;
+  document.getElementById('homeFruitImg').alt=fruit.name;
+  document.getElementById('homePhrase').innerHTML=profile.name
+    ?`${profile.sex==='menina'?'Ela':'Ele'} já tem o tamanho de ${fruitPhrase(fruit)}`
+    :`Seu bebê já tem o tamanho de ${fruitPhrase(fruit)}`;
+  document.getElementById('homeDev').textContent=milestone.d;
+
+  const dpp=dppFromLMP(toISO(ig.lmp));
+  const tri=trimesterFromWeeks(ig.weeks);
+  document.getElementById('homeStatGrid').innerHTML=`
+    <div class="stat"><div class="lbl">Trimestre</div><div class="val serif">${tri}º</div></div>
+    <div class="stat"><div class="lbl">DPP</div><div class="val serif">${fmt(dpp)}</div></div>
+    <div class="stat"><div class="lbl">Faltam</div><div class="val serif">${Math.max(0,GESTATION_DAYS-ig.totalDays)} dias</div></div>`;
+
+  const next=nextUpcomingExam();
+  if(next){
+    const st=examStatus(next.ex,next.key);
+    document.getElementById('homeAgendaTitle').textContent=next.ex.name;
+    document.getElementById('homeAgendaSub').textContent=(st==='now'?'Recomendado agora · ':'Em breve · ')+next.ex.periodo;
+  }else{
+    document.getElementById('homeAgendaTitle').textContent='Tudo em dia por aqui 🎉';
+    document.getElementById('homeAgendaSub').textContent='Nenhum exame pendente no momento';
+  }
+
+  const cl=checklistOverallPct();
+  document.getElementById('homeChecklistTitle').textContent=cl.pending?`${cl.pending} itens pendentes`:'Tudo pronto! 🎉';
+  document.getElementById('homeChkFill').style.width=cl.pct+'%';
+}
+function showCalcPage(){
+  document.getElementById('calcBackRow').classList.toggle('hidden',!loadPregnancy());
+  goToPage('calc');
+}
+function openResultSection(cardId,headId,bodyId,chevId){
+  goToPage('result');
+  requestAnimationFrame(()=>{
+    const body=document.getElementById(bodyId);
+    if(!body.classList.contains('open')){
+      body.classList.add('open');
+      document.getElementById(chevId).textContent='▴';
+      document.getElementById(headId).setAttribute('aria-expanded','true');
+    }
+    document.getElementById(cardId).scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+document.getElementById('homeEmptyBtn').addEventListener('click',showCalcPage);
+document.getElementById('homeQuickRecalc').addEventListener('click',showCalcPage);
+document.getElementById('recalcBtn').addEventListener('click',showCalcPage);
+document.getElementById('calcBackBtn').addEventListener('click',()=>goToPage('home'));
+document.getElementById('homeAgendaCard').addEventListener('click',()=>{
+  const next=nextUpcomingExam();
+  goToPage('exames');
+  filterExamGuide(next?next.cat:null);
+});
+document.getElementById('homeChecklistCard').addEventListener('click',()=>goToPage('check'));
+document.getElementById('homeQuickSummary').addEventListener('click',()=>goToPage('summary'));
+document.getElementById('homeQuickKick').addEventListener('click',()=>openResultSection('kickCard','kickHead','kickBody','kickChev'));
+document.getElementById('homeQuickContr').addEventListener('click',()=>openResultSection('contrCard','contrHead','contrBody','contrChev'));
 document.querySelectorAll('#sexTabs .stab').forEach(btn=>{
   btn.addEventListener('click',()=>{
     profile.sex=btn.dataset.sex;
@@ -2298,13 +2522,14 @@ function savePregnancy(lmpDate,method,basis){
 }
 function loadStoredPregnancy(){
   const saved=loadPregnancy();
-  if(!saved)return;
+  if(!saved){renderHome();goToPage('home');return;}
   const ig=igFromLMP(saved.lmp);
-  if(ig.totalDays>MAX_WEEKS*7)return;
+  if(ig.totalDays>MAX_WEEKS*7){renderHome();goToPage('home');return;}
   const dpp=dppFromLMP(saved.lmp);
   currentPregMeta={method:saved.method,basis:saved.basis||null};
   renderPregResult(ig,dpp,saved.method,true);
-  goToPage('result');
+  renderHome();
+  goToPage('home');
 }
 
 document.getElementById('resetPregBtn').addEventListener('click',async()=>{
@@ -2471,7 +2696,7 @@ function runCalc(){
     showToast('Essa data resulta em mais de 42 semanas de gestação. Confira a data informada.',3000);
     return;
   }
-  if(ig&&dpp){savePregnancy(ig.lmp,method,basis);currentPregMeta={method,basis};renderPregResult(ig,dpp,method);goResult();resumeOnboardingAfterCalc();pushProfileToCloud();}
+  if(ig&&dpp){savePregnancy(ig.lmp,method,basis);currentPregMeta={method,basis};renderPregResult(ig,dpp,method);renderHome();goToPage('home');resumeOnboardingAfterCalc();pushProfileToCloud();}
 }
 
 function goResult(){goToPage('result');}
@@ -3941,7 +4166,7 @@ const ONBOARDING_STEPS=[
   {ico:'🤰',title:'Bem-vinda ao Baby-MK!',desc:'Um app simples pra acompanhar sua gestação: idade gestacional, período fértil, exames e muito mais.'},
   {ico:'📝',title:'Antes de começar...',desc:'Coloque seu nome completo e sua data de nascimento. Assim, o resumo que você mostra ao seu obstetra já vem com sua identificação e idade.',form:true},
   {ico:'📅',title:'Qual sua idade gestacional?',desc:'Você pode informar pela <strong>DUM</strong>, pelo <strong>1º ultrassom</strong> ou pela <strong>DPP</strong>. A partir daí, o app calcula sua idade gestacional sozinho — sempre atualizada, toda vez que você abrir.',cta:'Informar agora',ctaPage:'calc'},
-  {ico:'🧭',title:'Use as abas aqui embaixo',desc:'Calcular, Resultado, Exames e Checklist ficam sempre a um toque de distância, na barra de navegação.'},
+  {ico:'🧭',title:'Use as abas aqui embaixo',desc:'Início, Resultado, Exames e Checklist ficam sempre a um toque de distância, na barra de navegação. A aba Início traz o resumo da sua semana, seu próximo exame e seu checklist, tudo num só lugar.'},
   {ico:'🧸',title:'Personalize na aba Perfil',desc:'Coloque aqui o nome e o sexo do seu bebê.'},
   {ico:'✨',title:'Pronto!',desc:'Você já pode começar. Sempre que quiser rever este tutorial, é só tocar no <span class="onb-help-mark">?</span> lá em cima. Começando uma <strong>nova gestação</strong>? Na aba Perfil tem a opção "Começar nova gestação", que apaga os dados antigos pra você recomeçar do zero.'}
 ];
