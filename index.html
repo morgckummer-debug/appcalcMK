@@ -1240,6 +1240,11 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             <div class="home-hero-dev" id="homeDev"></div>
           </div>
         </div>
+        <div class="months-highlight" id="homeMonthsHighlight">
+          <div class="lbl">Meses de gestação</div>
+          <div class="months-big serif" id="homeMonthsBig">—</div>
+          <div class="months-sub" id="homeMonthsSub"></div>
+        </div>
         <div class="stat-grid" id="homeStatGrid"></div>
       </div>
 
@@ -2426,6 +2431,11 @@ function renderHome(){
     ?`${profile.sex==='menina'?'Ela':'Ele'} já tem o tamanho de ${fruitPhrase(fruit)}`
     :`Seu bebê já tem o tamanho de ${fruitPhrase(fruit)}`;
   document.getElementById('homeDev').textContent=milestone.d;
+
+  const monthInfo=daysToGestationalMonths(ig.totalDays);
+  const curMonth=currentGestationalMonth(monthInfo.mesesCompletos,monthInfo.diasNoMes);
+  document.getElementById('homeMonthsBig').innerHTML=formatMonthsHTML(monthInfo.mesesCompletos,monthInfo.diasNoMes);
+  document.getElementById('homeMonthsSub').textContent=`Você está no ${curMonth}º mês`;
 
   const dpp=dppFromLMP(toISO(ig.lmp));
   const tri=trimesterFromWeeks(ig.weeks);
