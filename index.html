@@ -3609,9 +3609,11 @@ bpEntries.sort((a,b)=>new Date(a.date)-new Date(b.date));
 function fmtBP(sys,dia){
   return `${sys}/${dia} mmHg`;
 }
-/* Limiares clássicos de pré-natal: ≥140/90 é o ponto de atenção pra pré-eclâmpsia,
-   ≥160/110 é considerado urgência hipertensiva. Reaproveita as tonalidades já
-   usadas no pill de IMC (tone-low/normal/over/ob), só com outro significado aqui. */
+/* Limiares clássicos de pré-natal: ≥140/90 é o ponto de atenção pra hipertensão
+   na gestação (que pode ou não evoluir pra pré-eclâmpsia — isso depende de outros
+   critérios, como proteinúria, que só o obstetra avalia), ≥160/110 é considerado
+   urgência hipertensiva. Reaproveita as tonalidades já usadas no pill de IMC
+   (tone-low/normal/over/ob), só com outro significado aqui. */
 function classifyBP(sys,dia){
   if(sys>=160||dia>=110)return{lbl:'Muito alta',tone:'ob',urgent:true};
   if(sys>=140||dia>=90)return{lbl:'Alta',tone:'over',urgent:false};
@@ -3622,7 +3624,7 @@ function bpAdviceText(cls){
   if(cls.urgent)return'≥160/110 mmHg é considerado urgência — procure atendimento médico o quanto antes, não espere a próxima consulta.';
   if(cls.tone==='over')return profile.chronicHtn
     ?'Acima do que costuma ser seu valor de referência — registre e informe ao seu obstetra.'
-    :'≥140/90 mmHg é o limiar de atenção pra pressão alta na gestação (pré-eclâmpsia) — informe ao seu obstetra.';
+    :'≥140/90 mmHg é o limiar de atenção pra pressão alta na gestação — pode ser o início de um quadro de pré-eclâmpsia, mas só o seu obstetra confirma isso, junto com outros exames. Informe esse valor a ele.';
   if(cls.tone==='low')return'Abaixo do habitual — geralmente não é preocupante na gestação, mas informe se sentir tontura ou mal-estar.';
   return'Dentro da faixa considerada normal.';
 }
@@ -3633,7 +3635,7 @@ function renderBPSummary(){
   const cls=classifyBP(last.sys,last.dia);
   wrap.innerHTML=`<div class="wt-stat-grid">
     <div class="wt-stat"><div class="lbl">Última aferição</div><div class="val">${fmtBP(last.sys,last.dia)}</div></div>
-    <div class="wt-stat"><div class="lbl">Classificação</div><div class="bmi-pill tone-${cls.tone}">${cls.lbl}</div></div>
+    <div class="wt-stat"><div class="lbl">Classificação</div><div class="bmi-pill tone-${cls.tone==='over'?'ob':cls.tone}">${cls.lbl}</div></div>
   </div>
   <div class="wg-summary"><div class="wg-summary-txt">${bpAdviceText(cls)}</div></div>`;
 }
