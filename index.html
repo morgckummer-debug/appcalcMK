@@ -2428,7 +2428,7 @@ function renderHome(){
   document.getElementById('homeFruitImg').src=`frutas/${fruit.file}.png`;
   document.getElementById('homeFruitImg').alt=fruit.name;
   document.getElementById('homePhrase').innerHTML=profile.name
-    ?`${profile.sex==='menina'?'Ela':'Ele'} já tem o tamanho de ${fruitPhrase(fruit)}`
+    ?`${babyNameHTML()} já tem o tamanho de ${fruitPhrase(fruit)}`
     :`Seu bebê já tem o tamanho de ${fruitPhrase(fruit)}`;
   document.getElementById('homeDev').textContent=milestone.d;
 
