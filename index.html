@@ -1182,6 +1182,45 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 .calc-back-row{margin-bottom:10px}
 .calc-back-row.hidden{display:none}
 
+/* Minha Barriga */
+.month-sel{display:flex;justify-content:space-between;padding:2px 6px 0}
+.month-num{
+  border:none;background:transparent;font-family:inherit;
+  font-size:14px;font-weight:700;color:var(--ink3);width:22px;text-align:center;
+  padding:0 0 9px;position:relative;cursor:pointer;
+}
+.month-num.on{color:var(--pd2)}
+.month-num.on::after{content:'';position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:16px;height:3px;border-radius:3px;background:var(--pd2)}
+.month-divider{display:flex;align-items:center;gap:10px;margin:8px 0 18px}
+.month-divider .ln{flex:1;height:1px;background:var(--line)}
+.month-divider .lbl{margin:0}
+
+.illus-wrap{position:relative;width:200px;height:200px;margin:6px auto 18px;display:flex;align-items:center;justify-content:center}
+.illus-glow{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 38%,var(--cream) 0%,var(--peach) 70%,rgba(244,200,168,0) 100%)}
+.illus-arrow{position:absolute;top:50%;transform:translateY(-50%)}
+
+.toggle-row{display:flex;gap:8px;justify-content:center;margin-bottom:18px}
+.tgl{padding:9px 18px;border-radius:var(--pill);font-size:12px;font-weight:700;border:none;font-family:inherit;cursor:pointer;transition:var(--trans)}
+.tgl.on{background:var(--ink);color:var(--cream)}
+.tgl.off{background:var(--surfs);color:var(--ink2);box-shadow:var(--ci)}
+
+.fruit-line{text-align:center;font-size:13px;color:var(--ink2)}
+
+.dev-row{display:flex;gap:14px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--line)}
+.dev-row:last-child{border-bottom:none;padding-bottom:0}
+.dev-ico{width:36px;height:36px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.dev-desc{font-size:13px;color:var(--ink2);line-height:1.55}
+
+.belly-photo-frame{
+  width:100%;aspect-ratio:3/4;max-width:220px;margin:6px auto 18px;border-radius:20px;overflow:hidden;
+  background:var(--surfs);box-shadow:var(--ci);display:flex;align-items:center;justify-content:center;position:relative;
+}
+.belly-photo-frame img{width:100%;height:100%;object-fit:cover;display:block}
+.belly-photo-empty{text-align:center;color:var(--ink3);padding:0 20px}
+.belly-photo-empty .ico{font-size:28px;display:block;margin-bottom:8px}
+.belly-photo-empty .txt{font-size:12px;line-height:1.5}
+.belly-photo-actions{display:flex;flex-direction:column;gap:2px}
+
 /* ── Impressão do resumo pra consulta ──
    Ao contrário do resto do app, aqui a cor É o ponto — é o mesmo documento
    de marca usado no relatório da Curva Fetal — então a impressão preserva
@@ -1263,6 +1302,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
           <button class="home-quick" id="homeQuickKick" type="button"><span class="home-quick-ico">👣</span><span>Movimentos do bebê</span></button>
           <button class="home-quick" id="homeQuickContr" type="button"><span class="home-quick-ico">💫</span><span>Contrações</span></button>
           <button class="home-quick" id="homeQuickRecalc" type="button"><span class="home-quick-ico">🧮</span><span>Recalcular data</span></button>
+          <button class="home-quick" id="homeQuickBelly" type="button" style="grid-column:1/-1"><span class="home-quick-ico">🤰</span><span>Minha Barriga</span></button>
         </div>
       </div>
     </div>
@@ -1627,6 +1667,69 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div style="font-size:48px;margin-bottom:16px">🌸</div>
       <div class="serif" style="font-size:22px;color:var(--ink2);margin-bottom:8px">Nenhum cálculo ainda</div>
       <div style="font-size:14px;color:var(--ink3);line-height:1.6">Vá até a aba <strong>Início</strong> e toque em "Calcular agora" para ver seu resultado aqui.</div>
+    </div>
+  </div>
+
+  <!-- ── Minha Barriga ── -->
+  <div class="page" id="pg-barriga">
+    <div class="card feat">
+      <div class="lbl" id="bellyMonthLbl">Mês —</div>
+
+      <div class="month-sel" id="bellyMonthSel"></div>
+      <div class="month-divider"><div class="ln"></div><div class="lbl">Meses</div><div class="ln"></div></div>
+
+      <div id="bellyIllusPane">
+        <div class="illus-wrap">
+          <div class="illus-glow"></div>
+          <svg width="200" height="200" viewBox="0 0 200 200" style="position:absolute;inset:0">
+            <circle cx="100" cy="100" r="88" fill="none" stroke="var(--pd)" stroke-width="1.4" stroke-dasharray="3 8" opacity="0.55"/>
+            <line x1="100" y1="10" x2="100" y2="22" stroke="var(--pd2)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="100" y1="178" x2="100" y2="190" stroke="var(--pd2)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg width="128" height="128" viewBox="0 0 140 140" style="position:relative">
+            <ellipse cx="66" cy="78" rx="46" ry="50" fill="var(--peach)" opacity="0.35" transform="rotate(-8 66 78)"/>
+            <circle cx="90" cy="40" r="17" fill="none" stroke="var(--ink)" stroke-width="2.3"/>
+            <path d="M76,52 C50,55 28,78 30,104 C32,126 56,136 76,126 C90,119 94,102 84,92" fill="none" stroke="var(--ink)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M72,60 C64,66 60,74 66,82" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M46,100 C42,90 48,82 58,80" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <button class="dark-btn illus-arrow" id="bellyPrevBtn" style="left:-8px" type="button" aria-label="Mês anterior">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button class="dark-btn illus-arrow" id="bellyNextBtn" style="right:-8px" type="button" aria-label="Próximo mês">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="bellyPhotoPane" class="hidden">
+        <div class="belly-photo-frame" id="bellyPhotoFrame">
+          <div class="belly-photo-empty" id="bellyPhotoEmpty">
+            <span class="ico">📷</span>
+            <span class="txt">Tire uma foto da sua barriga<br>pra acompanhar a evolução mês a mês</span>
+          </div>
+          <img id="bellyPhotoImg" class="hidden" alt="Foto da barriga">
+        </div>
+        <input type="file" accept="image/*" capture="environment" id="bellyPhotoInput" class="hidden">
+        <div class="belly-photo-actions">
+          <button class="btn-calc" id="bellyPhotoTakeBtn" type="button">📷 Tirar foto deste mês</button>
+          <button class="link-btn hidden" id="bellyPhotoRemoveBtn" type="button">Remover foto deste mês</button>
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <button class="tgl on" id="bellyTglIllus" type="button">Ilustração</button>
+        <button class="tgl off" id="bellyTglPhoto" type="button">Minha barriga</button>
+      </div>
+
+      <div class="months-big serif" id="bellyMonthsBig" style="text-align:center">—</div>
+      <div class="fruit-line" id="bellyFruitLine">—</div>
+    </div>
+
+    <div class="card">
+      <div class="lbl" style="text-align:left">O que observamos nesse mês</div>
+      <div class="card-title" style="font-size:20px">Marcos do <span class="serif" style="color:var(--pd);font-style:italic">desenvolvimento</span></div>
+      <div id="bellyDevList"></div>
     </div>
   </div>
 
@@ -2512,6 +2615,137 @@ document.querySelectorAll('.nav-btn').forEach(btn=>{
   });
 });
 
+/* ── Minha Barriga ──
+   Ilustração no espírito "medida de ultrassom" (não uma foto real de
+   terceiros) + comparação com fruta (reaproveita FRUIT_RANGES/MS já
+   existentes) + foto real opcional, tirada pela própria usuária e
+   guardada só no aparelho (redimensionada em canvas antes de salvar,
+   pra não estourar o localStorage). */
+const BELLY_PHOTOS_KEY='mkcalc_belly_photos';
+let bellyMonth=1;
+let bellyMode='ilustracao'; // 'ilustracao' | 'foto'
+
+function loadBellyPhotos(){
+  try{const raw=localStorage.getItem(BELLY_PHOTOS_KEY);return raw?JSON.parse(raw):{};}catch{return{};}
+}
+function saveBellyPhotos(photos){
+  try{localStorage.setItem(BELLY_PHOTOS_KEY,JSON.stringify(photos));}catch{}
+}
+function bellyMonthWeekRange(m){
+  const startDay=MONTH_BREAKPOINTS[m-1];
+  const endDay=m<9?MONTH_BREAKPOINTS[m]-1:294;
+  return{
+    startWeek:Math.floor(startDay/7),
+    endWeek:Math.ceil(endDay/7),
+    midWeek:Math.round((startDay+endDay)/2/7),
+    startDay,endDay,
+  };
+}
+function bellyMilestonesForMonth(m){
+  const{startDay,endDay,midWeek}=bellyMonthWeekRange(m);
+  const found=Object.keys(MS).map(Number).filter(w=>w*7>=startDay&&w*7<=endDay).sort((a,b)=>a-b);
+  if(!found.length)return[getMilestone(midWeek).d];
+  return found.map(w=>MS[w].d);
+}
+function renderBellyMonthSel(){
+  const monthInfo=currentIG?daysToGestationalMonths(currentIG.totalDays):null;
+  const curMonth=monthInfo?currentGestationalMonth(monthInfo.mesesCompletos,monthInfo.diasNoMes):9;
+  const wrap=document.getElementById('bellyMonthSel');
+  wrap.innerHTML='';
+  for(let m=1;m<=9;m++){
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='month-num'+(m===bellyMonth?' on':'');
+    btn.textContent=m;
+    if(m>curMonth)btn.style.opacity='.4';
+    btn.addEventListener('click',()=>{bellyMonth=m;renderBelly();});
+    wrap.appendChild(btn);
+  }
+}
+function renderBellyPhotoPane(){
+  const photos=loadBellyPhotos();
+  const url=photos[bellyMonth];
+  const img=document.getElementById('bellyPhotoImg');
+  const empty=document.getElementById('bellyPhotoEmpty');
+  const removeBtn=document.getElementById('bellyPhotoRemoveBtn');
+  if(url){
+    img.src=url;img.classList.remove('hidden');empty.classList.add('hidden');
+    removeBtn.classList.remove('hidden');
+    document.getElementById('bellyPhotoTakeBtn').textContent='📷 Trocar foto deste mês';
+  }else{
+    img.classList.add('hidden');empty.classList.remove('hidden');
+    removeBtn.classList.add('hidden');
+    document.getElementById('bellyPhotoTakeBtn').textContent='📷 Tirar foto deste mês';
+  }
+}
+function renderBelly(){
+  renderBellyMonthSel();
+  const{startWeek,endWeek,midWeek}=bellyMonthWeekRange(bellyMonth);
+  const fruit=getFruitForWeek(Math.max(0,midWeek));
+  document.getElementById('bellyMonthLbl').textContent=`${bellyMonth}º mês · ${Math.max(0,startWeek)}–${endWeek} semanas`;
+  document.getElementById('bellyMonthsBig').innerHTML=`${bellyMonth}º <em>mês</em>`;
+  document.getElementById('bellyFruitLine').innerHTML=profile.name
+    ?`Nessa fase, ${babyNameHTML()} tem o tamanho de ${fruitPhrase(fruit)}`
+    :`Nessa fase, seu bebê tem o tamanho de ${fruitPhrase(fruit)}`;
+  document.getElementById('bellyDevList').innerHTML=bellyMilestonesForMonth(bellyMonth)
+    .slice(0,3)
+    .map(d=>`<div class="dev-row"><div class="dev-ico">👶</div><div class="dev-desc">${escHTML(d)}</div></div>`)
+    .join('');
+  renderBellyPhotoPane();
+}
+function setBellyMode(mode){
+  bellyMode=mode;
+  document.getElementById('bellyIllusPane').classList.toggle('hidden',mode!=='ilustracao');
+  document.getElementById('bellyPhotoPane').classList.toggle('hidden',mode!=='foto');
+  document.getElementById('bellyTglIllus').classList.toggle('on',mode==='ilustracao');
+  document.getElementById('bellyTglIllus').classList.toggle('off',mode!=='ilustracao');
+  document.getElementById('bellyTglPhoto').classList.toggle('on',mode==='foto');
+  document.getElementById('bellyTglPhoto').classList.toggle('off',mode!=='foto');
+}
+document.getElementById('bellyPrevBtn').addEventListener('click',()=>{if(bellyMonth>1){bellyMonth--;renderBelly();}});
+document.getElementById('bellyNextBtn').addEventListener('click',()=>{if(bellyMonth<9){bellyMonth++;renderBelly();}});
+document.getElementById('bellyTglIllus').addEventListener('click',()=>setBellyMode('ilustracao'));
+document.getElementById('bellyTglPhoto').addEventListener('click',()=>setBellyMode('foto'));
+document.getElementById('bellyPhotoTakeBtn').addEventListener('click',()=>document.getElementById('bellyPhotoInput').click());
+document.getElementById('bellyPhotoInput').addEventListener('change',e=>{
+  const file=e.target.files&&e.target.files[0];
+  e.target.value='';
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const maxW=900;
+      const scale=Math.min(1,maxW/img.width);
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.round(img.width*scale);
+      canvas.height=Math.round(img.height*scale);
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      const photos=loadBellyPhotos();
+      photos[bellyMonth]=canvas.toDataURL('image/jpeg',0.82);
+      saveBellyPhotos(photos);
+      renderBellyPhotoPane();
+      showToast('Foto salva neste aparelho 📷',1800);
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('bellyPhotoRemoveBtn').addEventListener('click',()=>{
+  if(!confirm('Remover a foto deste mês?'))return;
+  const photos=loadBellyPhotos();
+  delete photos[bellyMonth];
+  saveBellyPhotos(photos);
+  renderBellyPhotoPane();
+});
+document.getElementById('homeQuickBelly').addEventListener('click',()=>{
+  const monthInfo=currentIG?daysToGestationalMonths(currentIG.totalDays):null;
+  bellyMonth=monthInfo?currentGestationalMonth(monthInfo.mesesCompletos,monthInfo.diasNoMes):1;
+  setBellyMode('ilustracao');
+  renderBelly();
+  goToPage('barriga');
+});
+
 /* ── Gestação atual (referência persistida p/ IG sempre atualizada) ── */
 const PREG_KEY='mkcalc_pregnancy';
 function loadPregnancy(){
@@ -2537,10 +2771,10 @@ function loadStoredPregnancy(){
 }
 
 document.getElementById('resetPregBtn').addEventListener('click',async()=>{
-  const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações e os registros de peso, pressão, curva glicêmica e glicemia capilar — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
+  const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações, as fotos da barriga e os registros de peso, pressão, curva glicêmica e glicemia capilar — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
   if(!ok)return;
   const keepPatient={patientName:profile.patientName||'',patientDOB:profile.patientDOB||''};
-  [PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY,GTT_KEY,GLY_KEY].forEach(k=>{try{localStorage.removeItem(k);}catch{}});
+  [PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY,GTT_KEY,GLY_KEY,BELLY_PHOTOS_KEY].forEach(k=>{try{localStorage.removeItem(k);}catch{}});
   // Seu próprio nome e data de nascimento não são "dados da gestação" —
   // continuam a mesma pessoa numa gestação nova, então sobrevivem ao reset.
   try{localStorage.setItem(PROFILE_KEY,JSON.stringify({...PROFILE_DEFAULTS,...keepPatient}));}catch{}
