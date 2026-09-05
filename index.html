@@ -831,13 +831,6 @@ body::after{
 .rpt-section-t{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:9px}
 .rpt-section-t b{font-family:'Comfortaa',sans-serif;font-size:12px;font-weight:600;color:var(--rp-roxo)}
 .rpt-section-t i{font-style:normal;font-size:10.5px;color:var(--rp-dourado)}
-.rpt-chart-wrap{background:var(--rp-nude);border-radius:10px;padding:8px 10px 4px;margin-bottom:8px}
-.rpt-chart-wrap svg{width:100%;height:auto;display:block}
-.rpt-legend{display:flex;gap:14px;margin:-3px 0 8px;font-size:10px;color:var(--rp-texto2)}
-.rpt-legend span{display:inline-flex;align-items:center;gap:5px}
-.rpt-legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
-.rpt-legend .dot-sys{background:var(--rp-roxo)}
-.rpt-legend .dot-dia{background:var(--rp-lilas)}
 .rpt-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--rp-texto2);padding:6px 0;border-bottom:1px dashed var(--rp-linha)}
 .rpt-row:last-child{border-bottom:none}
 .rpt-row strong{color:var(--rp-texto);font-weight:700}
@@ -4021,34 +4014,6 @@ function fmtBasisText(meta){
   if(meta.method==='DPP')return`DPP informada: ${b?.date?fmt(new Date(b.date+'T12:00:00')):'—'}`;
   return meta.method;
 }
-function summaryLineChartSVG(points,color,W=300,H=90,padX=6,padY=8){
-  if(points.length<2)return'';
-  const vals=points.map(p=>p.v);
-  const minV=Math.min(...vals),maxV=Math.max(...vals);
-  const pad=Math.max(0.5,(maxV-minV)*0.15);
-  const lo=minV-pad,hi=maxV+pad;
-  const xAt=i=>padX+(points.length===1?0:(i/(points.length-1))*(W-padX*2));
-  const yAt=v=>padY+(1-((v-lo)/((hi-lo)||1)))*(H-padY*2);
-  const pathD=points.map((p,i)=>`${i===0?'M':'L'}${xAt(i).toFixed(1)},${yAt(p.v).toFixed(1)}`).join(' ');
-  const dots=points.map((p,i)=>{
-    const last=i===points.length-1;
-    return last
-      ?`<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(p.v).toFixed(1)}" r="4.2" fill="var(--rp-papel)" stroke="${color}" stroke-width="2.2"/>`
-      :`<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(p.v).toFixed(1)}" r="2.3" fill="${color}"/>`;
-  }).join('');
-  return`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}</svg>`;
-}
-function summaryBPChartSVG(entries,colorSys,colorDia,W=300,H=90,padX=6,padY=8){
-  if(entries.length<2)return'';
-  const allVals=entries.flatMap(e=>[e.sys,e.dia]);
-  const minV=Math.min(...allVals),maxV=Math.max(...allVals);
-  const pad=Math.max(2,(maxV-minV)*0.15);
-  const lo=minV-pad,hi=maxV+pad;
-  const xAt=i=>padX+(entries.length===1?0:(i/(entries.length-1))*(W-padX*2));
-  const yAt=v=>padY+(1-((v-lo)/((hi-lo)||1)))*(H-padY*2);
-  const pathFor=key=>entries.map((e,i)=>`${i===0?'M':'L'}${xAt(i).toFixed(1)},${yAt(e[key]).toFixed(1)}`).join(' ');
-  return`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${pathFor('sys')}" fill="none" stroke="${colorSys}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${pathFor('dia')}" fill="none" stroke="${colorDia}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-}
 /* Status do banner (✓ normal / ! atenção / ⚠ alerta) — só olha pro registro
    mais recente de pressão e glicemia, reaproveitando os mesmos limiares já
    usados nas abas de Pressão (classifyBP) e Glicemia (glyOutOfTarget/GTT). */
@@ -4086,12 +4051,9 @@ function renderSummary(){
   const patientAge=calcAge(profile.patientDOB);
   const escName=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  const wPts=weightEntries.slice(-14).map(w=>({v:w.kg,date:w.date}));
-  const wChart=summaryLineChartSVG(wPts,'#B08D3F');
   const wRecent=[...weightEntries].slice(-5).reverse();
 
   const bpRecent=[...bpEntries].slice(-5).reverse();
-  const bpChart=summaryBPChartSVG(bpEntries.slice(-14),'#3D2352','#8B6BA8');
 
   const glyRecent=[...glyEntries].slice(-6).reverse();
   const status=summaryStatus(bpRecent[0],glyRecent,gttResult);
@@ -4140,13 +4102,11 @@ function renderSummary(){
 
         <div class="rpt-section">
           <div class="rpt-section-t"><b>Peso</b>${wRecent[0]?`<i>${fmtKg(wRecent[0].kg)}</i>`:''}</div>
-          ${wChart?`<div class="rpt-chart-wrap">${wChart}</div>`:''}
           ${wRecent.length?wRecent.map(w=>`<div class="rpt-row"><span>${fmt(new Date(w.date))}</span><strong>${fmtKg(w.kg)}</strong></div>`).join(''):'<div class="rpt-empty">Nenhum registro de peso ainda.</div>'}
         </div>
 
         <div class="rpt-section">
           <div class="rpt-section-t"><b>Pressão arterial</b>${bpRecent[0]?`<i>${fmtBP(bpRecent[0].sys,bpRecent[0].dia)}</i>`:''}</div>
-          ${bpChart?`<div class="rpt-chart-wrap">${bpChart}</div><div class="rpt-legend"><span><i class="dot-sys"></i>Sistólica</span><span><i class="dot-dia"></i>Diastólica</span></div>`:''}
           ${bpRecent.length?bpRecent.map(b=>`<div class="rpt-row"><span>${fmt(new Date(b.date))} · ${fmtClock(new Date(b.date))}</span><strong>${fmtBP(b.sys,b.dia)}</strong></div>`).join(''):'<div class="rpt-empty">Nenhum registro de pressão ainda.</div>'}
         </div>
 
