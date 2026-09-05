@@ -1196,6 +1196,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     box-shadow:none!important;border-radius:0;margin-bottom:0;
   }
   #summarySheet *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .no-print{display:none!important}
 }
 </style>
 </head>
@@ -4039,6 +4040,12 @@ function summaryStatus(lastBP,glyRecent,gttResult){
   if(!lastBP&&!lastGly&&!gttResult)return{tone,icon:'✓',title:'Acompanhamento em dia',sub:'Sem registros de pressão ou glicemia ainda — adicione nas abas correspondentes pra completar o resumo.'};
   return{tone,icon:'✓',title:'Dentro da normalidade',sub:'Nenhum valor de pressão ou glicemia fora da meta nos registros recentes.'};
 }
+let summaryRangeDays=15;
+function filterByPeriod(entries,days,dateField){
+  if(!days)return entries;
+  const cutoff=Date.now()-days*86400000;
+  return entries.filter(e=>new Date(e[dateField]).getTime()>=cutoff);
+}
 function renderSummary(){
   const sheet=document.getElementById('summarySheet');
   if(!currentIG){
@@ -4050,12 +4057,18 @@ function renderSummary(){
   const dpp=dppFromLMP(toISO(ig.lmp));
   const patientAge=calcAge(profile.patientDOB);
   const escName=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const rangeLbl=summaryRangeDays?`últimos ${summaryRangeDays} dias`:'todo o histórico';
 
-  const wRecent=[...weightEntries].slice(-5).reverse();
+  const wRecent=[...filterByPeriod(weightEntries,summaryRangeDays,'date')].reverse();
+  const wFirst=weightEntries[0];
+  const wLast=weightEntries[weightEntries.length-1];
+  const wBaseKg=profile.prePregWeightKg!=null?profile.prePregWeightKg:wFirst?.kg;
+  const wBaseLbl=profile.prePregWeightKg!=null?'Peso pré-gestacional':'Peso inicial';
+  const wGain=(wLast&&wBaseKg!=null)?wLast.kg-wBaseKg:null;
 
-  const bpRecent=[...bpEntries].slice(-5).reverse();
+  const bpRecent=[...filterByPeriod(bpEntries,summaryRangeDays,'date')].reverse();
 
-  const glyRecent=[...glyEntries].slice(-6).reverse();
+  const glyRecent=[...filterByPeriod(glyEntries,summaryRangeDays,'date')].reverse();
   const status=summaryStatus(bpRecent[0],glyRecent,gttResult);
 
   sheet.innerHTML=`
@@ -4100,8 +4113,21 @@ function renderSummary(){
           <div class="rpt-tile rpt-tile--accent"><div class="l">Gerado em</div><div class="v">${fmt(TODAY)}</div></div>
         </div>
 
+        <div class="field no-print" style="margin-bottom:4px"><label>Período das tabelas</label>
+          <div class="sex-tabs" id="summaryRangeTabs" style="margin-bottom:0">
+            <button class="stab${summaryRangeDays===7?' on':''}" type="button" data-days="7">7 dias</button>
+            <button class="stab${summaryRangeDays===15?' on':''}" type="button" data-days="15">15 dias</button>
+            <button class="stab${summaryRangeDays===30?' on':''}" type="button" data-days="30">30 dias</button>
+            <button class="stab${summaryRangeDays===0?' on':''}" type="button" data-days="0">Tudo</button>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--rp-texto3);margin:-6px 0 12px">Período das tabelas: ${rangeLbl}.</div>
+
         <div class="rpt-section">
           <div class="rpt-section-t"><b>Peso</b>${wRecent[0]?`<i>${fmtKg(wRecent[0].kg)}</i>`:''}</div>
+          ${wGain!=null?`<div class="rpt-row"><span>${wBaseLbl}</span><strong>${fmtKg(wBaseKg)}</strong></div>
+          <div class="rpt-row"><span>Peso atual</span><strong>${fmtKg(wLast.kg)}</strong></div>
+          <div class="rpt-row"><span>Ganho total</span><strong>${wGain>=0?'+':''}${fmtKg(wGain)}</strong></div>`:''}
           ${wRecent.length?wRecent.map(w=>`<div class="rpt-row"><span>${fmt(new Date(w.date))}</span><strong>${fmtKg(w.kg)}</strong></div>`).join(''):'<div class="rpt-empty">Nenhum registro de peso ainda.</div>'}
         </div>
 
@@ -4124,6 +4150,12 @@ function renderSummary(){
       </div>
     </div>`;
   applyPremiumLock(sheet,'Resumo pra consulta');
+  document.querySelectorAll('#summaryRangeTabs .stab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      summaryRangeDays=Number(btn.dataset.days);
+      renderSummary();
+    });
+  });
 }
 document.getElementById('summaryEntryBtn').addEventListener('click',()=>{renderSummary();goToPage('summary');});
 document.getElementById('summaryPrintBtn').addEventListener('click',()=>{
