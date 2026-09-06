@@ -820,6 +820,10 @@ body::after{
 .rpt-status-s{font-size:11px;color:var(--rp-texto2);margin-top:3px;line-height:1.4}
 .rpt-status--atencao .rpt-status-ic{background:var(--rp-dourado)}
 .rpt-status--alerta .rpt-status-ic{background:var(--rp-alerta)}
+.rpt-status--gdm{background:rgba(168,66,95,.12);border:1px solid var(--rp-alerta)}
+.rpt-status--gdm .rpt-status-ic{background:var(--rp-alerta)}
+.rpt-status--gdm .rpt-status-t{color:var(--rp-alerta)}
+.rpt-gdm-mark{background:var(--rp-alerta);color:#FAF7F5;padding:0 4px;border-radius:4px;font-weight:700}
 
 .rpt-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
 .rpt-tile{background:var(--rp-nude);border-radius:10px;padding:9px 11px 10px}
@@ -828,6 +832,9 @@ body::after{
 .rpt-tile .v{font-family:'Comfortaa',sans-serif;font-size:14.5px;font-weight:600;color:var(--rp-roxo);margin-top:4px;line-height:1.25}
 
 .rpt-section{border-top:1px solid var(--rp-linha);padding-top:14px}
+.rpt-section-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.rpt-section-cols .rpt-section-t{margin-bottom:9px}
+@media (max-width:380px){.rpt-section-cols{grid-template-columns:1fr;gap:14px}}
 .rpt-section-t{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:9px}
 .rpt-section-t b{font-family:'Comfortaa',sans-serif;font-size:12px;font-weight:600;color:var(--rp-roxo)}
 .rpt-section-t i{font-style:normal;font-size:10.5px;color:var(--rp-dourado)}
@@ -1879,9 +1886,9 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div class="lbl">📄 Resumo pra consulta</div>
       <div class="card-title">Pronto pra <span class="serif" style="color:var(--pd);font-style:italic">mostrar ao obstetra</span></div>
       <div class="helper">Toque em imprimir pra salvar como PDF ou levar impresso — o resto da tela não entra na impressão.</div>
-      <button class="btn-calc" id="summaryPrintBtn">🖨️ Imprimir / Salvar em PDF</button>
     </div>
     <div id="summarySheet"></div>
+    <button class="btn-calc" id="summaryPrintBtn" style="margin-bottom:16px">🖨️ Imprimir / Salvar em PDF</button>
   </div>
 
   <!-- ── Sobre ── -->
@@ -4255,6 +4262,7 @@ function fmtBasisText(meta){
 function summaryStatus(lastBP,glyRecent,gttResult){
   const flags=[];
   let tone='normal';
+  const gdm=!!(gttResult&&gttAnyAltered(gttResult));
   if(lastBP){
     const cls=classifyBP(lastBP.sys,lastBP.dia);
     if(cls.urgent){tone='alerta';flags.push(`Última pressão ${fmtBP(lastBP.sys,lastBP.dia)} — urgência hipertensiva.`);}
@@ -4265,14 +4273,14 @@ function summaryStatus(lastBP,glyRecent,gttResult){
     if(tone!=='alerta')tone='atencao';
     flags.push(`Última glicemia (${GLY_MOMENT_LBL[lastGly.moment].toLowerCase()}) acima da meta.`);
   }
-  if(gttResult&&gttAnyAltered(gttResult)){
+  if(gdm){
     if(tone!=='alerta')tone='atencao';
-    flags.push('TOTG com valor alterado (critério de diabetes gestacional).');
+    flags.push('TOTG com valor alterado (critério de <mark class="rpt-gdm-mark">diabetes gestacional</mark>).');
   }
-  if(tone==='alerta')return{tone,icon:'⚠',title:'Atenção aos valores registrados',sub:flags.join(' ')};
-  if(tone==='atencao')return{tone,icon:'!',title:'Vale atenção nos registros recentes',sub:flags.join(' ')};
-  if(!lastBP&&!lastGly&&!gttResult)return{tone,icon:'✓',title:'Acompanhamento em dia',sub:'Sem registros de pressão ou glicemia ainda — adicione nas abas correspondentes pra completar o resumo.'};
-  return{tone,icon:'✓',title:'Dentro da normalidade',sub:'Nenhum valor de pressão ou glicemia fora da meta nos registros recentes.'};
+  if(tone==='alerta')return{tone,gdm,icon:'⚠',title:'Atenção aos valores registrados',sub:flags.join(' ')};
+  if(tone==='atencao')return{tone,gdm,icon:'!',title:'Vale atenção nos registros recentes',sub:flags.join(' ')};
+  if(!lastBP&&!lastGly&&!gttResult)return{tone,gdm,icon:'✓',title:'Acompanhamento em dia',sub:'Sem registros de pressão ou glicemia ainda — adicione nas abas correspondentes pra completar o resumo.'};
+  return{tone,gdm,icon:'✓',title:'Dentro da normalidade',sub:'Nenhum valor de pressão ou glicemia fora da meta nos registros recentes.'};
 }
 let summaryRangeDays=15;
 function filterByPeriod(entries,days,dateField){
@@ -4333,7 +4341,7 @@ function renderSummary(){
           </div>
         </div>
 
-        <div class="rpt-status rpt-status--${status.tone}">
+        <div class="rpt-status rpt-status--${status.tone}${status.gdm?' rpt-status--gdm':''}">
           <div class="rpt-status-ic">${status.icon}</div>
           <div class="rpt-status-body">
             <div class="rpt-status-t">${status.title}</div>
@@ -4358,22 +4366,23 @@ function renderSummary(){
         <div style="font-size:11px;color:var(--rp-texto3);margin:-6px 0 12px">Período das tabelas: ${rangeLbl}.</div>
 
         <div class="rpt-section">
-          <div class="rpt-section-t"><b>Peso</b>${wRecent[0]?`<i>${fmtKg(wRecent[0].kg)}</i>`:''}</div>
-          ${wGain!=null?`<div class="rpt-row"><span>${wBaseLbl}</span><strong>${fmtKg(wBaseKg)}</strong></div>
-          <div class="rpt-row"><span>Peso atual</span><strong>${fmtKg(wLast.kg)}</strong></div>
-          <div class="rpt-row"><span>Ganho total</span><strong>${wGain>=0?'+':''}${fmtKg(wGain)}</strong></div>`:''}
-          ${wRecent.length?wRecent.map(w=>`<div class="rpt-row"><span>${fmt(new Date(w.date))}</span><strong>${fmtKg(w.kg)}</strong></div>`).join(''):'<div class="rpt-empty">Nenhum registro de peso ainda.</div>'}
-        </div>
-
-        <div class="rpt-section">
           <div class="rpt-section-t"><b>Pressão arterial</b>${bpRecent[0]?`<i>${fmtBP(bpRecent[0].sys,bpRecent[0].dia)}</i>`:''}</div>
           ${bpRecent.length?bpRecent.map(b=>`<div class="rpt-row"><span>${fmt(new Date(b.date))} · ${fmtClock(new Date(b.date))}</span><strong>${fmtBP(b.sys,b.dia)}</strong></div>`).join(''):'<div class="rpt-empty">Nenhum registro de pressão ainda.</div>'}
         </div>
 
-        <div class="rpt-section">
-          <div class="rpt-section-t"><b>Glicemia</b>${gttResult?`<i>TOTG ${gttAnyAltered(gttResult)?'alterada':'normal'}</i>`:(glyRecent[0]?`<i>${fmtGly(glyRecent[0].value)}</i>`:'')}</div>
-          ${gttResult?`<div class="rpt-row"><span>TOTG (${fmt(new Date(gttResult.date))})</span><strong>${gttResult.fasting} / ${gttResult.h1} / ${gttResult.h2} mg/dL${gttAnyAltered(gttResult)?' · Alterada':''}</strong></div>`:''}
-          ${glyRecent.length?glyRecent.map(g=>`<div class="rpt-row"><span>${fmt(new Date(g.date))} · ${GLY_MOMENT_LBL[g.moment]}</span><strong>${fmtGly(g.value)}${glyOutOfTarget(g.moment,g.value)?' ⚠':''}</strong></div>`).join(''):(gttResult?'':'<div class="rpt-empty">Nenhum registro de glicemia ainda.</div>')}
+        <div class="rpt-section rpt-section-cols">
+          <div class="rpt-col">
+            <div class="rpt-section-t"><b>Peso</b>${wRecent[0]?`<i>${fmtKg(wRecent[0].kg)}</i>`:''}</div>
+            ${wGain!=null?`<div class="rpt-row"><span>${wBaseLbl}</span><strong>${fmtKg(wBaseKg)}</strong></div>
+            <div class="rpt-row"><span>Peso atual</span><strong>${fmtKg(wLast.kg)}</strong></div>
+            <div class="rpt-row"><span>Ganho total</span><strong>${wGain>=0?'+':''}${fmtKg(wGain)}</strong></div>`:''}
+            ${wRecent.length?wRecent.map(w=>`<div class="rpt-row"><span>${fmt(new Date(w.date))}</span><strong>${fmtKg(w.kg)}</strong></div>`).join(''):'<div class="rpt-empty">Nenhum registro de peso ainda.</div>'}
+          </div>
+          <div class="rpt-col">
+            <div class="rpt-section-t"><b>Glicemia</b>${gttResult?`<i>TOTG ${gttAnyAltered(gttResult)?'alterada':'normal'}</i>`:(glyRecent[0]?`<i>${fmtGly(glyRecent[0].value)}</i>`:'')}</div>
+            ${gttResult?`<div class="rpt-row"><span>TOTG (${fmt(new Date(gttResult.date))})</span><strong>${gttResult.fasting} / ${gttResult.h1} / ${gttResult.h2} mg/dL${gttAnyAltered(gttResult)?' · Alterada':''}</strong></div>`:''}
+            ${glyRecent.length?glyRecent.map(g=>`<div class="rpt-row"><span>${fmt(new Date(g.date))} · ${GLY_MOMENT_LBL[g.moment]}</span><strong>${fmtGly(g.value)}${glyOutOfTarget(g.moment,g.value)?' ⚠':''}</strong></div>`).join(''):(gttResult?'':'<div class="rpt-empty">Nenhum registro de glicemia ainda.</div>')}
+          </div>
         </div>
 
         <div class="rpt-note">⚠️ Os resultados são informativos e não substituem a avaliação do seu obstetra na consulta.</div>
