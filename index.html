@@ -4379,10 +4379,16 @@ function renderSummary(){
             ${wRecent.length?wRecent.map(w=>`<div class="rpt-row"><span>${fmt(new Date(w.date))}</span><strong>${fmtKg(w.kg)}</strong></div>`).join(''):'<div class="rpt-empty">Nenhum registro de peso ainda.</div>'}
           </div>
           <div class="rpt-col">
-            <div class="rpt-section-t"><b>Glicemia</b>${gttResult?`<i>TOTG ${gttAnyAltered(gttResult)?'alterada':'normal'}</i>`:(glyRecent[0]?`<i>${fmtGly(glyRecent[0].value)}</i>`:'')}</div>
-            ${gttResult?`<div class="rpt-row"><span>TOTG (${fmt(new Date(gttResult.date))})</span><strong>${gttResult.fasting} / ${gttResult.h1} / ${gttResult.h2} mg/dL${gttAnyAltered(gttResult)?' · Alterada':''}</strong></div>`:''}
-            ${glyRecent.length?glyRecent.map(g=>`<div class="rpt-row"><span>${fmt(new Date(g.date))} · ${GLY_MOMENT_LBL[g.moment]}</span><strong>${fmtGly(g.value)}${glyOutOfTarget(g.moment,g.value)?' ⚠':''}</strong></div>`).join(''):(gttResult?'':'<div class="rpt-empty">Nenhum registro de glicemia ainda.</div>')}
+            <div class="rpt-section-t"><b>TOTG</b>${gttResult?`<i>${gttAnyAltered(gttResult)?'Alterada':'Normal'}</i>`:''}</div>
+            ${gttResult?`<div class="rpt-row"><span>Jejum</span><strong>${gttResult.fasting} mg/dL${gttAltered('fasting',gttResult.fasting)?' ⚠':''}</strong></div>
+            <div class="rpt-row"><span>1h</span><strong>${gttResult.h1} mg/dL${gttAltered('h1',gttResult.h1)?' ⚠':''}</strong></div>
+            <div class="rpt-row"><span>2h</span><strong>${gttResult.h2} mg/dL${gttAltered('h2',gttResult.h2)?' ⚠':''}</strong></div>`:'<div class="rpt-empty">Ainda não registrada.</div>'}
           </div>
+        </div>
+
+        <div class="rpt-section">
+          <div class="rpt-section-t"><b>Glicemia capilar</b>${glyRecent[0]?`<i>${fmtGly(glyRecent[0].value)}</i>`:''}</div>
+          ${glyRecent.length?glyRecent.map(g=>`<div class="rpt-row"><span>${fmt(new Date(g.date))} · ${GLY_MOMENT_LBL[g.moment]}</span><strong>${fmtGly(g.value)}${glyOutOfTarget(g.moment,g.value)?' ⚠':''}</strong></div>`).join(''):'<div class="rpt-empty">Nenhum registro de glicemia ainda.</div>'}
         </div>
 
         <div class="rpt-note">⚠️ Os resultados são informativos e não substituem a avaliação do seu obstetra na consulta.</div>
