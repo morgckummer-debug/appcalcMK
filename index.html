@@ -3465,6 +3465,13 @@ function loadContrSessionBreak(){
 function saveContrSessionBreak(ts){
   try{localStorage.setItem(CONTR_SESSION_KEY,String(ts));}catch{}
 }
+/* Ela só abre o monitor quando desconfia de trabalho de parto — não fica
+   com ele aberto o dia todo. Então, além da marca manual de "encerrar
+   monitoramento", qualquer intervalo parado por mais de 1h é tratado como
+   uma nova sessão automaticamente: ninguém lembra de "encerrar" antes de
+   sair do app, e sem isso o próximo uso, dias depois, calcularia o
+   intervalo contra a última contração de semanas atrás. */
+const CONTR_MAX_SANE_GAP_MS=60*60000;
 let contrSessionBreakAt=loadContrSessionBreak();
 
 function fmtClock(d){
@@ -3472,6 +3479,7 @@ function fmtClock(d){
 }
 function fmtGap(ms){
   if(ms==null)return'—';
+  if(ms>CONTR_MAX_SANE_GAP_MS)return'novo período';
   const totalMin=Math.round(ms/60000);
   if(totalMin<1)return'menos de 1 min';
   return totalMin===1?'1 min':`${totalMin} min`;
@@ -3496,7 +3504,7 @@ function contrHelperText(){
    checklist de sinais (não relacionados a tempo) é quem decide o alerta. */
 function computeContrPattern(){
   const recent=contractions.slice(-6);
-  const gaps=recent.map(c=>c.gapMs).filter(g=>g!=null);
+  const gaps=recent.map(c=>c.gapMs).filter(g=>g!=null&&g<=CONTR_MAX_SANE_GAP_MS);
   if(gaps.length<3)return null;
   const avgGap=gaps.reduce((a,b)=>a+b,0)/gaps.length;
   const avgDur=recent.reduce((a,c)=>a+c.ms,0)/recent.length;
@@ -3544,7 +3552,8 @@ function renderContrSheetBody(){
       stopContrTimerLoop();
       const last=contractions[contractions.length-1];
       const lastStart=last?new Date(last.start).getTime():null;
-      const gapMs=(lastStart!=null&&lastStart>contrSessionBreakAt)?contrActive.start-lastStart:null;
+      const rawGapMs=(lastStart!=null&&lastStart>contrSessionBreakAt)?contrActive.start-lastStart:null;
+      const gapMs=(rawGapMs!=null&&rawGapMs<=CONTR_MAX_SANE_GAP_MS)?rawGapMs:null;
       contractions.push({start:new Date(contrActive.start).toISOString(),ms:Date.now()-contrActive.start,gapMs,weeks:currentIG?currentIG.weeks:null});
       saveContractions();
       contrActive=null;
