@@ -444,8 +444,6 @@ body::after{
 .pfe-bar-range span{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:700}
 .pfe-median-note{margin-top:16px;font-size:13px;color:var(--ink2);text-align:center;line-height:1.5}
 .pfe-median-note strong{color:var(--pd2)}
-.pfe-conclusion-note{margin-top:10px;padding-top:10px;border-top:1px solid var(--surf2);font-size:13px;color:var(--ink);text-align:center;line-height:1.5}
-.pfe-conclusion-note strong{color:var(--ink)}
 @keyframes floatOrb{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-5px)}
@@ -2247,15 +2245,6 @@ function classifyPFE(percentile){
   if(percentile>90)return{code:'GIG',label:'GIG · grande pra idade gestacional',tone:'over'};
   return{code:'AIG',label:'AIG · adequado pra idade gestacional',tone:'normal'};
 }
-/* Texto de conclusão do PFE: em vez do percentil exato, usa a faixa em que
-   ele cai (decis de 10 em 10), com os extremos de PIG/GIG destacados. */
-function pfeConclusionText(percentile){
-  if(percentile<=3)return'Peso fetal abaixo do percentil 3 (Hadlock)';
-  if(percentile<10)return'Peso fetal no percentil 5-10 (Hadlock) - Feto PIG';
-  if(percentile>90)return'Peso fetal acima do percentil 90 (Hadlock) - Feto GIG';
-  const lower=percentile===90?80:Math.floor(percentile/10)*10;
-  return`Peso fetal no percentil ${lower}-${lower+10} (Hadlock)`;
-}
 /* IG válida: 20 a 40 semanas (0 a 6 dias). Peso válido: 50 a 6000 g. */
 function fetalWeightPercentile(weeks,days,weightG){
   const gaWeeks=weeks+days/7;
@@ -2879,8 +2868,7 @@ function recomputePFE(){
     <div class="pfe-bar-track"><div class="pfe-bar-thumb" style="left:${r.percentile}%"></div></div>
     <div class="pfe-bar-ticks"><span style="left:10%">P10</span><span style="left:90%">P90</span></div>
     <div class="pfe-bar-range"><span>P1</span><span>Percentil de peso</span><span>P99</span></div>
-    <div class="pfe-median-note">${r.classification.label} — peso mediano (P50) esperado pra essa IG: <strong>${Math.round(r.median).toLocaleString('pt-BR')} g</strong>.</div>
-    <div class="pfe-conclusion-note"><strong>${pfeConclusionText(r.percentile)}</strong></div>`;
+    <div class="pfe-median-note">${r.classification.label} — peso mediano (P50) esperado pra essa IG: <strong>${Math.round(r.median).toLocaleString('pt-BR')} g</strong>.</div>`;
   resEl.classList.remove('hidden');
 }
 ['pfeWeeksInp','pfeDaysInp','pfeWeightInp'].forEach(id=>{
