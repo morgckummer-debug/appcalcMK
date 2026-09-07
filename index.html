@@ -3110,6 +3110,18 @@ function saveExamDone(){
   try{localStorage.setItem(EXAM_DONE_KEY,JSON.stringify(examDone));}catch{}
 }
 const examDone=loadExamDone();
+/* Leitura do resultado do TOTG (registrado na aba Resultados, ver seção
+   "Curva glicêmica" mais abaixo) — precisa estar disponível já aqui, antes
+   do primeiro renderExamGuide(), pra mostrar no card "Curva glicêmica (TOTG)"
+   se o resultado deu alterado (critério de diabetes gestacional). */
+const GTT_KEY='mkcalc_gtt_v1';
+function loadGTT(){
+  try{const raw=localStorage.getItem(GTT_KEY);return raw?JSON.parse(raw):null;}
+  catch{return null;}
+}
+const GTT_CUTOFFS={fasting:92,h1:180,h2:153};
+function gttAltered(field,val){return val>=GTT_CUTOFFS[field];}
+function gttAnyAltered(r){return gttAltered('fasting',r.fasting)||gttAltered('h1',r.h1)||gttAltered('h2',r.h2);}
 // Status do exame: uma marcação manual (checkbox) sempre vence o palpite
 // automático baseado na data; sem marcação, assume-se pela IG atual.
 function examStatus(ex,key){
@@ -3135,6 +3147,13 @@ function examCard(ex,idx,catId){
   const key=`${catId}-${idx}`;
   const st=examStatus(ex,key);
   const checked=st==='done';
+  /* Card do TOTG ('lab-1'): se ela já registrou o resultado (na aba
+     Resultados), mostra aqui se deu alterado — critério de diabetes
+     gestacional (IADPSG) — sem precisar abrir o card de novo. */
+  const gtt=key==='lab-1'?loadGTT():null;
+  const gttBadge=gtt
+    ?`<div class="bmi-pill tone-${gttAnyAltered(gtt)?'ob':'normal'}" style="margin-top:8px">${gttAnyAltered(gtt)?'⚠️ Diabetes gestacional (IADPSG)':'✅ TOTG normal'}</div>`
+    :'';
   return `<button class="exm-card${st?' status-'+st:''}" type="button" data-cat="${catId}" data-idx="${idx}">
     <div class="exm-card-top">
       <div class="exm-name">${ex.name}</div>
@@ -3146,6 +3165,7 @@ function examCard(ex,idx,catId){
     <div class="lbl">Período recomendado</div>
     <div class="exm-periodo">🗓️ ${ex.periodo}</div>
     <div class="exm-desc">${ex.desc}</div>
+    ${gttBadge}
     ${badge}
   </button>`;
 }
@@ -3978,12 +3998,10 @@ renderBPCard();
    IADPSG: basta um valor alterado pra já ser considerado resultado alterado.
    Registrar aqui marca automaticamente o item "Curva glicêmica (TOTG)" como
    feito no Guia de Exames e no Checklist (chave 'lab-1', ver
-   CHECKLIST_EXAM_LINK) — e excluir o registro desmarca de novo. */
-const GTT_KEY='mkcalc_gtt_v1';
-function loadGTT(){
-  try{const raw=localStorage.getItem(GTT_KEY);return raw?JSON.parse(raw):null;}
-  catch{return null;}
-}
+   CHECKLIST_EXAM_LINK) — e excluir o registro desmarca de novo.
+   GTT_KEY, loadGTT, GTT_CUTOFFS, gttAltered e gttAnyAltered ficam declarados
+   mais acima, junto do Guia de Exames — precisam existir antes do primeiro
+   renderExamGuide(), que já usa gttAnyAltered() pra decorar o card do TOTG. */
 function saveGTT(){
   try{
     if(gttResult)localStorage.setItem(GTT_KEY,JSON.stringify(gttResult));
@@ -3991,9 +4009,6 @@ function saveGTT(){
   }catch{}
 }
 let gttResult=loadGTT();
-const GTT_CUTOFFS={fasting:92,h1:180,h2:153};
-function gttAltered(field,val){return val>=GTT_CUTOFFS[field];}
-function gttAnyAltered(r){return gttAltered('fasting',r.fasting)||gttAltered('h1',r.h1)||gttAltered('h2',r.h2);}
 function gttVerdictText(r){
   return gttAnyAltered(r)
     ?'Resultado alterado — pelo menos um valor atingiu o critério diagnóstico de <strong style="color:var(--alert)">diabetes gestacional</strong> (IADPSG). Fale com seu obstetra sobre os próximos passos.'
