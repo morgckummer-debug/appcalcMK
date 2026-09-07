@@ -181,8 +181,13 @@ body::after{
 .stagger > *:nth-child(6){animation-delay:.34s}
 
 /* ── Cards ── */
+/* --surfs (não --surf) de propósito: cards internos (.exm-card, .stat, .wt-stat
+   etc.) usam --surf, então o card externo precisa de um tom mais claro/contrastado
+   pra não "sumir" atrás deles — sem isso, em telas como Exames, onde não há
+   gradiente ou cor própria pra dar contraste, o card fica quase da mesma cor
+   do fundo da página e só a sombra (sutil) sugere que ele existe. */
 .card{
-  background:var(--surf);border-radius:var(--rl);
+  background:var(--surfs);border-radius:var(--rl);
   padding:22px 20px;box-shadow:var(--co);margin-bottom:16px;
   transition:background .3s,box-shadow .3s;
 }
