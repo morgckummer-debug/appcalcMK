@@ -886,7 +886,21 @@ body::after{
 .fring-seg.fol{stroke:#d4b88a}
 .fring-seg.ovu{stroke:var(--pd)}
 .fring-seg.lut{stroke:var(--bd)}
+/* Sobrepõe as fases fisiológicas com a janela fértil real (~6 dias, a
+   mesma calculada no card "Janela fértil"), numa cor vibrante — é a
+   informação que mais importa pra quem está tentando engravidar. */
+.fring-fertwin{fill:none;stroke-width:12;stroke:var(--gold);stroke-linecap:round;filter:drop-shadow(0 0 3px rgba(219,168,56,.55))}
 #fRingMarker{fill:var(--surfs);stroke:var(--pd2);stroke-width:3}
+
+.fring-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 16px;margin-top:14px}
+.fring-legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink2)}
+.fring-legend-item i{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.fring-legend-item i.men{background:#c85a45}
+.fring-legend-item i.fol{background:#d4b88a}
+.fring-legend-item i.fert{background:var(--gold)}
+.fring-legend-item i.lut{background:var(--bd)}
+.fring-today-hint{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:var(--ink3);margin-top:8px}
+.fring-today-hint i{width:9px;height:9px;border-radius:50%;background:var(--surfs);border:2px solid var(--pd2);flex-shrink:0}
 
 /* ── Namorar card ── */
 .namorar-wrap{display:flex;flex-direction:column;gap:12px;margin-top:4px}
@@ -1733,6 +1747,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
               <circle class="fring-seg fol" data-seg="fol" cx="90" cy="90" r="80"/>
               <circle class="fring-seg ovu" data-seg="ovu" cx="90" cy="90" r="80"/>
               <circle class="fring-seg lut" data-seg="lut" cx="90" cy="90" r="80"/>
+              <circle id="fRingFertWin" class="fring-fertwin" cx="90" cy="90" r="80"/>
               <circle id="fRingMarker" cx="90" cy="10" r="7"/>
             </svg>
             <div class="ring-center">
@@ -1742,6 +1757,13 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
               </div>
             </div>
           </div>
+          <div class="fring-legend">
+            <span class="fring-legend-item"><i class="men"></i>Menstruação</span>
+            <span class="fring-legend-item"><i class="fol"></i>Folicular</span>
+            <span class="fring-legend-item"><i class="fert"></i>Período fértil</span>
+            <span class="fring-legend-item"><i class="lut"></i>Lútea</span>
+          </div>
+          <div class="fring-today-hint"><i></i>Marca o seu dia de hoje no ciclo</div>
           <div class="nam-ov-badge" id="fRingPill" style="margin-top:14px">
             <div class="nam-ov-dot"></div>
             <div class="nam-ov-txt" id="fRingPillTxt">—</div>
@@ -3219,6 +3241,17 @@ function renderFertRing(r){
     el.setAttribute('stroke-dasharray',`${arc} ${C-arc}`);
     el.setAttribute('stroke-dashoffset',`${-startOffset}`);
   });
+  // Janela fértil real (mesmos ~6 dias do card "Janela fértil": ovulação-5
+  // até ovulação+1), sobreposta em dourado — não é o mesmo intervalo da
+  // fase "ovulatória" (1 dia só), que é fisiológica, não a previsão prática.
+  const stDay=diffDaysUTC(r.lp,r.st)+1;
+  const enDay=diffDaysUTC(r.lp,r.en)+1;
+  const fertArc=Math.max(0,((enDay-stDay+1)/cd)*C);
+  const fertOffset=((stDay-1)/cd)*C;
+  const fertWinEl=document.getElementById('fRingFertWin');
+  fertWinEl.setAttribute('stroke-dasharray',`${fertArc} ${C-fertArc}`);
+  fertWinEl.setAttribute('stroke-dashoffset',`${-fertOffset}`);
+
   const frac=curDay/cd;
   const theta=frac*2*Math.PI;
   document.getElementById('fRingMarker').setAttribute('cx',(90+80*Math.cos(theta)).toFixed(1));
