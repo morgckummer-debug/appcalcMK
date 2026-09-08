@@ -3340,7 +3340,8 @@ document.getElementById('fcalConfirmOkBtn').addEventListener('click',()=>{
     diDates=diDates.filter(d=>d!==iso);
   }
   diDates.sort();
-  if(diDates.length<2)diDates.push('');
+  const validCount=diDates.length;
+  if(validCount<2)diDates.push('');
   fcalPendingDate=null;fcalPendingMode=null;
   renderDi();
   const r=fertileFromDates(diDates);
@@ -3350,7 +3351,13 @@ document.getElementById('fcalConfirmOkBtn').addEventListener('click',()=>{
   }else{
     document.getElementById('fertResult').classList.add('hidden');
     document.getElementById('fertFormCard').classList.remove('hidden');
-    showToast('Precisamos de pelo menos 2 datas — complete a lista pra recalcular',3000);
+    // diDates.length<2 é o único caso em que falta data mesmo; com 2+ datas,
+    // o problema é o intervalo entre elas (curto ou longo demais), não a
+    // quantidade — a mensagem antiga confundia os dois casos.
+    const msg=validCount<2
+      ?'Precisamos de pelo menos 2 datas — complete a lista pra recalcular'
+      :'Essa data ficou muito perto (ou muito longe) de outra menstruação registrada — um ciclo válido tem entre 18 e 50 dias. Ajuste a lista abaixo.';
+    showToast(msg,3800);
   }
 });
 document.getElementById('fcalConfirmCancelBtn').addEventListener('click',()=>{
