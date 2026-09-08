@@ -862,6 +862,20 @@ body::after{
 .fc .val{font-family:'Fraunces',serif;font-size:16px;line-height:1.3}
 .fc .sub{font-size:11px;color:var(--ink2);margin-top:4px}
 
+.fert-alert{border-radius:14px;padding:13px 14px;margin:14px 0 0;background:var(--alert-bg);border:1px solid rgba(193,79,58,.28)}
+.fert-alert-title{font-size:13px;font-weight:700;color:var(--alert);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.fert-alert-body{font-size:11.5px;color:var(--ink2);line-height:1.5}
+
+/* Anel do dia do ciclo — mesma linguagem visual do anel de IG (ring-wrap/
+   ring-box/ring-center), com os 4 segmentos coloridos por fase em vez de
+   um único gradiente, pra dar de cara a fase em que a paciente está hoje. */
+.fring-seg{fill:none;stroke-width:12}
+.fring-seg.men{stroke:#e5b4a8}
+.fring-seg.fol{stroke:#d4b88a}
+.fring-seg.ovu{stroke:var(--pd)}
+.fring-seg.lut{stroke:var(--bd)}
+#fRingMarker{fill:var(--surfs);stroke:var(--pd2);stroke-width:3}
+
 /* ── Namorar card ── */
 .namorar-wrap{display:flex;flex-direction:column;gap:12px;margin-top:4px}
 .nam-hero{
@@ -1659,6 +1673,29 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div class="card feat">
         <div class="lbl">Período fértil</div>
         <div class="card-title">Sua janela de <span class="serif" style="color:var(--pd);font-style:italic">maior fertilidade</span></div>
+        <div class="ring-wrap">
+          <div class="ring-box">
+            <div class="ring-bg-el"></div>
+            <svg class="ring-svg" width="180" height="180" viewBox="0 0 180 180">
+              <circle cx="90" cy="90" r="80" fill="none" stroke="var(--surf2)" stroke-width="12"/>
+              <circle class="fring-seg men" data-seg="men" cx="90" cy="90" r="80"/>
+              <circle class="fring-seg fol" data-seg="fol" cx="90" cy="90" r="80"/>
+              <circle class="fring-seg ovu" data-seg="ovu" cx="90" cy="90" r="80"/>
+              <circle class="fring-seg lut" data-seg="lut" cx="90" cy="90" r="80"/>
+              <circle id="fRingMarker" cx="90" cy="10" r="7"/>
+            </svg>
+            <div class="ring-center">
+              <div>
+                <div class="ig-big serif" id="fDayBig"><em style="color:var(--pd2)">—</em></div>
+                <div class="ig-unit" id="fDayUnit">Dia do ciclo</div>
+              </div>
+            </div>
+          </div>
+          <div class="nam-ov-badge" id="fRingPill" style="margin-top:14px">
+            <div class="nam-ov-dot"></div>
+            <div class="nam-ov-txt" id="fRingPillTxt">—</div>
+          </div>
+        </div>
         <div class="day1">
           <div class="d1b">1</div>
           <div><strong>O dia 1 é o primeiro dia da menstruação.</strong><br><span style="color:var(--ink2)">Toda contagem começa daí — não do fim.</span></div>
@@ -1667,7 +1704,37 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
           <div class="fc peak"><div class="lbl">Próxima ovulação</div><div class="val serif" id="fOv">—</div><div class="sub" id="fOvSub">—</div></div>
           <div class="fc"><div class="lbl">Janela fértil</div><div class="val serif" id="fJan">—</div><div class="sub">~6 dias com maior chance</div></div>
         </div>
+        <div class="fert-alert hidden" id="fertIrregWarn">
+          <div class="fert-alert-title">⚠️ Ciclo irregular</div>
+          <div class="fert-alert-body" id="fertIrregBody"></div>
+        </div>
       </div>
+
+      <div class="card" id="fcalCard">
+        <div class="lbl">Calendário</div>
+        <div class="card-title">Seus dias <span class="serif" style="color:var(--pd);font-style:italic">marcados</span></div>
+        <div class="fcal-wrap">
+          <div class="fcal-nav">
+            <button class="fcal-nav-btn" id="fcalPrevBtn" type="button" aria-label="Mês anterior">‹</button>
+            <div class="fcal-month" id="fcalMonthLbl">—</div>
+            <button class="fcal-nav-btn" id="fcalNextBtn" type="button" aria-label="Próximo mês">›</button>
+          </div>
+          <div class="fcal-grid" id="fcalGrid"></div>
+          <div class="fcal-legend">
+            <div class="fcal-leg-item"><span class="fcal-leg-dot men"></span>Menstruação</div>
+            <div class="fcal-leg-item"><span class="fcal-leg-dot fert"></span>Janela fértil</div>
+            <div class="fcal-leg-item"><span class="fcal-leg-dot ov"></span>Ovulação</div>
+            <div class="fcal-leg-item"><span class="fcal-leg-dot nmen"></span>Próxima menstruação</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="phasesCard">
+        <div class="lbl">Entenda seu corpo</div>
+        <div class="card-title">As 4 fases do <span class="serif" style="color:var(--pd);font-style:italic">seu ciclo</span></div>
+        <div class="phases" id="phasesWrap"></div>
+      </div>
+
       <div class="card" id="namorarCard">
         <div class="lbl">✨ Dica especial</div>
         <div class="card-title">A melhor semana para <span class="serif" style="color:var(--pd);font-style:italic">namorar</span> 💕</div>
@@ -2127,7 +2194,34 @@ function fertileFromDates(arr){
   const ov=new Date(np);ov.setDate(ov.getDate()-14);
   const st=new Date(ov);st.setDate(st.getDate()-5);
   const en=new Date(ov);en.setDate(en.getDate()+1);
-  return{ov,st,en,cd,np};
+  // Ciclo considerado irregular quando os intervalos válidos variam mais de
+  // 7 dias entre si — variação clinicamente usada como sinal de irregularidade.
+  const irregular=vg.length>=2&&(Math.max(...vg)-Math.min(...vg))>7;
+  const discarded=gaps.length-vg.length;
+  return{ov,st,en,cd,np,lp,dates,irregular,gapMin:Math.min(...vg),gapMax:Math.max(...vg),discarded};
+}
+
+/* Fases do ciclo, em dias a partir do dia 1 (primeiro dia da menstruação).
+   A fase menstrual (~5 dias) e a fase lútea (~14 dias antes da próxima
+   menstruação) são relativamente constantes; quem varia de ciclo pra ciclo
+   é sobretudo a fase folicular — por isso a ovulação é calculada "de trás
+   pra frente", a partir da duração do ciclo. */
+function computePhases(cd){
+  const menEnd=5;
+  const folStart=menEnd+1;
+  const ovDay=Math.max(folStart,cd-13);
+  const folEnd=Math.max(folStart,ovDay-1);
+  const lutStart=ovDay+1;
+  const lutEnd=Math.max(lutStart,cd);
+  return[
+    {key:'men',name:'Menstrual',start:1,end:menEnd,desc:'A menstruação desce e o ciclo recomeça — os hormônios estão nos níveis mais baixos.'},
+    {key:'fol',name:'Folicular',start:folStart,end:folEnd,desc:'O corpo se prepara pra uma nova ovulação e o endométrio volta a crescer.'},
+    {key:'ovu',name:'Ovulatória',start:ovDay,end:ovDay,desc:'O óvulo é liberado — é o pico de fertilidade do seu ciclo.'},
+    {key:'lut',name:'Lútea',start:lutStart,end:lutEnd,desc:'Se não houver gravidez, os hormônios caem e um novo ciclo se inicia com a próxima menstruação.'}
+  ];
+}
+function phaseRangeLabel(p){
+  return p.start===p.end?`Dia ${p.start}`:`Dias ${p.start}–${p.end}`;
 }
 
 const MS={4:{f:'semente de papoula',l:'0.4 cm',w:'< 1 g',d:'Implantação. Coração começa a se formar.'},6:{f:'lentilha',l:'0.6 cm',w:'< 1 g',d:'Batimentos cardíacos detectáveis na maioria das vezes. Tubo neural se fecha.'},8:{f:'framboesa',l:'1.6 cm',w:'1 g',d:'Bracinhos e perninhas surgem. Olhinhos se formam. Primeiros reflexos (movimentos involuntários) já aparecem.'},10:{f:'morango',l:'3.1 cm',w:'5 g',d:'Já é chamado de feto. Órgãos vitais funcionando. Rins começam a produzir urina.'},12:{f:'limão',l:'5.4 cm',w:'50 g',d:'Fim do 1º tri. Risco de perda cai.'},14:{f:'pêssego',l:'8.7 cm',w:'92 g',d:'Genitália externa já é distinguível.'},16:{f:'abacate',l:'11.6 cm',w:'155 g',d:'Esqueleto já está praticamente todo calcificado. Lanugo começa a aparecer.'},18:{f:'pimentão',l:'14.2 cm',w:'244 g',d:'Começa a ouvir sons abafados.'},20:{f:'banana',l:'16.4 cm',w:'362 g',d:'Metade da jornada! Mamãe começa a sentir os primeiros movimentos do bebê.'},22:{f:'espiga de milho',l:'27.8 cm',w:'514 g',d:'Sobrancelhas e cílios visíveis. Lanugo mais evidente, cobrindo o corpo. USG Morfológico do 2º trimestre nesta fase.'},24:{f:'milho doce',l:'30 cm',w:'702 g',d:'Pulmões em formação, crescendo rápido. Já escuta bem.'},26:{f:'alface americana',l:'35.6 cm',w:'927 g',d:'Abre os olhinhos. Responde a luzes.'},28:{f:'berinjela',l:'37.6 cm',w:'1.190 g',d:'3º tri. Entra em ciclos de sono REM. Cérebro em aceleração.'},30:{f:'repolho',l:'39.9 cm',w:'1.488 g',d:'Reconhece a voz da mamãe. Ganha ~200 g/sem.'},32:{f:'jicama',l:'42.4 cm',w:'1.815 g',d:'Unhas formadas. Pele mais suave.'},34:{f:'melão cantalupe',l:'45 cm',w:'2.165 g',d:'Sistema nervoso amadurecendo. Gordura aumenta.'},36:{f:'mamão papaia',l:'47.4 cm',w:'2.526 g',d:'Quase a termo. Pode encaixar na pelve.'},38:{f:'alho-poró',l:'49.8 cm',w:'2.886 g',d:'Pulmões prontos. Posição de cabeça para baixo.'},40:{f:'abóbora pequena',l:'51.2 cm',w:'3.230 g',d:'A termo. Todos os sistemas prontos.'}};
@@ -2782,6 +2876,22 @@ function loadStoredPregnancy(){
   goToPage('home');
 }
 
+/* ── Datas do ciclo (período fértil), persistidas p/ a paciente não ter
+   que redigitar tudo toda vez que abrir o app — inclusive antes de
+   engravidar, quando esse é o uso mais frequente do app. ── */
+const FERT_KEY='mkcalc_fertile_v1';
+function loadFertileDates(){
+  try{
+    const raw=localStorage.getItem(FERT_KEY);
+    if(!raw)return null;
+    const parsed=JSON.parse(raw);
+    return Array.isArray(parsed.dates)?parsed.dates:null;
+  }catch{return null;}
+}
+function saveFertileDates(){
+  try{localStorage.setItem(FERT_KEY,JSON.stringify({dates:diDates}));}catch{}
+}
+
 document.getElementById('resetPregBtn').addEventListener('click',async()=>{
   const ok=confirm('Isso vai apagar, só neste aparelho, a idade gestacional salva, o nome e sexo do bebê, os exames marcados, a checklist, os movimentos, as contrações, as fotos da barriga e os registros de peso, pressão, curva glicêmica e glicemia capilar — pra você recomeçar do zero em uma nova gestação.\n\nDeseja continuar?');
   if(!ok)return;
@@ -2881,7 +2991,16 @@ function recomputePFE(){
 });
 
 /* ── Fertil dates ── */
-let diDates=['',''];
+let diDates=loadFertileDates()||['',''];
+if(diDates.length<2)diDates=diDates.concat(Array(2-diDates.length).fill(''));
+function applyCycleStats(r){
+  const statsEl=document.getElementById('cycleStats');
+  if(!r){statsEl.classList.add('hidden');return;}
+  statsEl.classList.remove('hidden');
+  document.getElementById('csAvg').textContent=r.cd+' d';
+  document.getElementById('csOv').textContent=fmtS(r.ov);
+  document.getElementById('csNp').textContent=fmtS(r.np);
+}
 function renderDi(){
   const el=document.getElementById('diList');el.innerHTML='';
   diDates.forEach((d,i)=>{
@@ -2896,6 +3015,8 @@ function renderDi(){
     row.querySelector('.di-rm').addEventListener('click',()=>{if(diDates.length>2){diDates.splice(i,1);renderDi();runCalc();}});
     el.appendChild(row);
   });
+  saveFertileDates();
+  applyCycleStats(fertileFromDates(diDates));
 }
 function applyMaskDi(el,i){
   el.addEventListener('input',()=>{
@@ -2950,6 +3071,109 @@ function runCalc(){
 }
 
 function goResult(){goToPage('result');}
+
+/* ── Anel do dia do ciclo ── */
+function renderFertRing(r){
+  const dayOfCycle=Math.max(1,diffDaysUTC(r.lp,TODAY)+1);
+  const cd=r.cd;
+  const phases=computePhases(cd);
+  const curDay=Math.min(dayOfCycle,cd);
+  const curPhase=phases.find(p=>curDay>=p.start&&curDay<=p.end)||phases[phases.length-1];
+  const C=2*Math.PI*80;
+  phases.forEach(p=>{
+    const el=document.querySelector(`.fring-seg[data-seg="${p.key}"]`);
+    const lenDays=p.end-p.start+1;
+    // -1px entre segmentos só pra dar uma respirada visual entre as cores
+    const arc=Math.max(0,(lenDays/cd)*C-1);
+    const startOffset=((p.start-1)/cd)*C;
+    el.setAttribute('stroke-dasharray',`${arc} ${C-arc}`);
+    el.setAttribute('stroke-dashoffset',`${-startOffset}`);
+  });
+  const frac=curDay/cd;
+  const theta=frac*2*Math.PI;
+  document.getElementById('fRingMarker').setAttribute('cx',(90+80*Math.cos(theta)).toFixed(1));
+  document.getElementById('fRingMarker').setAttribute('cy',(90+80*Math.sin(theta)).toFixed(1));
+
+  document.getElementById('fDayBig').innerHTML=`<em style="color:var(--pd2)">${curDay}</em>`;
+  document.getElementById('fDayUnit').textContent=`Dia do ciclo · Fase ${curPhase.name.toLowerCase()}`;
+
+  const diffToOv=diffDaysUTC(TODAY,r.ov);
+  const pillTxt=document.getElementById('fRingPillTxt');
+  if(diffToOv>0){
+    pillTxt.innerHTML=`<strong>${diffToOv} ${diffToOv===1?'dia':'dias'}</strong> até a sua ovulação`;
+  }else if(diffToOv===0){
+    pillTxt.innerHTML=`<strong>Hoje é o pico</strong> da sua fertilidade`;
+  }else{
+    const diffToNp=diffDaysUTC(TODAY,r.np);
+    pillTxt.innerHTML=diffToNp>0?`Fase lútea · próxima menstruação prevista em <strong>${diffToNp} dias</strong>`:'Sua próxima menstruação já era esperada';
+  }
+}
+
+/* ── As 4 fases do ciclo ── */
+function renderPhases(r){
+  const wrap=document.getElementById('phasesWrap');
+  wrap.innerHTML=computePhases(r.cd).map(p=>`
+    <div class="phase ${p.key}">
+      <div class="ph-orb"></div>
+      <div class="ph-info">
+        <div class="ph-day">${phaseRangeLabel(p)}</div>
+        <div class="ph-name serif">${p.name}</div>
+        <div class="ph-desc">${p.desc}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ── Calendário visual do ciclo ── */
+const MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+let fcalCycleInfo=null; // {recordedDates:[iso...], lp:iso, cd:number}
+let fcalBaseYear=TODAY.getFullYear();
+let fcalBaseMonth=TODAY.getMonth();
+function fcalDayKind(iso,dt){
+  const{recordedDates,lp,cd}=fcalCycleInfo;
+  if(recordedDates.includes(iso))return'past-men';
+  const lpDate=new Date(lp+'T12:00:00');
+  const diff=diffDaysUTC(lpDate,dt);
+  if(diff<0)return null; // não projeta fertilidade antes do último registro real
+  if(diff>0&&diff%cd===0)return'next-men'; // início de ciclo projetado
+  const k=Math.floor(diff/cd);
+  const nextPeriodOffset=(k+1)*cd;
+  const ovOffset=nextPeriodOffset-14;
+  const stOffset=ovOffset-5;
+  const enOffset=ovOffset+1;
+  if(diff===ovOffset)return'ovulation';
+  if(diff>=stOffset&&diff<=enOffset)return'fertile';
+  return null;
+}
+function renderFcal(){
+  const grid=document.getElementById('fcalGrid');
+  const monthLbl=document.getElementById('fcalMonthLbl');
+  if(!fcalCycleInfo){grid.innerHTML='';monthLbl.textContent='—';return;}
+  monthLbl.textContent=`${MONTHS_PT[fcalBaseMonth]} de ${fcalBaseYear}`;
+  const first=new Date(fcalBaseYear,fcalBaseMonth,1);
+  const startDow=first.getDay();
+  const daysInMonth=new Date(fcalBaseYear,fcalBaseMonth+1,0).getDate();
+  const todayISO=toISO(TODAY);
+  let html='';
+  ['D','S','T','Q','Q','S','S'].forEach(d=>html+=`<div class="fcal-dow">${d}</div>`);
+  for(let i=0;i<startDow;i++)html+=`<div class="fcal-day empty"></div>`;
+  for(let day=1;day<=daysInMonth;day++){
+    const dt=new Date(fcalBaseYear,fcalBaseMonth,day);
+    const iso=toISO(dt);
+    const kind=fcalDayKind(iso,dt);
+    let cls='fcal-day '+(kind||'normal');
+    if(iso===todayISO)cls+=' today-mark';
+    html+=`<div class="${cls}">${day}</div>`;
+  }
+  grid.innerHTML=html;
+}
+document.getElementById('fcalPrevBtn').addEventListener('click',()=>{
+  fcalBaseMonth--;if(fcalBaseMonth<0){fcalBaseMonth=11;fcalBaseYear--;}
+  renderFcal();
+});
+document.getElementById('fcalNextBtn').addEventListener('click',()=>{
+  fcalBaseMonth++;if(fcalBaseMonth>11){fcalBaseMonth=0;fcalBaseYear++;}
+  renderFcal();
+});
 
 /* ── Animated ring draw ── */
 function animateRing(pct){
@@ -3069,10 +3293,26 @@ function renderFertilResult(r){
   document.getElementById('fOv').textContent=fmt(r.ov);
   document.getElementById('fOvSub').textContent=`Dia ${r.cd-14} · pico de fertilidade`;
   document.getElementById('fJan').textContent=`${fmt(r.st)} → ${fmt(r.en)}`;
-  document.getElementById('cycleStats').classList.remove('hidden');
-  document.getElementById('csAvg').textContent=r.cd+' d';
-  document.getElementById('csOv').textContent=fmtS(r.ov);
-  document.getElementById('csNp').textContent=fmtS(r.np);
+  applyCycleStats(r);
+
+  const irregWarn=document.getElementById('fertIrregWarn');
+  if(r.irregular||r.discarded>0){
+    let msg='';
+    if(r.irregular)msg+=`Seus ciclos variaram entre ${r.gapMin} e ${r.gapMax} dias nos últimos registros — isso sugere um ciclo irregular, e a previsão de ovulação fica menos precisa nesses casos. `;
+    if(r.discarded>0)msg+=`${r.discarded===1?'Uma data informada ficou':'Algumas datas informadas ficaram'} fora do intervalo típico de um ciclo (18 a 50 dias) e ${r.discarded===1?'foi ignorada':'foram ignoradas'} no cálculo. `;
+    msg+='Vale conversar com seu obstetra sobre a regularidade do seu ciclo.';
+    document.getElementById('fertIrregBody').textContent=msg;
+    irregWarn.classList.remove('hidden');
+  }else{
+    irregWarn.classList.add('hidden');
+  }
+
+  renderFertRing(r);
+  renderPhases(r);
+  fcalCycleInfo={recordedDates:r.dates.map(toISO),lp:toISO(r.lp),cd:r.cd};
+  fcalBaseYear=TODAY.getFullYear();
+  fcalBaseMonth=TODAY.getMonth();
+  renderFcal();
 
   // Melhor semana para namorar
   const namorarWrap=document.getElementById('namorarWrap');
@@ -4831,7 +5071,7 @@ refreshPremiumGating();
    ══════════════════════════════════════════ */
 const CONSENT_KEY='mkcalc_consent_v1';
 const CONSENT_VERSION='1.0';
-const ALL_LOCAL_DATA_KEYS=[PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY,GTT_KEY,GLY_KEY,PREMIUM_KEY];
+const ALL_LOCAL_DATA_KEYS=[PREG_KEY,PROFILE_KEY,STORAGE_KEY,EXAM_DONE_KEY,KICK_KEY,CONTR_KEY,ONB_KEY,WEIGHT_KEY,BP_KEY,GTT_KEY,GLY_KEY,PREMIUM_KEY,FERT_KEY];
 
 function loadConsent(){
   try{const raw=localStorage.getItem(CONSENT_KEY);return raw?JSON.parse(raw):null;}
