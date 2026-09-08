@@ -1280,7 +1280,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
     <div class="home-greet">
       <div class="home-greet-txt">
         <div class="lbl" id="homeGreetLbl">Bom dia</div>
-        <div class="card-title" id="homeGreetTitle" style="margin-bottom:0">Vamos ver sua gestação?</div>
+        <div class="card-title" id="homeGreetTitle" style="margin-bottom:0">Que bom ter você aqui!</div>
       </div>
       <div class="home-avatar" id="homeAvatar">🤰</div>
     </div>
@@ -1335,9 +1335,10 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 
     <div class="card" id="homeEmpty" style="text-align:center;padding:48px 24px">
       <div style="font-size:48px;margin-bottom:16px">🌸</div>
-      <div class="serif" style="font-size:22px;color:var(--ink2);margin-bottom:8px">Vamos começar?</div>
-      <div style="font-size:14px;color:var(--ink3);line-height:1.6;margin-bottom:18px">Calcule sua idade gestacional pra desbloquear seu painel do dia a dia.</div>
-      <button class="btn-calc" id="homeEmptyBtn" style="max-width:280px;margin:0 auto">Calcular agora →</button>
+      <div class="serif" style="font-size:22px;color:var(--ink2);margin-bottom:8px">Qual é o seu momento agora?</div>
+      <div style="font-size:14px;color:var(--ink3);line-height:1.6;margin-bottom:18px">Escolha o que você quer acompanhar pra desbloquear seu painel do dia a dia.</div>
+      <button class="onb-cta" id="homeGoalFertilBtn" style="max-width:320px;margin:0 auto">✨ Quero monitorar meu período fértil</button>
+      <button class="btn-calc" id="homeGoalGravidaBtn" style="max-width:320px;margin:0 auto">🤰 Já estou grávida, quero acompanhar</button>
     </div>
   </div>
 
@@ -2616,7 +2617,7 @@ function renderHome(){
   const empty=document.getElementById('homeEmpty');
   const content=document.getElementById('homeContent');
   if(!ig){
-    document.getElementById('homeGreetTitle').textContent=first?`Oi, ${first}!`:'Vamos ver sua gestação?';
+    document.getElementById('homeGreetTitle').textContent=first?`Oi, ${first}!`:'Que bom ter você aqui!';
     empty.classList.remove('hidden');
     content.classList.add('hidden');
     return;
@@ -2665,6 +2666,15 @@ function showCalcPage(){
   document.getElementById('calcBackRow').classList.toggle('hidden',!loadPregnancy());
   goToPage('calc');
 }
+function goToCalcTab(tab){
+  showCalcPage();
+  const tabBtn=document.querySelector(`.ctab[data-tab="${tab}"]`);
+  if(tabBtn)tabBtn.click();
+  setTimeout(()=>{
+    const focusEl=tab==='fertil'?document.querySelector('.di-inp'):document.getElementById('lmpInp');
+    if(focusEl)focusEl.focus();
+  },320);
+}
 function openResultSection(cardId,headId,bodyId,chevId){
   goToPage('result');
   requestAnimationFrame(()=>{
@@ -2677,7 +2687,8 @@ function openResultSection(cardId,headId,bodyId,chevId){
     document.getElementById(cardId).scrollIntoView({behavior:'smooth',block:'start'});
   });
 }
-document.getElementById('homeEmptyBtn').addEventListener('click',showCalcPage);
+document.getElementById('homeGoalFertilBtn').addEventListener('click',()=>goToCalcTab('fertil'));
+document.getElementById('homeGoalGravidaBtn').addEventListener('click',()=>goToCalcTab('dum'));
 document.getElementById('homeQuickRecalc').addEventListener('click',showCalcPage);
 document.getElementById('recalcBtn').addEventListener('click',showCalcPage);
 document.getElementById('calcBackBtn').addEventListener('click',()=>goToPage('home'));
@@ -3061,7 +3072,9 @@ function runCalc(){
     fertRes=fertileFromDates(diDates);
     if(!fertRes){showToast('Datas inválidas ou muito próximas',2000);return;}
     renderFertilResult(fertRes);
-    goResult();return;
+    goResult();
+    resumeOnboardingAfterCalc();
+    return;
   }
   if(ig&&ig.totalDays>MAX_WEEKS*7){
     showToast('Essa data resulta em mais de 42 semanas de gestação. Confira a data informada.',3000);
@@ -4676,11 +4689,14 @@ document.getElementById('summaryPrintBtn').addEventListener('click',()=>{
 /* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
 const ONB_KEY='mkcalc_onboarded';
 const ONBOARDING_STEPS=[
-  {ico:'🤰',title:'Bem-vinda ao Baby-MK!',desc:'Um app simples pra acompanhar sua gestação: idade gestacional, período fértil, exames e muito mais.'},
+  {ico:'🌸',title:'Bem-vinda ao Baby-MK!',desc:'Um app pra te acompanhar do período fértil à gestação. Me conta: qual é o seu momento agora?',
+    choices:[
+      {label:'✨ Quero monitorar meu período fértil',tab:'fertil'},
+      {label:'🤰 Já estou grávida e quero acompanhar minha gravidez',tab:'dum'}
+    ]},
   {ico:'📝',title:'Antes de começar...',desc:'Coloque seu nome completo e sua data de nascimento. Assim, o resumo que você mostra ao seu obstetra já vem com sua identificação e idade.',form:true},
-  {ico:'📅',title:'Qual sua idade gestacional?',desc:'Você pode informar pela <strong>DUM</strong>, pelo <strong>1º ultrassom</strong> ou pela <strong>DPP</strong>. A partir daí, o app calcula sua idade gestacional sozinho — sempre atualizada, toda vez que você abrir.',cta:'Informar agora',ctaPage:'calc'},
-  {ico:'🧭',title:'Use as abas aqui embaixo',desc:'Início, Painel, Exames e Checklist ficam sempre a um toque de distância, na barra de navegação. A aba Início traz o resumo da sua semana, seu próximo exame e seu checklist, tudo num só lugar.'},
-  {ico:'🧸',title:'Personalize na aba Perfil',desc:'Coloque aqui o nome e o sexo do seu bebê.'},
+  {ico:'🧭',title:'Use as abas aqui embaixo',desc:'Início, Painel, Exames e Checklist ficam sempre a um toque de distância, na barra de navegação. A aba Início traz seu resumo do dia a dia — período fértil ou gestação, dependendo do que você estiver acompanhando.'},
+  {ico:'🧸',title:'Personalize na aba Perfil',desc:'Quando estiver grávida, é lá que você coloca o nome e o sexo do bebê.'},
   {ico:'✨',title:'Pronto!',desc:'Você já pode começar. Sempre que quiser rever este tutorial, é só tocar no <span class="onb-help-mark">?</span> lá em cima. Começando uma <strong>nova gestação</strong>? Na aba Perfil tem a opção "Começar nova gestação", que apaga os dados antigos pra você recomeçar do zero.'}
 ];
 let onbStep=0;
@@ -4698,7 +4714,18 @@ function renderOnb(){
     <div class="field" style="text-align:left"><label>Data de nascimento</label>
       <input class="inp" type="date" id="onbPatientDobInp" max="${toISO(TODAY)}">
     </div>`:''}
-    ${s.cta?`<button class="onb-cta" id="onbCta">${s.cta}</button>`:''}`;
+    ${s.cta?`<button class="onb-cta" id="onbCta">${s.cta}</button>`:''}
+    ${s.choices?s.choices.map((c,i)=>`<button class="onb-cta" data-choice-i="${i}">${c.label}</button>`).join(''):''}`;
+  if(s.choices){
+    document.querySelectorAll('#onbBody [data-choice-i]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const tab=s.choices[+btn.dataset.choiceI].tab;
+        document.getElementById('onbOverlay').classList.remove('show');
+        onbPendingResume=true;
+        goToCalcTab(tab);
+      });
+    });
+  }
   if(s.form){
     document.getElementById('onbPatientNameInp').value=profile.patientName||'';
     document.getElementById('onbPatientDobInp').value=profile.patientDOB||'';
