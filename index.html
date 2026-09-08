@@ -17,6 +17,7 @@
   --blue:#b9c8d6;--bd:#6f8ba3;
   --track:var(--blue);--track2:var(--bd);
   --rose:#f0c9c0;
+  --period:#e0654f;
   --alert:#c14f3c;--alert-bg:#f7ded6;
   --good:#5f8f5a;--good-bg:#dfead9;
   --gold:#dba838;--gold-bg:#f6e6c4;
@@ -39,6 +40,7 @@
   --peach:#c8845a;--pd:#b06a40;--pd2:#a05830;
   --blue:#3d5568;--bd:#5a7a96;
   --rose:#7a4a42;
+  --period:#d97a68;
   --alert:#e2735c;--alert-bg:#3a231e;
   --good:#7fae74;--good-bg:#233524;
   --gold:#e0b158;--gold-bg:#3d3018;
@@ -870,7 +872,7 @@ body::after{
    ring-box/ring-center), com os 4 segmentos coloridos por fase em vez de
    um único gradiente, pra dar de cara a fase em que a paciente está hoje. */
 .fring-seg{fill:none;stroke-width:12}
-.fring-seg.men{stroke:#e5b4a8}
+.fring-seg.men{stroke:#c85a45}
 .fring-seg.fol{stroke:#d4b88a}
 .fring-seg.ovu{stroke:var(--pd)}
 .fring-seg.lut{stroke:var(--bd)}
@@ -933,7 +935,7 @@ body::after{
 }
 .phase:hover{transform:translateX(4px)}
 .ph-orb{width:42px;height:42px;border-radius:50%;flex-shrink:0;margin-top:2px}
-.phase.men .ph-orb{background:radial-gradient(circle at 30% 25%,#fad9d0,var(--rose) 50%,#e5b4a8);box-shadow:3px 4px 8px rgba(229,180,168,.35)}
+.phase.men .ph-orb{background:radial-gradient(circle at 30% 25%,#fbe0da,var(--period) 50%,#c85a45);box-shadow:3px 4px 8px rgba(200,90,69,.35)}
 .phase.fol .ph-orb{background:radial-gradient(circle at 30% 25%,#fff0d8,var(--cream2) 60%,#d4b88a);box-shadow:3px 4px 8px rgba(168,134,100,.25)}
 .phase.ovu .ph-orb{background:radial-gradient(circle at 30% 25%,#fde3d0,var(--peach) 60%,var(--pd));box-shadow:3px 4px 8px rgba(217,149,112,.35)}
 .phase.lut .ph-orb{background:radial-gradient(circle at 30% 25%,#dce6ee,var(--blue) 60%,var(--bd));box-shadow:3px 4px 8px rgba(111,139,163,.3)}
@@ -969,8 +971,8 @@ body::after{
 .fcal-day.empty{background:transparent;box-shadow:none}
 .fcal-day.normal{background:var(--surf2);box-shadow:var(--ci)}
 .fcal-day.past-men{
-  background:radial-gradient(circle at 35% 30%,#fde8e4,var(--rose) 70%);
-  color:var(--ink);box-shadow:2px 3px 7px rgba(229,180,168,.3);
+  background:radial-gradient(circle at 35% 30%,#fbe0da,var(--period) 70%);
+  color:var(--ink);box-shadow:2px 3px 7px rgba(200,90,69,.3);
 }
 .fcal-day.fertile{
   background:linear-gradient(135deg,#fff3e0,var(--peach) 80%);
@@ -988,8 +990,8 @@ body::after{
   50%{box-shadow:3px 5px 18px rgba(217,149,112,.75),0 0 0 3px rgba(217,149,112,.18)}
 }
 .fcal-day.next-men{
-  background:radial-gradient(circle at 35% 30%,#fce4e0,var(--rose) 60%,#e0a098);
-  color:var(--ink);box-shadow:2px 3px 7px rgba(229,180,168,.3);
+  background:radial-gradient(circle at 35% 30%,#fad9d2,var(--period) 60%,#c56b56);
+  color:var(--ink);box-shadow:2px 3px 7px rgba(200,90,69,.3);
 }
 .fcal-day.today-mark{
   outline:2px solid var(--pd2);outline-offset:1px;
@@ -1001,10 +1003,15 @@ body::after{
 .fcal-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .fcal-leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink2);font-weight:600}
 .fcal-leg-dot{width:12px;height:12px;border-radius:4px;flex-shrink:0}
-.fcal-leg-dot.men{background:var(--rose)}
+.fcal-leg-dot.men{background:var(--period)}
 .fcal-leg-dot.fert{background:var(--peach)}
 .fcal-leg-dot.ov{background:var(--pd)}
-.fcal-leg-dot.nmen{background:#e0a098}
+.fcal-leg-dot.nmen{background:#c56b56}
+
+.fcal-day.tappable{cursor:pointer}
+.fcal-day.selected{outline:3px solid var(--pd2);outline-offset:2px;transform:scale(1.08);z-index:1}
+.fcal-confirm{margin-top:14px;padding:16px;border-radius:16px;background:var(--surf2);box-shadow:var(--ci)}
+.fcal-confirm-txt{font-size:13px;color:var(--ink2);line-height:1.5;margin-bottom:10px;text-align:center}
 
 /* Checklist */
 .chk-prog{height:6px;background:var(--surf2);border-radius:var(--pill);box-shadow:var(--ci);overflow:hidden;margin-bottom:6px}
@@ -1066,7 +1073,7 @@ body::after{
   padding:10px 14px;background:var(--surf2);border-radius:16px;box-shadow:var(--ci);
   transition:background .3s;
 }
-.di-idx{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fad9d0,var(--rose) 60%,#e5b4a8);color:white;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0}
+.di-idx{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fbe0da,var(--period) 60%,#c85a45);color:white;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0}
 .di-inp{background:transparent;border:none;font-family:inherit;font-size:16px;color:var(--ink);outline:none;min-width:0;width:100%;transition:color .3s}
 .di-inp::placeholder{color:var(--ink3);font-size:14px}
 .di-gap{font-size:11px;color:var(--ink2);background:var(--surf);border-radius:var(--pill);padding:4px 10px;white-space:nowrap;box-shadow:var(--cs)}
@@ -1740,6 +1747,12 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             <div class="fcal-leg-item"><span class="fcal-leg-dot fert"></span>Janela fértil</div>
             <div class="fcal-leg-item"><span class="fcal-leg-dot ov"></span>Ovulação</div>
             <div class="fcal-leg-item"><span class="fcal-leg-dot nmen"></span>Próxima menstruação</div>
+          </div>
+          <div class="helper" style="margin-top:14px">Toque num dia (até hoje) pra confirmar ou corrigir quando sua menstruação realmente veio.</div>
+          <div class="fcal-confirm hidden" id="fcalConfirmBar">
+            <div class="fcal-confirm-txt" id="fcalConfirmTxt">—</div>
+            <button class="btn-calc" id="fcalConfirmOkBtn" type="button">Confirmar</button>
+            <button class="link-btn" id="fcalConfirmCancelBtn" type="button">Cancelar</button>
           </div>
         </div>
       </div>
@@ -3157,6 +3170,10 @@ const MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','
 let fcalCycleInfo=null; // {recordedDates:[iso...], lp:iso, cd:number}
 let fcalBaseYear=TODAY.getFullYear();
 let fcalBaseMonth=TODAY.getMonth();
+// Dia tocado no calendário, aguardando confirmação — nada é gravado até a
+// paciente confirmar, pra um toque sem querer não bagunçar os dados dela.
+let fcalPendingDate=null;
+let fcalPendingMode=null; // 'add' (marcar) | 'remove' (desmarcar um dia já confirmado)
 function fcalDayKind(iso,dt){
   const{recordedDates,lp,cd}=fcalCycleInfo;
   if(recordedDates.includes(iso))return'past-men';
@@ -3176,7 +3193,7 @@ function fcalDayKind(iso,dt){
 function renderFcal(){
   const grid=document.getElementById('fcalGrid');
   const monthLbl=document.getElementById('fcalMonthLbl');
-  if(!fcalCycleInfo){grid.innerHTML='';monthLbl.textContent='—';return;}
+  if(!fcalCycleInfo){grid.innerHTML='';monthLbl.textContent='—';renderFcalConfirm();return;}
   monthLbl.textContent=`${MONTHS_PT[fcalBaseMonth]} de ${fcalBaseYear}`;
   const first=new Date(fcalBaseYear,fcalBaseMonth,1);
   const startDow=first.getDay();
@@ -3189,18 +3206,79 @@ function renderFcal(){
     const dt=new Date(fcalBaseYear,fcalBaseMonth,day);
     const iso=toISO(dt);
     const kind=fcalDayKind(iso,dt);
+    const tappable=diffDaysUTC(dt,TODAY)>=0; // só passado/hoje pode ser confirmado
     let cls='fcal-day '+(kind||'normal');
     if(iso===todayISO)cls+=' today-mark';
-    html+=`<div class="${cls}">${day}</div>`;
+    if(tappable)cls+=' tappable';
+    if(iso===fcalPendingDate)cls+=' selected';
+    html+=`<div class="${cls}" data-iso="${iso}">${day}</div>`;
   }
   grid.innerHTML=html;
+  grid.querySelectorAll('.fcal-day.tappable').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const iso=el.dataset.iso;
+      if(fcalPendingDate===iso){
+        fcalPendingDate=null;fcalPendingMode=null;
+      }else{
+        fcalPendingDate=iso;
+        fcalPendingMode=fcalCycleInfo.recordedDates.includes(iso)?'remove':'add';
+      }
+      renderFcal();
+    });
+  });
+  renderFcalConfirm();
 }
+function renderFcalConfirm(){
+  const bar=document.getElementById('fcalConfirmBar');
+  if(!fcalPendingDate){bar.classList.add('hidden');return;}
+  bar.classList.remove('hidden');
+  const dateFmt=fmt(new Date(fcalPendingDate+'T12:00:00'));
+  const okBtn=document.getElementById('fcalConfirmOkBtn');
+  if(fcalPendingMode==='add'){
+    document.getElementById('fcalConfirmTxt').textContent=`Confirmar que sua menstruação começou em ${dateFmt}?`;
+    okBtn.textContent='Confirmar menstruação';
+    okBtn.className='btn-calc';
+  }else{
+    document.getElementById('fcalConfirmTxt').textContent=`Remover o registro de menstruação em ${dateFmt}?`;
+    okBtn.textContent='Remover registro';
+    okBtn.className='btn-danger';
+  }
+}
+document.getElementById('fcalConfirmOkBtn').addEventListener('click',()=>{
+  if(!fcalPendingDate)return;
+  const iso=fcalPendingDate,mode=fcalPendingMode;
+  diDates=diDates.filter(Boolean);
+  if(mode==='add'){
+    if(!diDates.includes(iso))diDates.push(iso);
+  }else{
+    diDates=diDates.filter(d=>d!==iso);
+  }
+  diDates.sort();
+  if(diDates.length<2)diDates.push('');
+  fcalPendingDate=null;fcalPendingMode=null;
+  renderDi();
+  const r=fertileFromDates(diDates);
+  if(r){
+    renderFertilResult(r,false);
+    showToast(mode==='add'?'Menstruação confirmada':'Registro removido');
+  }else{
+    document.getElementById('fertResult').classList.add('hidden');
+    document.getElementById('fertFormCard').classList.remove('hidden');
+    showToast('Precisamos de pelo menos 2 datas — complete a lista pra recalcular',3000);
+  }
+});
+document.getElementById('fcalConfirmCancelBtn').addEventListener('click',()=>{
+  fcalPendingDate=null;fcalPendingMode=null;
+  renderFcal();
+});
 document.getElementById('fcalPrevBtn').addEventListener('click',()=>{
   fcalBaseMonth--;if(fcalBaseMonth<0){fcalBaseMonth=11;fcalBaseYear--;}
+  fcalPendingDate=null;fcalPendingMode=null;
   renderFcal();
 });
 document.getElementById('fcalNextBtn').addEventListener('click',()=>{
   fcalBaseMonth++;if(fcalBaseMonth>11){fcalBaseMonth=0;fcalBaseYear++;}
+  fcalPendingDate=null;fcalPendingMode=null;
   renderFcal();
 });
 
@@ -3304,14 +3382,16 @@ function renderPregResult(ig,dpp,method,silent){
   if(!silent)showToast(`${ig.weeks}s ${ig.days}d calculado com sucesso`);
 }
 
-function renderFertilResult(r){
+function renderFertilResult(r,fresh=true){
   document.getElementById('fertFormCard').classList.add('hidden');
   const fr=document.getElementById('fertResult');
   fr.classList.remove('hidden');
-  fr.classList.remove('stagger');
-  void fr.offsetWidth;
-  fr.classList.add('stagger');
-  document.getElementById('app').scrollTop=0;
+  if(fresh){
+    fr.classList.remove('stagger');
+    void fr.offsetWidth;
+    fr.classList.add('stagger');
+    document.getElementById('app').scrollTop=0;
+  }
 
   document.getElementById('fOv').textContent=fmt(r.ov);
   document.getElementById('fOvSub').textContent=`Dia ${r.cd-14} · pico de fertilidade`;
@@ -3333,8 +3413,10 @@ function renderFertilResult(r){
   renderFertRing(r);
   renderPhases(r);
   fcalCycleInfo={recordedDates:r.dates.map(toISO),lp:toISO(r.lp),cd:r.cd};
-  fcalBaseYear=TODAY.getFullYear();
-  fcalBaseMonth=TODAY.getMonth();
+  if(fresh){
+    fcalBaseYear=TODAY.getFullYear();
+    fcalBaseMonth=TODAY.getMonth();
+  }
   renderFcal();
 
   // Melhor semana para namorar
@@ -3360,7 +3442,7 @@ function renderFertilResult(r){
       <div class="nam-tip"><div class="nam-tip-ico">💧</div><div class="nam-tip-txt"><strong>Hidratação</strong>Beba bastante água nos dias férteis — faz diferença!</div></div>
     </div>`;
 
-  showToast('Período fértil calculado');
+  if(fresh)showToast('Período fértil calculado');
 }
 
 /* ── Guia de exames ── */
