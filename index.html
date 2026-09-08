@@ -1784,7 +1784,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             <div class="fcal-leg-item"><span class="fcal-leg-dot ov"></span>Ovulação</div>
             <div class="fcal-leg-item"><span class="fcal-leg-dot nmen"></span>Próxima menstruação</div>
           </div>
-          <div class="helper" style="margin-top:14px">Toque num dia (até hoje) pra confirmar ou corrigir quando sua menstruação realmente veio.</div>
+          <div class="helper" style="margin-top:14px">Toque em cada dia (até hoje) em que você sangrou — pode marcar vários dias seguidos do mesmo fluxo. O app identifica sozinho o 1º dia de cada menstruação pra calcular seu ciclo.</div>
         </div>
       </div>
 
@@ -2245,8 +2245,28 @@ function dppFromLMP(s){const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+GES
 function igFromUSG(s,w,d){const e=new Date(s+'T12:00:00');const l=new Date(e);l.setDate(l.getDate()-(w*7+d));return igFromLMP(toISO(l));}
 function dppFromUSG(s,w,d){const e=new Date(s+'T12:00:00');const l=new Date(e);l.setDate(l.getDate()-(w*7+d));return dppFromLMP(toISO(l));}
 function igFromDPP(s){const dpp=new Date(s+'T12:00:00');const l=new Date(dpp);l.setDate(l.getDate()-GESTATION_DAYS);return igFromLMP(toISO(l));}
+/* Colapsa uma lista de dias de sangramento (qualquer ordem) nos dias em que
+   cada menstruação começou: dias consecutivos (gap de 1 dia) viram um único
+   "início" — só o primeiro dia de cada sequência conta pro cálculo do
+   intervalo entre ciclos. Compartilhado entre fertileFromDates e a mensagem
+   de erro do toque no calendário, que precisa saber qual dos dois motivos
+   fez o cálculo falhar (poucas menstruações vs. intervalo inválido). */
+function collapseFlowDaysToCycleStarts(arr){
+  const sorted=arr.filter(Boolean).map(d=>new Date(d+'T12:00:00')).sort((a,b)=>a-b);
+  const starts=[];
+  for(let i=0;i<sorted.length;i++){
+    const prev=sorted[i-1];
+    if(!prev||Math.round((sorted[i]-prev)/86400000)>1)starts.push(sorted[i]);
+  }
+  return starts;
+}
 function fertileFromDates(arr){
-  const dates=arr.filter(Boolean).map(d=>new Date(d+'T12:00:00')).sort((a,b)=>a-b);
+  // arr guarda TODO dia marcado como sangramento (não só o 1º dia de cada
+  // menstruação) — quem usa o calendário pode tocar vários dias seguidos do
+  // mesmo fluxo. allFlowDays preserva a lista completa (usada só pra marcar
+  // o calendário); dates é a versão colapsada, usada pro cálculo do ciclo.
+  const allFlowDays=arr.filter(Boolean).map(d=>new Date(d+'T12:00:00')).sort((a,b)=>a-b);
+  const dates=collapseFlowDaysToCycleStarts(arr);
   if(dates.length<2)return null;
   const gaps=[];
   for(let i=1;i<dates.length;i++)gaps.push(Math.round((dates[i]-dates[i-1])/86400000));
@@ -2262,7 +2282,7 @@ function fertileFromDates(arr){
   // 7 dias entre si — variação clinicamente usada como sinal de irregularidade.
   const irregular=vg.length>=2&&(Math.max(...vg)-Math.min(...vg))>7;
   const discarded=gaps.length-vg.length;
-  return{ov,st,en,cd,np,lp,dates,irregular,gapMin:Math.min(...vg),gapMax:Math.max(...vg),discarded};
+  return{ov,st,en,cd,np,lp,dates,allFlowDays,irregular,gapMin:Math.min(...vg),gapMax:Math.max(...vg),discarded};
 }
 
 /* Fases do ciclo, em dias a partir do dia 1 (primeiro dia da menstruação).
@@ -3167,7 +3187,13 @@ document.getElementById('fertCalcBtn').addEventListener('click',()=>{
   const validDates=diDates.filter(Boolean);
   if(validDates.length<2){showToast('Informe pelo menos 2 datas',2000);return;}
   const fertRes=fertileFromDates(diDates);
-  if(!fertRes){showToast('Datas inválidas ou muito próximas',2000);return;}
+  if(!fertRes){
+    const cycleStarts=collapseFlowDaysToCycleStarts(diDates);
+    showToast(cycleStarts.length<2
+      ?'Essas datas parecem ser do mesmo ciclo — informe também o início de uma menstruação anterior ou posterior pra calcularmos o intervalo'
+      :'O intervalo entre essas datas não parece um ciclo válido (18 a 50 dias). Confira se digitou certo',3800);
+    return;
+  }
   renderFertilResult(fertRes);
   resumeOnboardingAfterCalc();
 });
@@ -3316,7 +3342,7 @@ function renderFcalConfirm(){
   const ico=document.getElementById('fcalConfirmIco');
   if(fcalPendingMode==='add'){
     ico.textContent='🩸';
-    document.getElementById('fcalConfirmTxt').innerHTML=`Confirmar que sua menstruação começou em <strong>${dateFmt}</strong>?`;
+    document.getElementById('fcalConfirmTxt').innerHTML=`Confirmar que você sangrou em <strong>${dateFmt}</strong>?`;
     okBtn.textContent='Confirmar menstruação';
     okBtn.className='btn-calc';
   }else{
@@ -3340,7 +3366,8 @@ document.getElementById('fcalConfirmOkBtn').addEventListener('click',()=>{
     diDates=diDates.filter(d=>d!==iso);
   }
   diDates.sort();
-  if(diDates.length<2)diDates.push('');
+  const validCount=diDates.length;
+  if(validCount<2)diDates.push('');
   fcalPendingDate=null;fcalPendingMode=null;
   renderDi();
   const r=fertileFromDates(diDates);
@@ -3350,7 +3377,16 @@ document.getElementById('fcalConfirmOkBtn').addEventListener('click',()=>{
   }else{
     document.getElementById('fertResult').classList.add('hidden');
     document.getElementById('fertFormCard').classList.remove('hidden');
-    showToast('Precisamos de pelo menos 2 datas — complete a lista pra recalcular',3000);
+    // Três motivos distintos pra não dar pra calcular: poucos dias marcados
+    // no total; dias marcados mas que colapsam numa só menstruação (falta
+    // uma segunda pra medir o intervalo); ou já há 2+ menstruações, mas o
+    // intervalo entre elas não é um ciclo válido (curto ou longo demais).
+    const cycleStarts=collapseFlowDaysToCycleStarts(diDates);
+    let msg;
+    if(validCount<2)msg='Precisamos de pelo menos 2 datas — complete a lista pra recalcular';
+    else if(cycleStarts.length<2)msg='Ainda só temos uma menstruação registrada — continue marcando os próximos dias pra calcularmos seu ciclo.';
+    else msg='Essa data ficou muito perto (ou muito longe) de outra menstruação registrada — um ciclo válido tem entre 18 e 50 dias. Ajuste a lista abaixo.';
+    showToast(msg,3800);
   }
 });
 document.getElementById('fcalConfirmCancelBtn').addEventListener('click',()=>{
@@ -3499,7 +3535,7 @@ function renderFertilResult(r,fresh=true,announce=fresh){
   renderFertRing(r);
   renderPhases(r);
   renderCycleHistory(r);
-  fcalCycleInfo={recordedDates:r.dates.map(toISO),lp:toISO(r.lp),cd:r.cd};
+  fcalCycleInfo={recordedDates:r.allFlowDays.map(toISO),lp:toISO(r.lp),cd:r.cd};
   if(fresh){
     fcalBaseYear=TODAY.getFullYear();
     fcalBaseMonth=TODAY.getMonth();
