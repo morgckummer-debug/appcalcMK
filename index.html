@@ -1353,7 +1353,6 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         <button class="ctab on" data-tab="dum"><span class="ico">📅</span>DUM</button>
         <button class="ctab" data-tab="usg"><span class="ico">🔊</span>Ultrassom</button>
         <button class="ctab" data-tab="dpp"><span class="ico">👶</span>DPP</button>
-        <button class="ctab" data-tab="fertil"><span class="ico">✨</span>Fértil</button>
       </div>
 
       <div id="pane-dum">
@@ -1382,17 +1381,6 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
           <input class="inp" type="text" id="dppInp" placeholder="DD/MM/AAAA" maxlength="10" inputmode="numeric">
         </div>
       </div>
-      <div id="pane-fertil" class="hidden">
-        <div class="helper"><strong>Período fértil:</strong> Informe as datas de início das suas menstruações (mín. 2).</div>
-        <div class="di-list" id="diList"></div>
-        <button class="add-di" id="addDiBtn">＋ Adicionar menstruação</button>
-        <div class="cycle-stats hidden" id="cycleStats">
-          <div class="cs"><div class="lbl">Ciclo médio</div><div class="val serif" id="csAvg">—</div></div>
-          <div class="cs"><div class="lbl">Próx. ovulação</div><div class="val serif" id="csOv">—</div></div>
-          <div class="cs"><div class="lbl">Próx. período</div><div class="val serif" id="csNp">—</div></div>
-        </div>
-      </div>
-
       <button class="btn-calc" id="calcBtn">Calcular →</button>
     </div>
   </div>
@@ -1670,7 +1658,33 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       </div>
     </div>
 
+    <div id="noResult" class="card" style="text-align:center;padding:48px 24px">
+      <div style="font-size:48px;margin-bottom:16px">🌸</div>
+      <div class="serif" style="font-size:22px;color:var(--ink2);margin-bottom:8px">Nenhum cálculo ainda</div>
+      <div style="font-size:14px;color:var(--ink3);line-height:1.6">Vá até a aba <strong>Início</strong> e toque em "Calcular agora" para ver seu resultado aqui.</div>
+    </div>
+  </div>
+
+  <!-- ── Período fértil (jornada separada da parte obstétrica) ── -->
+  <div class="page" id="pg-fertil">
+    <div class="calc-back-row"><button class="link-btn" id="fertBackBtn" type="button">← Voltar</button></div>
+
+    <div class="card feat" id="fertFormCard">
+      <div class="lbl">Período fértil</div>
+      <div class="card-title">Quando foram suas <span class="serif" style="color:var(--pd);font-style:italic">últimas menstruações?</span></div>
+      <div class="helper"><strong>Período fértil:</strong> Informe as datas de início das suas menstruações (mín. 2).</div>
+      <div class="di-list" id="diList"></div>
+      <button class="add-di" id="addDiBtn">＋ Adicionar menstruação</button>
+      <div class="cycle-stats hidden" id="cycleStats">
+        <div class="cs"><div class="lbl">Ciclo médio</div><div class="val serif" id="csAvg">—</div></div>
+        <div class="cs"><div class="lbl">Próx. ovulação</div><div class="val serif" id="csOv">—</div></div>
+        <div class="cs"><div class="lbl">Próx. período</div><div class="val serif" id="csNp">—</div></div>
+      </div>
+      <button class="btn-calc" id="fertCalcBtn">Calcular →</button>
+    </div>
+
     <div id="fertResult" class="hidden stagger">
+      <button class="link-btn" id="fertEditBtn" type="button" style="margin-bottom:12px">← Editar datas</button>
       <div class="card feat">
         <div class="lbl">Período fértil</div>
         <div class="card-title">Sua janela de <span class="serif" style="color:var(--pd);font-style:italic">maior fertilidade</span></div>
@@ -1741,12 +1755,6 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
         <div class="card-title">A melhor semana para <span class="serif" style="color:var(--pd);font-style:italic">namorar</span> 💕</div>
         <div class="namorar-wrap" id="namorarWrap"></div>
       </div>
-    </div>
-
-    <div id="noResult" class="card" style="text-align:center;padding:48px 24px">
-      <div style="font-size:48px;margin-bottom:16px">🌸</div>
-      <div class="serif" style="font-size:22px;color:var(--ink2);margin-bottom:8px">Nenhum cálculo ainda</div>
-      <div style="font-size:14px;color:var(--ink3);line-height:1.6">Vá até a aba <strong>Início</strong> e toque em "Calcular agora" para ver seu resultado aqui.</div>
     </div>
   </div>
 
@@ -2667,14 +2675,17 @@ function showCalcPage(){
   goToPage('calc');
 }
 function goToCalcTab(tab){
+  if(tab==='fertil'){
+    goToPage('fertil');
+    setTimeout(()=>document.querySelector('.di-inp')?.focus(),320);
+    return;
+  }
   showCalcPage();
   const tabBtn=document.querySelector(`.ctab[data-tab="${tab}"]`);
   if(tabBtn)tabBtn.click();
-  setTimeout(()=>{
-    const focusEl=tab==='fertil'?document.querySelector('.di-inp'):document.getElementById('lmpInp');
-    if(focusEl)focusEl.focus();
-  },320);
+  if(tab==='dum')setTimeout(()=>document.getElementById('lmpInp')?.focus(),320);
 }
+document.getElementById('fertBackBtn').addEventListener('click',()=>goToPage('home'));
 function openResultSection(cardId,headId,bodyId,chevId){
   goToPage('result');
   requestAnimationFrame(()=>{
@@ -2946,7 +2957,7 @@ document.querySelectorAll('.ctab').forEach(btn=>{
     document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('on'));
     btn.classList.add('on');
     curTab=btn.dataset.tab;
-    ['dum','usg','dpp','fertil'].forEach(t=>document.getElementById('pane-'+t).classList.toggle('hidden',t!==curTab));
+    ['dum','usg','dpp'].forEach(t=>document.getElementById('pane-'+t).classList.toggle('hidden',t!==curTab));
   });
 });
 
@@ -3047,7 +3058,7 @@ renderDi();
 document.getElementById('calcBtn').addEventListener('click',runCalc);
 
 function runCalc(){
-  let ig=null,dpp=null,method='',fertRes=null,basis=null;
+  let ig=null,dpp=null,method='',basis=null;
   if(curTab==='dum'){
     const v=parseBR(document.getElementById('lmpInp').value);
     if(!v){showToast('Data inválida. Confira o dia, mês e ano informados.',2500);return;}
@@ -3066,15 +3077,6 @@ function runCalc(){
     if(!v){showToast('Data inválida. Confira o dia, mês e ano informados.',2500);return;}
     ig=igFromDPP(v);if(ig)dpp=new Date(v+'T12:00:00');method='DPP';
     basis={date:v};
-  } else if(curTab==='fertil'){
-    const validDates=diDates.filter(Boolean);
-    if(validDates.length<2){showToast('Informe pelo menos 2 datas',2000);return;}
-    fertRes=fertileFromDates(diDates);
-    if(!fertRes){showToast('Datas inválidas ou muito próximas',2000);return;}
-    renderFertilResult(fertRes);
-    goResult();
-    resumeOnboardingAfterCalc();
-    return;
   }
   if(ig&&ig.totalDays>MAX_WEEKS*7){
     showToast('Essa data resulta em mais de 42 semanas de gestação. Confira a data informada.',3000);
@@ -3084,6 +3086,20 @@ function runCalc(){
 }
 
 function goResult(){goToPage('result');}
+
+/* ── Cálculo do período fértil (tela própria, fora do fluxo obstétrico) ── */
+document.getElementById('fertCalcBtn').addEventListener('click',()=>{
+  const validDates=diDates.filter(Boolean);
+  if(validDates.length<2){showToast('Informe pelo menos 2 datas',2000);return;}
+  const fertRes=fertileFromDates(diDates);
+  if(!fertRes){showToast('Datas inválidas ou muito próximas',2000);return;}
+  renderFertilResult(fertRes);
+  resumeOnboardingAfterCalc();
+});
+document.getElementById('fertEditBtn').addEventListener('click',()=>{
+  document.getElementById('fertResult').classList.add('hidden');
+  document.getElementById('fertFormCard').classList.remove('hidden');
+});
 
 /* ── Anel do dia do ciclo ── */
 function renderFertRing(r){
@@ -3247,7 +3263,6 @@ function renderTimeline(ig){
 function renderPregResult(ig,dpp,method,silent){
   currentIG=ig;
   document.getElementById('noResult').classList.add('hidden');
-  document.getElementById('fertResult').classList.add('hidden');
   const pr=document.getElementById('pregResult');
   pr.classList.remove('hidden');
   // Re-trigger stagger by clone trick
@@ -3290,18 +3305,13 @@ function renderPregResult(ig,dpp,method,silent){
 }
 
 function renderFertilResult(r){
-  document.getElementById('noResult').classList.add('hidden');
-  document.getElementById('pregResult').classList.add('hidden');
-  if(!r){
-    document.getElementById('fertResult').classList.add('hidden');
-    document.getElementById('noResult').classList.remove('hidden');
-    return;
-  }
+  document.getElementById('fertFormCard').classList.add('hidden');
   const fr=document.getElementById('fertResult');
   fr.classList.remove('hidden');
   fr.classList.remove('stagger');
   void fr.offsetWidth;
   fr.classList.add('stagger');
+  document.getElementById('app').scrollTop=0;
 
   document.getElementById('fOv').textContent=fmt(r.ov);
   document.getElementById('fOvSub').textContent=`Dia ${r.cd-14} · pico de fertilidade`;
