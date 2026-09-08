@@ -3320,8 +3320,12 @@ function renderFcal(){
     html+=`<div class="${cls}" data-iso="${iso}"><span class="fcal-day-num">${day}</span>${dayIcon}</div>`;
   }
   grid.innerHTML=html;
-  grid.querySelectorAll('.fcal-day.tappable').forEach(el=>{
+  grid.querySelectorAll('.fcal-day:not(.empty)').forEach(el=>{
     el.addEventListener('click',()=>{
+      if(!el.classList.contains('tappable')){
+        showToast('Só dá pra marcar dias até hoje',2000);
+        return;
+      }
       const iso=el.dataset.iso;
       if(fcalPendingDate===iso){
         fcalPendingDate=null;fcalPendingMode=null;
