@@ -1010,6 +1010,22 @@ body::after{
 
 .fcal-day.tappable{cursor:pointer}
 .fcal-day.selected{outline:3px solid var(--pd2);outline-offset:2px;transform:scale(1.08);z-index:1}
+.fcal-day-baby{
+  font-size:10px;line-height:1;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.18));
+  pointer-events:none;
+}
+/* Nos dias férteis/ovulação, o bebê vira o destaque central da célula e o
+   número do dia encolhe pra um selo no canto, sem tampar um ao outro. */
+.fcal-day.fertile .fcal-day-num,
+.fcal-day.ovulation .fcal-day-num{
+  position:absolute;top:2px;left:4px;
+  font-size:9px;font-weight:700;
+}
+.fcal-day.fertile .fcal-day-baby,
+.fcal-day.ovulation .fcal-day-baby{
+  font-size:20px;
+}
 .fcal-confirm{margin-top:14px;padding:16px;border-radius:16px;background:var(--surf2);box-shadow:var(--ci)}
 .fcal-confirm-txt{font-size:13px;color:var(--ink2);line-height:1.5;margin-bottom:10px;text-align:center}
 
@@ -3211,7 +3227,8 @@ function renderFcal(){
     if(iso===todayISO)cls+=' today-mark';
     if(tappable)cls+=' tappable';
     if(iso===fcalPendingDate)cls+=' selected';
-    html+=`<div class="${cls}" data-iso="${iso}">${day}</div>`;
+    const babyIcon=(kind==='fertile'||kind==='ovulation')?'<span class="fcal-day-baby">👶</span>':'';
+    html+=`<div class="${cls}" data-iso="${iso}"><span class="fcal-day-num">${day}</span>${babyIcon}</div>`;
   }
   grid.innerHTML=html;
   grid.querySelectorAll('.fcal-day.tappable').forEach(el=>{
