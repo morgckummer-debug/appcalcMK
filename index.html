@@ -207,15 +207,15 @@ body::after{
    tem especificidade maior e substituiria o shorthand "animation" só
    com o pulso, o que travaria o card em opacity:0 (o estado inicial do
    fadeUp que ninguém mais reverteria). */
-#namorarCard{animation:fadeUp .32s cubic-bezier(.22,.68,0,1.2) .04s both,namPulse 2.6s ease-in-out .36s infinite}
+#namorarCard{animation:fadeUp .32s cubic-bezier(.22,.68,0,1.2) .04s both,namPulse 2.2s ease-in-out .36s infinite}
 @keyframes namPulse{
-  0%,100%{box-shadow:8px 12px 32px rgba(168,134,100,.2),0 0 0 1px rgba(255,250,240,.4) inset}
-  50%{box-shadow:8px 18px 46px rgba(217,149,112,.5),0 0 0 1px rgba(255,250,240,.4) inset}
+  0%,100%{transform:scale(1);box-shadow:8px 12px 32px rgba(168,134,100,.2),0 0 0 1px rgba(255,250,240,.4) inset}
+  50%{transform:scale(1.025);box-shadow:8px 18px 46px rgba(217,149,112,.5),0 0 0 1px rgba(255,250,240,.4) inset}
 }
-[data-dark] #namorarCard{animation:fadeUp .32s cubic-bezier(.22,.68,0,1.2) .04s both,namPulseDark 2.6s ease-in-out .36s infinite}
+[data-dark] #namorarCard{animation:fadeUp .32s cubic-bezier(.22,.68,0,1.2) .04s both,namPulseDark 2.2s ease-in-out .36s infinite}
 @keyframes namPulseDark{
-  0%,100%{box-shadow:8px 12px 32px rgba(0,0,0,.4),0 0 0 1px rgba(255,200,150,.06) inset}
-  50%{box-shadow:8px 18px 46px rgba(176,106,64,.55),0 0 0 1px rgba(255,200,150,.06) inset}
+  0%,100%{transform:scale(1);box-shadow:8px 12px 32px rgba(0,0,0,.4),0 0 0 1px rgba(255,200,150,.06) inset}
+  50%{transform:scale(1.025);box-shadow:8px 18px 46px rgba(176,106,64,.55),0 0 0 1px rgba(255,200,150,.06) inset}
 }
 .lbl{font-size:10px;color:var(--ink3);letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin-bottom:6px;transition:color .3s}
 /* Cor explícita (não só herdada): botões não herdam a cor do texto dos
@@ -1815,7 +1815,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
 
       <div class="card" id="fcalCard">
         <div class="lbl">Calendário</div>
-        <div class="card-title">Seus dias <span class="serif" style="color:var(--pd);font-style:italic">marcados</span></div>
+        <div class="card-title">Seu mapa do <span class="serif" style="color:var(--pd);font-style:italic">mês</span> 🗓️</div>
         <div class="fcal-wrap">
           <div class="fcal-nav">
             <button class="fcal-nav-btn" id="fcalPrevBtn" type="button" aria-label="Mês anterior">‹</button>
