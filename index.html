@@ -201,22 +201,6 @@ body::after{
 [data-dark] .card.feat{
   box-shadow:8px 12px 32px rgba(0,0,0,.4),0 0 0 1px rgba(255,200,150,.06) inset;
 }
-/* Pulso suave no card de destaque da janela fértil, pra chamar o olho
-   direto pra resposta principal da tela ("quais dias tentar"). Repete a
-   entrada (.stagger > *, fadeUp) na própria regra porque #namorarCard
-   tem especificidade maior e substituiria o shorthand "animation" só
-   com o pulso, o que travaria o card em opacity:0 (o estado inicial do
-   fadeUp que ninguém mais reverteria). */
-#namorarCard{animation:fadeUp .32s cubic-bezier(.22,.68,0,1.2) .04s both,namPulse 2.2s ease-in-out .36s infinite}
-@keyframes namPulse{
-  0%,100%{transform:scale(1);box-shadow:8px 12px 32px rgba(168,134,100,.2),0 0 0 1px rgba(255,250,240,.4) inset}
-  50%{transform:scale(1.025);box-shadow:8px 18px 46px rgba(217,149,112,.5),0 0 0 1px rgba(255,250,240,.4) inset}
-}
-[data-dark] #namorarCard{animation:fadeUp .32s cubic-bezier(.22,.68,0,1.2) .04s both,namPulseDark 2.2s ease-in-out .36s infinite}
-@keyframes namPulseDark{
-  0%,100%{transform:scale(1);box-shadow:8px 12px 32px rgba(0,0,0,.4),0 0 0 1px rgba(255,200,150,.06) inset}
-  50%{transform:scale(1.025);box-shadow:8px 18px 46px rgba(176,106,64,.55),0 0 0 1px rgba(255,200,150,.06) inset}
-}
 .lbl{font-size:10px;color:var(--ink3);letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin-bottom:6px;transition:color .3s}
 /* Cor explícita (não só herdada): botões não herdam a cor do texto dos
    ancestrais por padrão, então dentro do cabeçalho comprimido (um <button>)
@@ -1035,8 +1019,21 @@ body::after{
 }
 .fcal-day.today-mark{
   outline:2px solid var(--pd2);outline-offset:1px;
+  z-index:1;
 }
 .fcal-day.today-mark.normal{color:var(--pd2);font-weight:700}
+/* "Sonar" no dia de hoje: um halo que expande e desaparece por trás do
+   número, deixando a borda estática só como referência — o olho é
+   puxado pelo movimento do halo, não pela borda parada. */
+.fcal-day.today-mark::before{
+  content:'';position:absolute;inset:0;border-radius:10px;
+  background:var(--pd2);pointer-events:none;
+  animation:fcalTodayPing 1.8s cubic-bezier(0,0,.2,1) infinite;
+}
+@keyframes fcalTodayPing{
+  0%{transform:scale(1);opacity:.45}
+  75%,100%{transform:scale(1.7);opacity:0}
+}
 .fcal-day:not(.empty):hover{transform:scale(1.12)}
 .fcal-day.ovulation:hover{transform:scale(1.14)}
 
