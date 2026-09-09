@@ -1037,6 +1037,20 @@ body::after{
 .fcal-day:not(.empty):hover{transform:scale(1.12)}
 .fcal-day.ovulation:hover{transform:scale(1.14)}
 
+/* Barra de confirmação da seleção no calendário — substitui o popup por
+   toque: com vários dias pré-marcados de uma vez (o toque inicial já
+   preenche os 4 seguintes), um popup a cada toque de ajuste ficaria
+   irritante, então confirma tudo junto no fim. */
+.fcal-confirm-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  background:var(--rose);border-radius:14px;padding:12px 14px;margin-top:14px;
+  box-shadow:var(--ci);
+}
+.fcal-confirm-txt{font-size:13px;color:var(--ink);font-weight:600;flex:1;min-width:140px}
+.fcal-confirm-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.fcal-confirm-actions .link-btn{margin:0;padding:6px;width:auto}
+.fcal-confirm-actions .btn-calc,.fcal-confirm-actions .btn-danger{width:auto;padding:10px 18px;font-size:12.5px}
+
 .fcal-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .fcal-leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink2);font-weight:600}
 .fcal-leg-dot{width:12px;height:12px;border-radius:4px;flex-shrink:0}
@@ -1820,13 +1834,20 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
             <button class="fcal-nav-btn" id="fcalNextBtn" type="button" aria-label="Próximo mês">›</button>
           </div>
           <div class="fcal-grid" id="fcalGrid"></div>
+          <div class="fcal-confirm-bar hidden" id="fcalConfirmBar">
+            <div class="fcal-confirm-txt" id="fcalConfirmBarTxt">—</div>
+            <div class="fcal-confirm-actions">
+              <button class="link-btn" id="fcalConfirmBarCancelBtn" type="button">Cancelar</button>
+              <button class="btn-calc" id="fcalConfirmBarOkBtn" type="button">Confirmar</button>
+            </div>
+          </div>
           <div class="fcal-legend">
             <div class="fcal-leg-item"><span class="fcal-leg-dot men"></span>Menstruação</div>
             <div class="fcal-leg-item"><span class="fcal-leg-dot fert"></span>Janela fértil</div>
             <div class="fcal-leg-item"><span class="fcal-leg-dot ov"></span>Ovulação</div>
             <div class="fcal-leg-item"><span class="fcal-leg-dot nmen"></span>Próxima menstruação</div>
           </div>
-          <div class="helper" style="margin-top:14px">Toque em cada dia (até hoje) em que você sangrou — pode marcar vários dias seguidos do mesmo fluxo. O app identifica sozinho o 1º dia de cada menstruação pra calcular seu ciclo.</div>
+          <div class="helper" style="margin-top:14px">Toque no dia em que sua menstruação começou — marcamos os 4 dias seguintes automaticamente. Toque em qualquer dia marcado pra ajustar, e confirme quando estiver certo.</div>
         </div>
       </div>
 
@@ -2104,16 +2125,6 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <button class="onb-skip" id="onbSkip">Pular</button>
       <button class="onb-next" id="onbNext">Próximo</button>
     </div>
-  </div>
-</div>
-
-<!-- Popup de confirmação ao tocar num dia do calendário do período fértil -->
-<div class="onb-overlay" id="fcalConfirmOverlay">
-  <div class="onb-sheet" style="max-width:320px">
-    <div class="onb-ico" id="fcalConfirmIco">🩸</div>
-    <div class="onb-desc" id="fcalConfirmTxt" style="margin-bottom:20px">—</div>
-    <button class="btn-calc" id="fcalConfirmOkBtn" type="button">Confirmar</button>
-    <button class="link-btn" id="fcalConfirmCancelBtn" type="button">Cancelar</button>
   </div>
 </div>
 
@@ -3321,9 +3332,12 @@ const MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','
 let fcalCycleInfo=null; // {recordedDates:[iso...], lp:iso, cd:number}
 let fcalBaseYear=TODAY.getFullYear();
 let fcalBaseMonth=TODAY.getMonth();
-// Dia tocado no calendário, aguardando confirmação — nada é gravado até a
+// Dias tocados no calendário, aguardando confirmação — nada é gravado até a
 // paciente confirmar, pra um toque sem querer não bagunçar os dados dela.
-let fcalPendingDate=null;
+// O primeiro toque num dia novo já pré-marca os 4 dias seguintes (a
+// duração padrão da menstruação no app, ver menEnd em computePhases), e
+// cada dia pré-marcado continua tocável individualmente pra ajustar.
+let fcalPendingDates=[];
 let fcalPendingMode=null; // 'add' (marcar) | 'remove' (desmarcar um dia já confirmado)
 function fcalDayKind(iso,dt){
   const{recordedDates,lp,cd}=fcalCycleInfo;
@@ -3361,7 +3375,7 @@ function renderFcal(){
     let cls='fcal-day '+(kind||'normal');
     if(iso===todayISO)cls+=' today-mark';
     if(tappable)cls+=' tappable';
-    if(iso===fcalPendingDate)cls+=' selected';
+    if(fcalPendingDates.includes(iso))cls+=' selected';
     const dayEmoji=(kind==='fertile'||kind==='ovulation')?'👶':(kind==='past-men'||kind==='next-men')?'🩸':'';
     const dayIcon=dayEmoji?`<span class="fcal-day-icon">${dayEmoji}</span>`:'';
     html+=`<div class="${cls}" data-iso="${iso}"><span class="fcal-day-num">${day}</span>${dayIcon}</div>`;
@@ -3374,11 +3388,41 @@ function renderFcal(){
         return;
       }
       const iso=el.dataset.iso;
-      if(fcalPendingDate===iso){
-        fcalPendingDate=null;fcalPendingMode=null;
+      const alreadyRecorded=fcalCycleInfo.recordedDates.includes(iso);
+
+      if(alreadyRecorded){
+        // Dia já confirmado: alterna uma remoção avulsa desse único dia —
+        // não faz sentido pré-preencher nada aqui, é um ajuste pontual.
+        fcalPendingDates=(fcalPendingMode==='remove'&&fcalPendingDates.includes(iso))?[]:[iso];
+        fcalPendingMode=fcalPendingDates.length?'remove':null;
+        renderFcal();
+        return;
+      }
+
+      if(fcalPendingMode==='remove')  { fcalPendingDates=[]; fcalPendingMode=null; }
+
+      if(fcalPendingDates.includes(iso)){
+        // Dia já pré-marcado: toque de novo tira ele da seleção (ajuste).
+        fcalPendingDates=fcalPendingDates.filter(d=>d!==iso);
+        if(!fcalPendingDates.length)fcalPendingMode=null;
+      }else if(!fcalPendingDates.length){
+        // Primeiro toque de uma seleção nova: pré-marca esse dia + os 4
+        // seguintes (5 no total, a duração padrão da menstruação),
+        // parando em hoje e pulando dias que já são registros confirmados.
+        const todayISO=toISO(TODAY);
+        const batch=[];
+        for(let i=0;i<5;i++){
+          const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+i);
+          const dISO=toISO(d);
+          if(dISO>todayISO)break;
+          if(fcalCycleInfo.recordedDates.includes(dISO))continue;
+          batch.push(dISO);
+        }
+        fcalPendingDates=batch;
+        fcalPendingMode='add';
       }else{
-        fcalPendingDate=iso;
-        fcalPendingMode=fcalCycleInfo.recordedDates.includes(iso)?'remove':'add';
+        fcalPendingDates=[...fcalPendingDates,iso].sort();
+        fcalPendingMode='add';
       }
       renderFcal();
     });
@@ -3386,40 +3430,36 @@ function renderFcal(){
   renderFcalConfirm();
 }
 function renderFcalConfirm(){
-  const overlay=document.getElementById('fcalConfirmOverlay');
-  if(!fcalPendingDate){overlay.classList.remove('show');return;}
-  const dateFmt=fmt(new Date(fcalPendingDate+'T12:00:00'));
-  const okBtn=document.getElementById('fcalConfirmOkBtn');
-  const ico=document.getElementById('fcalConfirmIco');
+  const bar=document.getElementById('fcalConfirmBar');
+  if(!fcalPendingDates.length){bar.classList.add('hidden');return;}
+  const okBtn=document.getElementById('fcalConfirmBarOkBtn');
+  const txt=document.getElementById('fcalConfirmBarTxt');
   if(fcalPendingMode==='add'){
-    ico.textContent='🩸';
-    document.getElementById('fcalConfirmTxt').innerHTML=`Confirmar que você sangrou em <strong>${dateFmt}</strong>?`;
+    const n=fcalPendingDates.length;
+    txt.textContent=n===1?'1 dia selecionado':`${n} dias selecionados`;
     okBtn.textContent='Confirmar menstruação';
     okBtn.className='btn-calc';
   }else{
-    ico.textContent='✏️';
-    document.getElementById('fcalConfirmTxt').innerHTML=`Remover o registro de menstruação em <strong>${dateFmt}</strong>?`;
+    const dateFmt=fmt(new Date(fcalPendingDates[0]+'T12:00:00'));
+    txt.innerHTML=`Remover <strong>${dateFmt}</strong>?`;
     okBtn.textContent='Remover registro';
     okBtn.className='btn-danger';
   }
-  overlay.classList.add('show');
+  bar.classList.remove('hidden');
 }
-document.getElementById('fcalConfirmOverlay').addEventListener('click',e=>{
-  if(e.target.id==='fcalConfirmOverlay'){fcalPendingDate=null;fcalPendingMode=null;renderFcal();}
-});
-document.getElementById('fcalConfirmOkBtn').addEventListener('click',()=>{
-  if(!fcalPendingDate)return;
-  const iso=fcalPendingDate,mode=fcalPendingMode;
+document.getElementById('fcalConfirmBarOkBtn').addEventListener('click',()=>{
+  if(!fcalPendingDates.length)return;
+  const dates=fcalPendingDates,mode=fcalPendingMode;
   diDates=diDates.filter(Boolean);
   if(mode==='add'){
-    if(!diDates.includes(iso))diDates.push(iso);
+    dates.forEach(iso=>{if(!diDates.includes(iso))diDates.push(iso);});
   }else{
-    diDates=diDates.filter(d=>d!==iso);
+    diDates=diDates.filter(d=>!dates.includes(d));
   }
   diDates.sort();
   const validCount=diDates.length;
   if(validCount<2)diDates.push('');
-  fcalPendingDate=null;fcalPendingMode=null;
+  fcalPendingDates=[];fcalPendingMode=null;
   renderDi();
   const r=fertileFromDates(diDates);
   if(r){
@@ -3440,18 +3480,18 @@ document.getElementById('fcalConfirmOkBtn').addEventListener('click',()=>{
     showToast(msg,3800);
   }
 });
-document.getElementById('fcalConfirmCancelBtn').addEventListener('click',()=>{
-  fcalPendingDate=null;fcalPendingMode=null;
+document.getElementById('fcalConfirmBarCancelBtn').addEventListener('click',()=>{
+  fcalPendingDates=[];fcalPendingMode=null;
   renderFcal();
 });
 document.getElementById('fcalPrevBtn').addEventListener('click',()=>{
   fcalBaseMonth--;if(fcalBaseMonth<0){fcalBaseMonth=11;fcalBaseYear--;}
-  fcalPendingDate=null;fcalPendingMode=null;
+  fcalPendingDates=[];fcalPendingMode=null;
   renderFcal();
 });
 document.getElementById('fcalNextBtn').addEventListener('click',()=>{
   fcalBaseMonth++;if(fcalBaseMonth>11){fcalBaseMonth=0;fcalBaseYear++;}
-  fcalPendingDate=null;fcalPendingMode=null;
+  fcalPendingDates=[];fcalPendingMode=null;
   renderFcal();
 });
 
