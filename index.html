@@ -3372,11 +3372,16 @@ function renderFcal(){
     const iso=toISO(dt);
     const kind=fcalDayKind(iso,dt);
     const tappable=diffDaysUTC(dt,TODAY)>=0; // só passado/hoje pode ser confirmado
-    let cls='fcal-day '+(kind||'normal');
+    const pending=fcalPendingDates.includes(iso);
+    // Pré-visualização: um dia pré-marcado pra virar menstruação já aparece
+    // com a cara de menstruação (gota vermelha), não só uma borda — assim
+    // o que a paciente vê ao tocar já é exatamente o que vai ficar salvo.
+    const displayKind=(pending&&fcalPendingMode==='add')?'past-men':kind;
+    let cls='fcal-day '+(displayKind||'normal');
     if(iso===todayISO)cls+=' today-mark';
     if(tappable)cls+=' tappable';
-    if(fcalPendingDates.includes(iso))cls+=' selected';
-    const dayEmoji=(kind==='fertile'||kind==='ovulation')?'👶':(kind==='past-men'||kind==='next-men')?'🩸':'';
+    if(pending)cls+=' selected';
+    const dayEmoji=(displayKind==='fertile'||displayKind==='ovulation')?'👶':(displayKind==='past-men'||displayKind==='next-men')?'🩸':'';
     const dayIcon=dayEmoji?`<span class="fcal-day-icon">${dayEmoji}</span>`:'';
     html+=`<div class="${cls}" data-iso="${iso}"><span class="fcal-day-num">${day}</span>${dayIcon}</div>`;
   }
