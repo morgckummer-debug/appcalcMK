@@ -2857,6 +2857,9 @@ function goToPage(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('pg-'+pg).classList.add('active');
   document.getElementById('app').scrollTop=0;
+  // A timeline só consegue centralizar a bolinha depois que a página fica
+  // visível (antes disso o wrapper tem largura 0 e o scroll é descartado).
+  if(pg==='result')requestAnimationFrame(()=>centerTimeline(false));
 }
 // Enquanto não há gestação calculada, "Painel"/"Exames"/"Checklist" não têm
 // nada pra mostrar (são todos sobre a gravidez) — escondidos da navegação,
@@ -3520,6 +3523,7 @@ const TL_STEP=34; // px per week (mantém a densidade visual atual)
 // (MONTH_BREAKPOINTS, convertido de dias para semanas) — ex.: "6" fica em 26
 // semanas (182 dias ÷ 7), o ponto exato em que o 6º mês se completa.
 const TL_MONTH_MARKERS=MONTH_BREAKPOINTS.slice(1).map((days,i)=>({m:i+1,week:days/7}));
+let tlPct=null; // última posição (%) da bolinha, p/ recentralizar quando a página aparecer
 function renderTimeline(ig){
   const pct=timelinePct(ig.weeks,ig.days);
 
@@ -3551,10 +3555,39 @@ function renderTimeline(ig){
     monthsWrap.appendChild(l);
   });
 
-  setTimeout(()=>{
-    tl.parentElement.scrollLeft=(pct/100)*(MAX_WEEKS*TL_STEP)-tl.parentElement.clientWidth/2+23;
-  },160);
+  tlPct=pct;
+  // A bolinha anima o `left` por .9s, mas a centralização usa o pct (posição
+  // final), então não depende do fim da animação.
+  requestAnimationFrame(()=>centerTimeline(isResultPageVisible()));
 }
+
+function isResultPageVisible(){
+  const pg=document.getElementById('pg-result');
+  return !!pg&&pg.classList.contains('active');
+}
+
+/* Centraliza a bolinha da IG no meio da faixa visível da timeline.
+   Só funciona com a página visível: enquanto #pg-result está display:none o
+   wrapper tem clientWidth 0 e o navegador ignora o scrollLeft. Por isso o pct
+   fica guardado em tlPct e a centralização é refeita quando a página aparece
+   (goToPage) ou quando a largura da tela muda. */
+function centerTimeline(smooth){
+  if(tlPct==null)return false;
+  const tl=document.getElementById('tlEl');
+  const wrap=tl&&tl.parentElement;
+  if(!wrap||!tl.offsetParent||!wrap.clientWidth)return false;
+  const wrapRect=wrap.getBoundingClientRect();
+  const tlRect=tl.getBoundingClientRect();
+  // centro da bolinha: `left:pct%` da largura de .tl (o translate(-50%) já a
+  // centra nesse ponto), medido a partir da borda esquerda de .tl.
+  const dotX=tlRect.left+(tlPct/100)*tl.offsetWidth;
+  const target=wrap.scrollLeft+dotX-(wrapRect.left+wrap.clientWidth/2);
+  const left=Math.max(0,Math.min(wrap.scrollWidth-wrap.clientWidth,target));
+  if(smooth&&typeof wrap.scrollTo==='function')wrap.scrollTo({left,behavior:'smooth'});
+  else wrap.scrollLeft=left;
+  return true;
+}
+window.addEventListener('resize',()=>centerTimeline(false));
 
 function renderPregResult(ig,dpp,method,silent){
   currentIG=ig;
