@@ -1,0 +1,22 @@
+name: Supabase keep alive
+
+# Evita que o projeto Supabase (plano gratuito) seja pausado por inatividade.
+on:
+  schedule:
+    - cron: '17 9 * * *' # todo dia, 09:17 UTC
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consulta leve na API do Supabase
+        env:
+          SUPABASE_URL: https://ustajtfcwnlrloutfrrt.supabase.co
+          # anon key pública (a mesma já exposta no index.html)
+          SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzdGFqdGZjd25scmxvdXRmcnJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MDY3OTQsImV4cCI6MjEwMjQ4Mjc5NH0.Cr3ANB10UOYmClsVG7gmy6uEScFg4VLo9YmOazEtIQo
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 \
+            "$SUPABASE_URL/rest/v1/pregnancy_profiles?select=user_id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY"
