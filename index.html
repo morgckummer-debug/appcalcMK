@@ -1336,11 +1336,13 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
    de marca usado no relatório da Curva Fetal — então a impressão preserva
    fundo e cores (print-color-adjust:exact) em vez de reduzir a preto e branco. */
 @media print{
-  body::after,.hdr,.bottom-nav,.toast,.exm-overlay,.card{display:none!important}
-  html,body{background:#fff!important}
-  #app{padding:0}
+  body::after,.hdr,.bottom-nav,.toast,.exm-overlay,.onb-overlay,.consent-bar,.card{display:none!important}
+  /* html/body/#app têm altura fixa + overflow escondido na tela; sem soltar
+     isso a impressão corta tudo além da 1ª "tela" (ou sai em branco). */
+  html,body{background:#fff!important;height:auto!important;overflow:visible!important}
+  #app{padding:0;height:auto!important;overflow:visible!important}
   .page{display:none!important;padding:0}
-  .page#pg-summary{display:block!important}
+  .page#pg-summary{display:block!important;opacity:1!important;transform:none!important;animation:none!important}
   #summarySheet .rpt-page{
     box-shadow:none!important;border-radius:0;margin-bottom:0;
   }
@@ -2087,7 +2089,7 @@ footer{text-align:center;padding:8px 16px 0;font-size:10px;color:var(--ink3);let
       <div class="helper">Toque em imprimir pra salvar como PDF ou levar impresso — o resto da tela não entra na impressão.</div>
     </div>
     <div id="summarySheet"></div>
-    <button class="btn-calc" id="summaryPrintBtn" style="margin-bottom:16px">🖨️ Imprimir / Salvar em PDF</button>
+    <button class="btn-calc no-print" id="summaryPrintBtn" style="margin-bottom:16px">🖨️ Imprimir / Salvar em PDF</button>
   </div>
 
   <!-- ── Sobre ── -->
