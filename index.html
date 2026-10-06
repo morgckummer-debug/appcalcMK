@@ -5138,7 +5138,7 @@ function renderSummary(){
             <button class="stab${summaryRangeDays===0?' on':''}" type="button" data-days="0">Tudo</button>
           </div>
         </div>
-        <div style="font-size:11px;color:var(--rp-texto3);margin:-6px 0 12px">Período das tabelas: ${rangeLbl}.</div>
+        <div class="no-print" style="font-size:11px;color:var(--rp-texto3);margin:-6px 0 12px">Período das tabelas: ${rangeLbl}.</div>
 
         <div class="rpt-section">
           <div class="rpt-section-t"><b>Pressão arterial</b>${bpRecent[0]?`<i>${fmtBP(bpRecent[0].sys,bpRecent[0].dia)}</i>`:''}</div>
@@ -5210,7 +5210,25 @@ async function buildSheetPdf(el){
   await loadScriptOnce('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
   // Clone fora da tela com largura de folha — o celular tem ~390px e o PDF
   // sairia como "print da tela" se capturássemos o elemento como está.
-  const PAGE_W=760;
+  // Margens da folha (as mesmas do @page da impressão) e largura útil em px.
+  const MX=16,MY=14,PAGE_W=Math.round((210-2*MX)*96/25.4);
+  // As regras de @media print do resumo (tabelas compactas etc.) não valem
+  // fora da impressão; copiamos só as que são do resumo, sem o @media.
+  const printStyle=document.createElement('style');
+  try{
+    let css='';
+    for(const sh of document.styleSheets){
+      let rules;try{rules=sh.cssRules;}catch{continue;}
+      for(const r of rules){
+        if(r.type===CSSRule.MEDIA_RULE&&/print/.test(r.conditionText||r.media.mediaText)){
+          for(const q of r.cssRules){
+            if(q.selectorText&&/^#(resumoSheet|summarySheet)\b/.test(q.selectorText))css+=q.cssText+'\n';
+          }
+        }
+      }
+    }
+    printStyle.textContent=css;document.head.appendChild(printStyle);
+  }catch{}
   const wrap=document.createElement('div');
   wrap.style.cssText='position:fixed;left:-20000px;top:0;width:'+PAGE_W+'px;background:#fff;z-index:-1';
   // Clona o contêiner inteiro (é nele que ficam as variáveis de cor do
@@ -5229,7 +5247,7 @@ async function buildSheetPdf(el){
     const {jsPDF}=window.jspdf;
     const pdf=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
     const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
-    const pagePx=ph*PAGE_W/pw;
+    const cw=pw-2*MX,pagePx=(ph-2*MY)*PAGE_W/cw;
     let y=0,first=true;
     while(y<total-1){
       let end=Math.min(y+pagePx,total);
@@ -5245,11 +5263,11 @@ async function buildSheetPdf(el){
       const ctx=part.getContext('2d');
       ctx.fillStyle='#fff';ctx.fillRect(0,0,part.width,part.height);
       ctx.drawImage(canvas,0,Math.round(y*k),canvas.width,part.height,0,0,part.width,part.height);
-      pdf.addImage(part.toDataURL('image/jpeg',0.92),'JPEG',0,0,pw,(end-y)*pw/PAGE_W);
+      pdf.addImage(part.toDataURL('image/jpeg',0.92),'JPEG',MX,MY,cw,(end-y)*cw/PAGE_W);
       y=end;
     }
     return pdf.output('blob');
-  }finally{wrap.remove();}
+  }finally{wrap.remove();printStyle.remove();}
 }
 let pendingPdfFile=null;
 async function sharePdfFile(file){
