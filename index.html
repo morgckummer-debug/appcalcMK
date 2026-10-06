@@ -5235,6 +5235,9 @@ async function buildSheetPdf(el){
   // resumo) e tira o que é só da tela: botões, abas de período, alça.
   const clone=el.cloneNode(true);
   clone.querySelectorAll('button,.no-print,.sex-tabs,.exm-sheet-handle,.exm-sheet-close').forEach(n=>n.remove());
+  // html2canvas desenha mal fundo de texto que quebra de linha (vira um
+  // bloco enorme); como caixa própria o destaque sai certo.
+  clone.querySelectorAll('mark').forEach(m=>{m.style.display='inline-block';m.style.lineHeight='1.35';});
   clone.style.cssText+=';position:static;transform:none;width:'+PAGE_W+'px;max-width:none;max-height:none;overflow:visible;margin:0;padding:0;border-radius:0;box-shadow:none;background:transparent';
   wrap.appendChild(clone);document.body.appendChild(wrap);
   try{
