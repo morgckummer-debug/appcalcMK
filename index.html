@@ -5186,70 +5186,10 @@ function renderSummary(){
   });
 }
 document.getElementById('summaryEntryBtn').addEventListener('click',()=>{renderSummary();goToPage('summary');});
-
-/* ── Salvar/compartilhar PDF ──
-   window.print() não faz nada em PWA instalado (iOS/Android standalone) nem
-   em navegadores embutidos (Instagram, WhatsApp). Então geramos o PDF de
-   verdade (html2canvas + jsPDF, carregados sob demanda) e entregamos pelo
-   compartilhar do celular ou por download; window.print() fica só de
-   último recurso. */
-function loadScriptOnce(src){
-  return new Promise((res,rej)=>{
-    if(document.querySelector('script[data-lib="'+src+'"]'))return res();
-    const s=document.createElement('script');
-    s.src=src;s.dataset.lib=src;s.onload=()=>res();s.onerror=()=>rej(new Error('load '+src));
-    document.head.appendChild(s);
-  });
-}
-async function savePdfFromElement(el,filename,btn){
-  const label=btn?btn.textContent:'';
-  if(btn){btn.disabled=true;btn.textContent='⏳ Gerando PDF…';}
-  try{
-    await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
-    await loadScriptOnce('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
-    const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,
-      windowWidth:Math.max(el.scrollWidth,360)});
-    const {jsPDF}=window.jspdf;
-    const pdf=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
-    const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
-    const imgH=canvas.height*pw/canvas.width;
-    const pages=Math.max(1,Math.ceil(imgH/ph-0.01));
-    for(let i=0;i<pages;i++){
-      if(i)pdf.addPage();
-      const sliceH=Math.min(ph,imgH-i*ph);
-      const part=document.createElement('canvas');
-      part.width=canvas.width;
-      part.height=Math.round(sliceH*canvas.width/pw);
-      const ctx=part.getContext('2d');
-      ctx.fillStyle='#fff';ctx.fillRect(0,0,part.width,part.height);
-      ctx.drawImage(canvas,0,Math.round(i*ph*canvas.width/pw),canvas.width,part.height,0,0,part.width,part.height);
-      pdf.addImage(part.toDataURL('image/jpeg',0.92),'JPEG',0,0,pw,sliceH);
-    }
-    const blob=pdf.output('blob');
-    const file=new File([blob],filename,{type:'application/pdf'});
-    if(navigator.canShare&&navigator.canShare({files:[file]})){
-      try{await navigator.share({files:[file],title:filename});return;}
-      catch(e){if(e&&e.name==='AbortError')return;}
-    }
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),60000);
-    showToast('PDF salvo ✓',2200);
-  }catch(err){
-    console.error(err);
-    showToast('Não consegui gerar o PDF. Tentando imprimir…',2400);
-    try{window.print();}catch(e){}
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent=label;}
-  }
-}
-document.getElementById('summaryPrintBtn').addEventListener('click',e=>{
+document.getElementById('summaryPrintBtn').addEventListener('click',()=>{
   renderSummary();
   if(currentIG&&!hasPremiumAccess()){showToast('Desbloqueie o Premium pra imprimir o resumo',2200);return;}
-  const page=document.querySelector('#summarySheet .rpt-page');
-  if(!page){showToast('Nada pra imprimir ainda',2000);return;}
-  savePdfFromElement(page,'resumo-consulta-babymk.pdf',e.currentTarget);
+  window.print();
 });
 
 /* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
