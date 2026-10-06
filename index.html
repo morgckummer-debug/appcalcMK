@@ -5188,10 +5188,112 @@ function renderSummary(){
   });
 }
 document.getElementById('summaryEntryBtn').addEventListener('click',()=>{renderSummary();goToPage('summary');});
-document.getElementById('summaryPrintBtn').addEventListener('click',()=>{
+/* ── Imprimir ──
+   No iPhone, window.print() não faz nada quando o app está instalado na
+   tela inicial (modo standalone). Nesse caso montamos um PDF em largura de
+   folha A4 e abrimos o menu de compartilhar do iOS, que tem "Imprimir"
+   (AirPrint) e "Salvar em Arquivos". No navegador comum segue window.print(). */
+function isStandalonePWA(){
+  try{return window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;}
+  catch{return false;}
+}
+function loadScriptOnce(src){
+  return new Promise((res,rej)=>{
+    if(document.querySelector('script[data-lib="'+src+'"]'))return res();
+    const s=document.createElement('script');
+    s.src=src;s.dataset.lib=src;s.onload=()=>res();s.onerror=()=>rej(new Error('load '+src));
+    document.head.appendChild(s);
+  });
+}
+async function buildSheetPdf(el){
+  await loadScriptOnce('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
+  await loadScriptOnce('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+  // Clone fora da tela com largura de folha — o celular tem ~390px e o PDF
+  // sairia como "print da tela" se capturássemos o elemento como está.
+  const PAGE_W=760;
+  const wrap=document.createElement('div');
+  wrap.style.cssText='position:fixed;left:-20000px;top:0;width:'+PAGE_W+'px;background:#fff;z-index:-1';
+  // Clona o contêiner inteiro (é nele que ficam as variáveis de cor do
+  // resumo) e tira o que é só da tela: botões, abas de período, alça.
+  const clone=el.cloneNode(true);
+  clone.querySelectorAll('button,.no-print,.sex-tabs,.exm-sheet-handle,.exm-sheet-close').forEach(n=>n.remove());
+  clone.style.cssText+=';position:static;transform:none;width:'+PAGE_W+'px;max-width:none;max-height:none;overflow:visible;margin:0;padding:0;border-radius:0;box-shadow:none;background:transparent';
+  wrap.appendChild(clone);document.body.appendChild(wrap);
+  try{
+    await (document.fonts&&document.fonts.ready);
+    const total=clone.getBoundingClientRect().height;
+    const top0=clone.getBoundingClientRect().top;
+    // pontos onde dá pra cortar sem partir uma seção ao meio
+    const cuts=[...clone.querySelectorAll('*')].filter(n=>n.offsetHeight>16).map(n=>n.getBoundingClientRect().bottom-top0);
+    const canvas=await html2canvas(clone,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:PAGE_W});
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+    const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
+    const pagePx=ph*PAGE_W/pw;
+    let y=0,first=true;
+    while(y<total-1){
+      let end=Math.min(y+pagePx,total);
+      if(end<total){
+        const ok=cuts.filter(c=>c<=end&&c>y+pagePx*0.5);
+        if(ok.length)end=Math.max(...ok);
+      }
+      if(!first)pdf.addPage();
+      first=false;
+      const k=canvas.width/PAGE_W;
+      const part=document.createElement('canvas');
+      part.width=canvas.width;part.height=Math.max(1,Math.round((end-y)*k));
+      const ctx=part.getContext('2d');
+      ctx.fillStyle='#fff';ctx.fillRect(0,0,part.width,part.height);
+      ctx.drawImage(canvas,0,Math.round(y*k),canvas.width,part.height,0,0,part.width,part.height);
+      pdf.addImage(part.toDataURL('image/jpeg',0.92),'JPEG',0,0,pw,(end-y)*pw/PAGE_W);
+      y=end;
+    }
+    return pdf.output('blob');
+  }finally{wrap.remove();}
+}
+let pendingPdfFile=null;
+async function sharePdfFile(file){
+  try{await navigator.share({files:[file],title:file.name});return true;}
+  catch(e){if(e&&e.name==='AbortError')return true;throw e;}
+}
+async function printSheet(el,filename,btn){
+  if(!isStandalonePWA()){window.print();return;}
+  const label=btn.dataset.label||(btn.dataset.label=btn.textContent);
+  if(pendingPdfFile){
+    // 2º toque: o iOS exige o compartilhar dentro de um toque novo
+    const f=pendingPdfFile;pendingPdfFile=null;btn.textContent=label;
+    try{await sharePdfFile(f);}catch{showToast('Não consegui abrir o menu de compartilhar',2400);}
+    return;
+  }
+  btn.disabled=true;btn.textContent='⏳ Preparando…';
+  try{
+    const blob=await buildSheetPdf(el);
+    const file=new File([blob],filename,{type:'application/pdf'});
+    if(!(navigator.canShare&&navigator.canShare({files:[file]}))){
+      window.open(URL.createObjectURL(blob),'_blank');
+      return;
+    }
+    try{await sharePdfFile(file);}
+    catch{
+      pendingPdfFile=file;
+      btn.textContent='✅ Pronto — toque de novo pra imprimir';
+      return;
+    }
+  }catch(err){
+    console.error(err);
+    showToast('Não consegui preparar a impressão. Confira a conexão e tente de novo.',3200);
+  }finally{
+    btn.disabled=false;
+    if(!pendingPdfFile)btn.textContent=label;
+  }
+}
+
+document.getElementById('summaryPrintBtn').addEventListener('click',e=>{
   renderSummary();
   if(currentIG&&!hasPremiumAccess()){showToast('Desbloqueie o Premium pra imprimir o resumo',2200);return;}
-  window.print();
+  const page=document.getElementById('summarySheet');
+  if(!page){showToast('Calcule a idade gestacional primeiro',2200);return;}
+  printSheet(page,'resumo-consulta-babymk.pdf',e.currentTarget);
 });
 
 /* ── Tutorial de boas-vindas (aparece na 1ª visita, revisitável pelo ❔) ── */
