@@ -5669,6 +5669,13 @@ async function exportUserData(){
     }
   }
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  /* No celular, o menu de compartilhar deixa salvar em Arquivos/Drive ou
+     mandar pelo WhatsApp — download direto costuma falhar em app instalado. */
+  const bkFile=new File([blob],'baby-mk-meus-dados.json',{type:'application/json'});
+  if(navigator.canShare&&navigator.canShare({files:[bkFile]})){
+    try{await navigator.share({files:[bkFile],title:'Backup baby-mk-meus-dados.json'});showToast('Backup pronto ✓',2000);return;}
+    catch(e){if(e&&e.name==='AbortError')return;}
+  }
   const url=URL.createObjectURL(blob);
   const link=document.createElement('a');
   link.href=url;
@@ -5676,6 +5683,30 @@ async function exportUserData(){
   link.click();
   URL.revokeObjectURL(url);
   showToast('Seus dados foram baixados',2000);
+}
+
+function importUserData(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onerror=()=>showToast('Não consegui ler o arquivo',2200);
+  reader.onload=()=>{
+    let payload;
+    try{payload=JSON.parse(reader.result);}catch{showToast('Arquivo inválido',2200);return;}
+    const data=payload&&payload.dadosNesteAparelho;
+    if(!payload||payload.app!=='Baby-MK'||!data||typeof data!=='object'){
+      showToast('Esse arquivo não é um backup do Baby-MK',2600);return;
+    }
+    const skip=[PREMIUM_KEY,ONB_KEY];
+    const keys=ALL_LOCAL_DATA_KEYS.filter(k=>!skip.includes(k)&&k in data);
+    if(!keys.length){showToast('O arquivo não tem registros pra restaurar',2400);return;}
+    const when=payload.exportDate?new Date(payload.exportDate).toLocaleDateString('pt-BR'):'data desconhecida';
+    if(!confirm('Restaurar o backup de '+when+'?\n\nIsso substitui, neste aparelho, os registros que existirem com os do arquivo ('+keys.length+' grupos de dados).'))return;
+    try{keys.forEach(k=>localStorage.setItem(k,JSON.stringify(data[k])));}
+    catch{showToast('Não deu pra salvar — o aparelho está sem espaço?',2600);return;}
+    showToast('Backup restaurado ✓',1800);
+    setTimeout(()=>location.reload(),900);
+  };
+  reader.readAsText(file);
 }
 
 function goEditMyData(){
@@ -5720,6 +5751,13 @@ function renderPrivacySheetBody(){
     </div>
 
     <div class="privacy-block">
+      <h3>📤 Restaurar backup</h3>
+      <p>Escolha o arquivo (.json) que você baixou antes pra trazer de volta peso, pressão, glicemia e os outros registros — por exemplo depois de reinstalar o app.</p>
+      <button class="btn-install" id="privacyImportBtn" type="button">Escolher arquivo de backup</button>
+      <input type="file" id="privacyImportFile" accept="application/json,.json" hidden>
+    </div>
+
+    <div class="privacy-block">
       <h3>✏️ Editar minhas informações</h3>
       <p>Nome, sexo do bebê, data base e os registros do dia a dia ficam na página Perfil.</p>
       <button class="btn-install" id="privacyEditBtn" type="button">Ir para editar</button>
@@ -5742,6 +5780,8 @@ function renderPrivacySheetBody(){
       <p>📧 dramorganapremium@gmail.com<br>📞 31 99391-0212</p>
     </div>`;
   document.getElementById('privacyExportBtn').addEventListener('click',exportUserData);
+  document.getElementById('privacyImportBtn').addEventListener('click',()=>document.getElementById('privacyImportFile').click());
+  document.getElementById('privacyImportFile').addEventListener('change',e=>{importUserData(e.target.files[0]);e.target.value='';});
   document.getElementById('privacyEditBtn').addEventListener('click',goEditMyData);
   document.getElementById('privacyPolicyOpenBtn').addEventListener('click',()=>window.open('politica.html','_blank'));
   document.getElementById('privacyDeleteBtn').addEventListener('click',eraseAllUserData);
