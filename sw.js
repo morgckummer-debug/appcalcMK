@@ -1,4 +1,4 @@
-const CACHE_NAME = 'babymk-v4';
+const CACHE_NAME = 'babymk-v5';
 const APP_SHELL = [
   './',
   './index.html',
@@ -34,7 +34,7 @@ self.addEventListener('fetch', e => {
   // sempre disponível importa mais do que resiliência offline aqui.
   if (e.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
     e.respondWith(
-      fetch(e.request).then(res => {
+      fetch(e.request.url, {cache: 'no-store'}).then(res => {
         if (res && res.status === 200) {
           const clone = res.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
