@@ -2485,11 +2485,9 @@ function fetalHeightFromFemur(femurCm){
 }
 
 /* ── Percentil de peso fetal estimado (PFE) ──
-   Combina duas tabelas de referência de peso (g), nos percentis 3/10/50/90,
-   por semana completa de IG: Hadlock (1991, 20–40 semanas) e INTERGROWTH-21st
-   (30–40 semanas, mais fiel perto do termo). Abaixo de 30 semanas usa só
-   Hadlock; a partir de 35 semanas usa só INTERGROWTH; entre 30 e 35 semanas
-   mistura as duas linearmente. Colunas de cada linha: [p3, p10, p50, p90]. */
+   Tabela de referência de peso (g), nos percentis 3/10/50/90, por semana
+   completa de IG: Hadlock (1991, 20–40 semanas). Colunas de cada linha:
+   [p3, p10, p50, p90]. */
 const PFE_HADLOCK_TABLE={
   20:[247,275,331,387], 21:[298,331,399,467], 22:[357,397,478,559],
   23:[424,472,568,664], 24:[503,556,670,784], 25:[590,653,785,918],
@@ -2498,12 +2496,6 @@ const PFE_HADLOCK_TABLE={
   32:[1465,1621,1953,2285], 33:[1622,1795,2162,2530], 34:[1788,1978,2377,2781],
   35:[1955,2164,2595,3036], 36:[2126,2352,2813,3291], 37:[2294,2537,3028,3543],
   38:[2455,2716,3236,3786], 39:[2607,2884,3435,4019], 40:[2747,3039,3619,4234]
-};
-const PFE_INTERGROWTH_TABLE={
-  30:[967,1089,1396,1813], 31:[1062,1207,1568,2050], 32:[1162,1334,1755,2304],
-  33:[1269,1469,1954,2570], 34:[1380,1612,2162,2843], 35:[1494,1761,2378,3116],
-  36:[1612,1913,2594,3381], 37:[1731,2068,2806,3629], 38:[1851,2221,3006,3850],
-  39:[1969,2368,3186,4034], 40:[2085,2505,3338,4171]
 };
 /* Escores-z padrão dos percentis 3/10/50/90, usados pra interpolar a curva
    peso→percentil sem assumir uma distribuição log-normal simétrica. */
@@ -2519,15 +2511,9 @@ function pfeInterpTableRow(table,gaWeeks){
   if(frac===0||!row1)return row0.slice();
   return row0.map((v,i)=>v+(row1[i]-v)*frac);
 }
-/* Monta a linha [p3,p10,p50,p90] de referência pra uma IG, aplicando a
-   regra de mistura Hadlock/INTERGROWTH descrita acima. */
+/* Monta a linha [p3,p10,p50,p90] de referência pra uma IG (só Hadlock). */
 function pfeReferenceRow(gaWeeks){
-  if(gaWeeks<30)return pfeInterpTableRow(PFE_HADLOCK_TABLE,gaWeeks);
-  if(gaWeeks>=35)return pfeInterpTableRow(PFE_INTERGROWTH_TABLE,gaWeeks);
-  const hadlockRow=pfeInterpTableRow(PFE_HADLOCK_TABLE,gaWeeks);
-  const intergrowthRow=pfeInterpTableRow(PFE_INTERGROWTH_TABLE,gaWeeks);
-  const t=(gaWeeks-30)/(35-30);
-  return hadlockRow.map((v,i)=>v+(intergrowthRow[i]-v)*t);
+  return pfeInterpTableRow(PFE_HADLOCK_TABLE,gaWeeks);
 }
 /* Aproximação de Abramowitz & Stegun 7.1.26 pra função erro. */
 function pfeErf(x){
